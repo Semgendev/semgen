@@ -4,7 +4,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 
 ## Phase 0 — Fondations
 - [x] T0.1 🔵 Initialiser Next.js + TypeScript strict + Tailwind + shadcn/ui + ESLint/Prettier + Vitest + Playwright
-- [ ] T0.2 🔵 Thème clair/sombre (`next-themes`) + design system (couleurs, typos, composants de base)
+- [x] T0.2 🔵 Thème clair/sombre (`next-themes`) + design system (couleurs, typos, composants de base)
 - [ ] T0.3 🟢 i18n FR/EN (`next-intl`) + sélecteur de langue
 - [ ] T0.4 🔵 CI GitHub Actions (lint, typecheck, tests) + déploiement Netlify preview
 - [ ] T0.5 🔵 Sentry + PostHog

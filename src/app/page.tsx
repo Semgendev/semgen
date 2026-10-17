@@ -1,7 +1,13 @@
+import { HomeHero } from "@/components/home-hero";
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <h1 className="text-4xl font-bold tracking-tight">SemGen Studio</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 p-6">
+      <header className="flex justify-end">
+        <ThemeToggle />
+      </header>
+      <HomeHero />
     </main>
   );
 }

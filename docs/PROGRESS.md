@@ -4,12 +4,12 @@
 
 ## État actuel
 - **Phase :** 0 — Fondations
-- **Tâche en cours :** T0.2 (pas encore commencée)
-- **Prochaine étape :** thème clair/sombre + design system
+- **Tâche en cours :** T0.3 (pas encore commencée)
+- **Prochaine étape :** i18n FR/EN (next-intl) + sélecteur de langue
 - **Bloquants / à faire par Ashanti :** installer les outils (voir `DEMARRAGE.md`)
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
-- [ ] GitHub · [ ] Netlify · [ ] Supabase · [ ] Cloudflare (R2) · [ ] Trigger.dev
+- [x] GitHub (créé le 2026-10-17, email Semgen.dev@gmail.com) · [ ] Netlify · [ ] Supabase · [ ] Cloudflare (R2) · [ ] Trigger.dev
 - [ ] AssemblyAI · [ ] Anthropic API · [ ] ElevenLabs · [ ] AWS (Remotion Lambda)
 - [ ] FedaPay · [ ] pawaPay · [ ] Resend · [ ] Upstash · [ ] Sentry · [ ] PostHog
 
@@ -18,6 +18,7 @@
 |---|---|---|---|
 | 2026-10-17 | Préparation du dossier | ✅ | PRD, architecture, roadmap, règles créés |
 | 2026-10-17 | T0.1 | ✅ | Next.js 16 + TS strict + Tailwind + shadcn/ui + Prettier + Vitest + Playwright (desktop/tablette/mobile) |
+| 2026-10-17 | T0.2 | ✅ | Thème clair/sombre/système (next-themes), palette violet/indigo pilotée par `--brand-hue` dans globals.css, composants Card/Input/Label/Dialog/DropdownMenu/Skeleton, Framer Motion |
 | 2026-10-17 | Mise à jour | ✅ | Basé au Bénin (paiements FedaPay + pawaPay), recadrage intelligent ajouté à la V1 |
 
 ## Problèmes ouverts
