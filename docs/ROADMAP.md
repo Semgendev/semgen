@@ -7,7 +7,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 - [x] T0.2 🔵 Thème clair/sombre (`next-themes`) + design system (couleurs, typos, composants de base)
 - [ ] T0.3 🟢 i18n FR/EN (`next-intl`) + sélecteur de langue
 - [x] T0.4 🔵 CI GitHub Actions (lint, typecheck, tests) + déploiement Netlify preview
-- [ ] T0.5 🔵 Sentry + PostHog
+- [x] T0.5 🔵 Sentry + PostHog
 
 ## Phase 1 — Comptes et crédits (F1)
 - [ ] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`

@@ -9,6 +9,7 @@ export default defineConfig({
     command: "npm run build && npm run start -- -p 3100",
     url: "http://localhost:3100",
     reuseExistingServer: false,
+    env: { NEXT_PUBLIC_POSTHOG_KEY: "", NEXT_PUBLIC_SENTRY_DSN: "" },
     timeout: 180_000,
   },
   projects: [
