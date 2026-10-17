@@ -10,7 +10,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 - [x] T0.5 🔵 Sentry + PostHog
 
 ## Phase 1 — Comptes et crédits (F1)
-- [ ] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`
+- [x] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`
 - [ ] T1.2 🔵 Auth email + Google, pages connexion/inscription, 10 crédits offerts à l'inscription
 - [ ] T1.3 🔵 Affichage du solde + historique des crédits
 
