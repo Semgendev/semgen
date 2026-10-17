@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run test)",
+      "Bash(npm run test:*)",
+      "Bash(npm run *)",
+      "Bash(npm test)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright *)",
+      "Bash(npx vitest *)",
+      "Bash(npx prettier *)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(npx next *)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git init)"
+    ],
+    "ask": [
+      "Bash(npm install:*)",
+      "Bash(npm i:*)",
+      "Bash(npx supabase db:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "Bash(netlify deploy:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(git push --force:*)",
+      "Bash(npx supabase db reset:*)"
+    ]
+  }
+}

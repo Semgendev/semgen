@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+.netlify/
+.DS_Store
+
+/build
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
