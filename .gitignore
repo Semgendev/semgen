@@ -15,3 +15,6 @@ test-results/
 *.tsbuildinfo
 next-env.d.ts
 npm-debug.log*
+
+# Screenshots shared with Claude (kept local)
+/capture/
