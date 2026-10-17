@@ -20,16 +20,16 @@ export function HomeHero() {
     >
       <div>
         <h1 className="text-4xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="mt-2 text-lg text-muted-foreground">{t("subtitle")}</p>
+        <p className="text-muted-foreground mt-2 text-lg">{t("subtitle")}</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Get started</CardTitle>
-          <CardDescription>Upload your video to begin.</CardDescription>
+          <CardTitle>{t("cardTitle")}</CardTitle>
+          <CardDescription>{t("cardDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="demo-input">Video file</Label>
+            <Label htmlFor="demo-input">{t("fileLabel")}</Label>
             <Input id="demo-input" type="file" />
           </div>
           <Button className="w-full">{t("cta")}</Button>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { getLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { locales } from "@/i18n/routing";
 
 import "../globals.css";
 
@@ -23,10 +24,16 @@ export const metadata: Metadata = {
   description: "SemGen Studio",
 };
 
-type LayoutProps = { children: React.ReactNode };
+type LayoutProps = { children: React.ReactNode; params: Promise<{ locale: string }> };
 
-export default async function RootLayout({ children }: LayoutProps) {
-  const locale = await getLocale();
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export default async function RootLayout({ children, params }: LayoutProps) {
+  const { locale } = await params;
+  if (!(locales as readonly string[]).includes(locale)) notFound();
+  setRequestLocale(locale);
   const messages = await getMessages();
 
   return (

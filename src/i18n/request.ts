@@ -1,4 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
+
 import enMessages from "../../messages/en.json";
 import frMessages from "../../messages/fr.json";
 
@@ -7,11 +8,15 @@ const messages = {
   fr: frMessages,
 } as const;
 
-export default getRequestConfig(async ({ locale }) => {
-  const localeStr = (locale && locale in messages ? locale : "en") as keyof typeof messages;
+type Locale = keyof typeof messages;
 
-  return {
-    locale: localeStr,
-    messages: messages[localeStr],
-  };
+function isLocale(value: string | undefined): value is Locale {
+  return value !== undefined && value in messages;
+}
+
+export default getRequestConfig(async ({ requestLocale }) => {
+  const requested = await requestLocale;
+  const locale: Locale = isLocale(requested) ? requested : "en";
+
+  return { locale, messages: messages[locale] };
 });

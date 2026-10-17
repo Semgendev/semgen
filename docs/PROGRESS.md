@@ -4,12 +4,12 @@
 
 ## État actuel
 - **Phase :** 0 — Fondations
-- **Tâche en cours :** T0.4 (pas encore commencée)
-- **Prochaine étape :** CI GitHub Actions + Netlify preview
-- **Bloquants / à faire par Ashanti :** créer repo GitHub, créer compte Netlify
+- **Tâche en cours :** T0.4 (CI écrite, reste : push GitHub + lier Netlify)
+- **Prochaine étape :** pousser sur GitHub, vérifier que la CI est verte, lier le repo à Netlify (preview)
+- **Bloquants / à faire par Ashanti :** lier le repo GitHub Semgendev/semgen à Netlify (Claude guidera)
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
-- [x] GitHub (créé le 2026-10-17, email Semgen.dev@gmail.com) · [ ] Netlify · [ ] Supabase · [ ] Cloudflare (R2) · [ ] Trigger.dev
+- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [ ] Supabase · [ ] Cloudflare (R2) · [ ] Trigger.dev
 - [ ] AssemblyAI · [ ] Anthropic API · [ ] ElevenLabs · [ ] AWS (Remotion Lambda)
 - [ ] FedaPay · [ ] pawaPay · [ ] Resend · [ ] Upstash · [ ] Sentry · [ ] PostHog
 
@@ -20,7 +20,8 @@
 | 2026-10-17 | T0.1 | ✅ | Next.js 16 + TS strict + Tailwind + shadcn/ui + Prettier + Vitest + Playwright (desktop/tablette/mobile) |
 | 2026-10-17 | T0.2 | ✅ | Thème clair/sombre/système (next-themes), palette violet/indigo pilotée par `--brand-hue` dans globals.css, composants Card/Input/Label/Dialog/DropdownMenu/Skeleton, Framer Motion |
 | 2026-10-17 | Mise à jour | ✅ | Basé au Bénin (paiements FedaPay + pawaPay), recadrage intelligent ajouté à la V1 |
-| 2026-10-17 | T0.3 | ✅ | i18n FR/EN avec next-intl, middleware de routing, LanguageSwitcher, traductions de HomeHero et ThemeToggle, commit a16f5c2 |
+| 2026-10-17 | T0.3 | ✅ | i18n FR/EN (next-intl), sélecteur de langue, `/en` et `/fr`, test E2E du changement de langue |
+| 2026-10-17 | T0.4 (partie 1) | 🔄 | CI GitHub Actions (lint, types, tests, build, E2E), netlify.toml, middleware renommé en proxy, E2E sur build de production (port 3100) |
 
 ## Problèmes ouverts
 - Paquets de test installés avec `--legacy-peer-deps` (conflit babel dans shadcn) : à réévaluer plus tard.

@@ -13,6 +13,9 @@
   "hero": {
     "title": "SemGen Studio",
     "subtitle": "Sous-titres, traduction et doublage vidéo en un clic",
-    "cta": "Commencer maintenant"
+    "cta": "Commencer maintenant",
+    "cardTitle": "Pour commencer",
+    "cardDescription": "Importe ta vidéo pour démarrer.",
+    "fileLabel": "Fichier vidéo"
   }
 }

@@ -13,6 +13,9 @@
   "hero": {
     "title": "SemGen Studio",
     "subtitle": "Captions, translation and video dubbing in one click",
-    "cta": "Get started"
+    "cta": "Get started",
+    "cardTitle": "Get started",
+    "cardDescription": "Upload your video to begin.",
+    "fileLabel": "Video file"
   }
 }

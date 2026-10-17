@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Globe } from "lucide-react";
 
@@ -14,12 +14,13 @@ import {
 
 export function LanguageSwitcher() {
   const locale = useLocale();
+  const t = useTranslations("language");
   const router = useRouter();
   const pathname = usePathname();
 
   const languages = [
-    { value: "en", label: "English" },
-    { value: "fr", label: "Français" },
+    { value: "en", label: t("en") },
+    { value: "fr", label: t("fr") },
   ] as const;
 
   const handleChangeLanguage = (newLocale: "en" | "fr") => {
@@ -29,7 +30,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon" aria-label="Change language" />}
+        render={<Button variant="outline" size="icon" aria-label={t("label")} />}
       >
         <Globe className="size-4" />
       </DropdownMenuTrigger>
