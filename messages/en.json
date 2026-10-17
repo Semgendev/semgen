@@ -1,0 +1,18 @@
+{
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "label": "Change theme"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "label": "Change language"
+  },
+  "hero": {
+    "title": "SemGen Studio",
+    "subtitle": "Captions, translation and video dubbing in one click",
+    "cta": "Get started"
+  }
+}

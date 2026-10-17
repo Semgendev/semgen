@@ -1,0 +1,18 @@
+{
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "label": "Changer le thème"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "label": "Changer la langue"
+  },
+  "hero": {
+    "title": "SemGen Studio",
+    "subtitle": "Sous-titres, traduction et doublage vidéo en un clic",
+    "cta": "Commencer maintenant"
+  }
+}

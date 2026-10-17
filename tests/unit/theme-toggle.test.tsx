@@ -1,16 +1,28 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "next-themes";
+import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
+const messages = {
+  theme: {
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+    label: "Change theme",
+  },
+};
+
 describe("ThemeToggle", () => {
   it("offers light, dark and system options", async () => {
     render(
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ThemeToggle />
-      </ThemeProvider>,
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeToggle />
+        </ThemeProvider>
+      </NextIntlClientProvider>,
     );
 
     await userEvent.click(screen.getByRole("button", { name: "Change theme" }));

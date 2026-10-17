@@ -2,6 +2,7 @@
 
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,20 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const OPTIONS = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "dark", label: "Dark", Icon: Moon },
-  { value: "system", label: "System", Icon: Monitor },
-] as const;
-
-// TODO(T0.3): replace the hard-coded labels with next-intl translations.
 export function ThemeToggle() {
   const { setTheme } = useTheme();
+  const t = useTranslations("theme");
+
+  const OPTIONS = [
+    { value: "light", label: t("light"), Icon: Sun },
+    { value: "dark", label: t("dark"), Icon: Moon },
+    { value: "system", label: t("system"), Icon: Monitor },
+  ] as const;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon" aria-label="Change theme" />}
+        render={<Button variant="outline" size="icon" aria-label={t("label")} />}
       >
         <Sun className="size-4 scale-100 rotate-0 transition-transform dark:scale-0 dark:-rotate-90" />
         <Moon className="absolute size-4 scale-0 rotate-90 transition-transform dark:scale-100 dark:rotate-0" />
