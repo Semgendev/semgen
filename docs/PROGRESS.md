@@ -4,9 +4,9 @@
 
 ## État actuel
 - **Phase :** 0 — Fondations
-- **Tâche en cours :** T0.4 (CI écrite, reste : push GitHub + lier Netlify)
-- **Prochaine étape :** pousser sur GitHub, vérifier que la CI est verte, lier le repo à Netlify (preview)
-- **Bloquants / à faire par Ashanti :** lier le repo GitHub Semgendev/semgen à Netlify (Claude guidera)
+- **Tâche en cours :** T0.5 (pas encore commencée)
+- **Prochaine étape :** Sentry (erreurs) + PostHog (statistiques) — comptes gratuits à créer
+- **Bloquants / à faire par Ashanti :** créer comptes Sentry et PostHog (Claude guidera)
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
 - [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [ ] Supabase · [ ] Cloudflare (R2) · [ ] Trigger.dev
@@ -21,7 +21,7 @@
 | 2026-10-17 | T0.2 | ✅ | Thème clair/sombre/système (next-themes), palette violet/indigo pilotée par `--brand-hue` dans globals.css, composants Card/Input/Label/Dialog/DropdownMenu/Skeleton, Framer Motion |
 | 2026-10-17 | Mise à jour | ✅ | Basé au Bénin (paiements FedaPay + pawaPay), recadrage intelligent ajouté à la V1 |
 | 2026-10-17 | T0.3 | ✅ | i18n FR/EN (next-intl), sélecteur de langue, `/en` et `/fr`, test E2E du changement de langue |
-| 2026-10-17 | T0.4 (partie 1) | 🔄 | CI GitHub Actions (lint, types, tests, build, E2E), netlify.toml, middleware renommé en proxy, E2E sur build de production (port 3100) |
+| 2026-10-17 | T0.4 | ✅ | Site en ligne : https://semgen.netlify.app ; CI GitHub Actions (lint, types, tests, build, E2E), netlify.toml, middleware renommé en proxy, E2E sur build de production (port 3100) |
 
 ## Problèmes ouverts
 - Paquets de test installés avec `--legacy-peer-deps` (conflit babel dans shadcn) : à réévaluer plus tard.
