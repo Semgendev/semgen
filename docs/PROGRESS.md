@@ -1,66 +1,57 @@
 # Progression
 
-> Claude : mets ce fichier à jour à CHAQUE fin de tâche. Garde-le court (les 10 dernières entrées max dans le journal).
+> Claude : mets ce fichier à jour à CHAQUE fin de tâche. Garde-le court (journal : 10 entrées max, les anciennes sont regroupées).
 
-## État actuel (pause du 2026-10-18)
-- **Phase :** 2 — Upload et projets → Phase 3 (transcription) en cours
-- **Fait et validé en dev ET prod :** connexion lien magique + captcha, crédits (10 offerts, 1 seul bonus par boîte mail), upload vidéo (50 Mo, Supabase Storage provisoire), liste des projets + page projet avec lecteur, renommer, supprimer.
-- **Fait côté code, testé en dev seulement (NON envoyé en prod ; poussé sur GitHub le 2026-10-18) :** moteur de transcription (T2.3 + T3.1) : tables `jobs` + `transcripts`, `request_transcription()`, tâche Trigger.dev `transcribe-project` (ffprobe serveur, crédits selon la durée réelle, AssemblyAI, remboursement auto), interface `TranscriptionProvider` (AssemblyAI ; ElevenLabs Scribe prévu pour les langues africaines).
-- **Migrations :** 4 sur dev + prod (credits_and_profiles, signup_bonus_claims, projects_and_video_storage, + jobs sur DEV seulement). `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
-- **Tests :** 45 unitaires, 33 d’intégration (base dev), 27 E2E (build prod sur le port 3100). Tout vert au dernier passage.
+## État actuel (2026-10-18, fin de session)
+- **Phase :** 3 terminée côté code (transcription visible dans le site) → refonte visuelle (T0.7) puis éditeur de transcription (T3.2).
+- **En ligne (dev ET prod) :** connexion lien magique + captcha, crédits (10 offerts), upload vidéo (50 Mo), liste des projets, page projet, renommer, supprimer.
+- **Code testé en DEV seulement (pas en prod) :** transcription complète (tables `jobs`/`transcripts`, tâche `transcribe-project`, interface : choix de langue, coût avant, progression, texte mot par mot synchronisé, mots douteux, copier/SRT/TXT) ; aperçu vidéo universel (copie H.264, tâche `create-video-preview`) ; thèmes v2 (3 palettes × clair/sombre, bouton soleil/lune, page Paramètres › Apparence, `/dev/themes`).
+- **GitHub :** dernier push = `bb71a10`. **Depuis, 6 commits NON poussés** (aperçu vidéo, transcription UI, thèmes, bascule clair/sombre). Pousser seulement quand Ashanti dit « push ».
+- **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs` et `video_preview`. `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
+- **Tests :** 75 unitaires verts ; intégration (base dev) verts au dernier passage ; E2E : `theme.spec.ts` et `palette.spec.ts` modifiés/écrits mais **pas relancés** (arrêter `npm run dev` avant).
 
 ## Pour reprendre (ordre)
-1. Nouveau terminal VS Code (FFmpeg 9.0.2 installé via winget, PATH à recharger) → `npx trigger.dev@latest login` puis `npx trigger.dev@latest dev` (à laisser tourner).
-2. ✅ Premier vrai test fait (voir journal).
-3. Interface (Sonnet) : bouton « Détecter la langue et transcrire » (choix de langue, coût affiché avant), progression en direct (Realtime sur `jobs`), affichage du texte mot par mot, mots peu sûrs surlignés. Textes FR/EN.
-4. Déploiement du worker (`npx trigger.dev deploy`, clé PROD dans Netlify, ASSEMBLYAI_API_KEY dans Trigger.dev), migration jobs sur PROD (accord d’Ashanti), `git push`.
-5. Ensuite : ElevenLabs Scribe (compte + clé), limite d’uploads (Upstash), éditeur de transcription (T3.2).
+1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2, déjà connecté).
+2. Ashanti valide à l’œil `/fr/settings/appearance` et la page projet (captures dans `capture/`).
+3. **T0.7 — refonte visuelle (Sonnet)** : page projet, liste, upload, compte, connexion avec le design de `docs/DESIGN.md` (direction « Studio sobre » + galerie vivante). Inclure **T2.5 aperçu instantané** (D17 : la vidéo s’affiche dès le choix du fichier, avant la fin de l’envoi).
+4. **T3.2 — éditeur de transcription** (corriger un mot, fusionner/scinder).
+5. **Déploiement en prod** : migrations `jobs` + `video_preview` sur PROD (accord d’Ashanti), `npx trigger.dev deploy`, clés dans Netlify, `ASSEMBLYAI_API_KEY` dans Trigger.dev, puis `git push`.
+6. Ensuite (Opus pour T4.1) : moteur de styles de sous-titres Remotion (T4.x), traduction 100+ langues (T5.x), interface en plus de langues (T5.3, arabe en RTL).
+
+## Où lire quoi
+- Design : `docs/DESIGN.md` · références et captures : `capture/design/` (brief, tokens, maquettes, captures Submagic / Caption Studio).
+- Langues : `docs/features/languages.md` · décisions : `docs/DECISIONS.md` (D14 licences, D15 palettes, D16 langues, D17 aperçu instantané, D18 pas de style verrouillé, D19 design) · licences : `docs/THIRD_PARTY.md` + `CLAUDE.md` §10.
 
 ## Bloquants / à faire par Ashanti
-- Se connecter à Trigger.dev depuis le terminal et lancer `dev` (voir « Pour reprendre »).
-- Plus tard : nom de domaine + Resend avant d’inviter de vrais utilisateurs (les e-mails Supabase sont limités) ; carte bancaire/virtuelle pour Cloudflare R2 avant le lancement (stockage vidéo provisoire = 50 Mo) ; clé ElevenLabs ; limite de dépense Trigger.dev si plan payant.
-- Clé Trigger.dev DEV expire le 2027-01-16 (à renouveler).
+- Plus tard : nom de domaine + Resend avant d’inviter de vrais utilisateurs ; carte pour Cloudflare R2 avant le lancement (stockage provisoire = 50 Mo) ; clé ElevenLabs ; limite de dépense Trigger.dev.
+- Clé Trigger.dev DEV expire le 2027-01-16.
+- Confirmer le style de la landing et du logo quand on y sera (T9.1).
 
 ## Comptes (état)
-- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (semgen.netlify.app) · [x] Supabase (dev lbigqadoaciuvvhdhitr, prod dxrsgnuyehewkooszonk) · [x] Cloudflare (Turnstile ; R2 plus tard) · [x] Trigger.dev (proj_cufdcyzzcdrndjgsbnxy, plan Free) · [x] AssemblyAI ($50 offerts, sans carte) · [x] Sentry · [x] PostHog (EU)
-- [ ] ElevenLabs · [ ] Anthropic API · [ ] AWS (Remotion Lambda) · [ ] FedaPay · [ ] pawaPay · [ ] Resend · [ ] Upstash
+- [x] GitHub (Semgendev/semgen) · Netlify (semgen.netlify.app) · Supabase (dev + prod) · Cloudflare (Turnstile) · Trigger.dev (Free) · AssemblyAI ($50 offerts) · Sentry · PostHog (EU)
+- [ ] ElevenLabs · Anthropic API · AWS (Remotion Lambda) · FedaPay · pawaPay · Resend · Upstash
 
 ## Journal
-| Date | Tâche | Résultat | Notes |
-|---|---|---|---|
-| 2026-10-17 | Préparation du dossier | ✅ | PRD, architecture, roadmap, règles créés |
-| 2026-10-17 | T0.1 | ✅ | Next.js 16 + TS strict + Tailwind + shadcn/ui + Prettier + Vitest + Playwright (desktop/tablette/mobile) |
-| 2026-10-17 | T0.2 | ✅ | Thème clair/sombre/système (next-themes), palette violet/indigo pilotée par `--brand-hue` dans globals.css, composants Card/Input/Label/Dialog/DropdownMenu/Skeleton, Framer Motion |
-| 2026-10-17 | Mise à jour | ✅ | Basé au Bénin (paiements FedaPay + pawaPay), recadrage intelligent ajouté à la V1 |
-| 2026-10-17 | T0.3 | ✅ | i18n FR/EN (next-intl), sélecteur de langue, `/en` et `/fr`, test E2E du changement de langue |
-| 2026-10-17 | T0.4 | ✅ | Site en ligne : https://semgen.netlify.app ; CI GitHub Actions (lint, types, tests, build, E2E), netlify.toml, middleware renommé en proxy, E2E sur build de production (port 3100) |
-| 2026-10-17 | T0.5 | ✅ | Sentry (erreurs) + PostHog (stats, région EU), inactifs sans clés, test unitaire ; clés dans .env.local (ignoré par git) et dans Netlify ; PostHog vérifié en ligne (pageview reçu) |
-| 2026-10-18 | T1.1 | ✅ | Migration profiles + credit_ledger (ajout seul) + bonus 10 crédits à la confirmation d’email + reserve/refund_credits (serveur seul, verrou). Audit sécurité appliqué. 14 tests d’intégration verts sur semgen-dev |
-| 2026-10-18 | T1.2 (partie 1) | ✅ | Lien magique + Turnstile + registre des bonus + pages login/account ; testé de bout en bout sur dev et prod (10 crédits, un seul bonus) |
-| 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
-| 2026-10-18 | T2.1 | ✅ | Upload vidéo (TUS, 50 Mo, Supabase Storage provisoire) testé en dev ET prod : projet « uploaded » + fichier stocké |
-| 2026-10-18 | T2.2 | ✅ | Liste des projets (miniatures via lien signé), page projet avec lecteur vidéo, renommer, supprimer (fichier + ligne), redirection après upload |
-| 2026-10-18 | T2.3 + T3.1 (moteur) | ✅ | Premier vrai test (dev) : vidéo FR de 9,8 Mo → langue fr détectée (0,83), 47 mots, 1 crédit débité (10→9) ; vidéo sans audio → refus propre `no_audio`, 0 crédit. Script : scripts/try-transcription.mts. Reste l’interface |
-| 2026-10-18 | Aperçu vidéo universel | ✅ dev | Colonnes `preview_status`/`preview_video_key` (migration sur DEV seulement) ; tâche `create-video-preview` (copie H.264/AAC 720p, HDR→SDR, source gardée si déjà .mp4 H.264 8 bits) ; lancée après l’upload et à l’ouverture d’un projet « pending » ; page projet avec attente + « Réessayer ». Testé : iPhone HEVC 10 bits .mov → mp4 1 Mo, couleurs OK |
-| 2026-10-18 | Transcription dans le site (T3.1 UI) | ✅ à valider visuellement | Page projet en 2 colonnes (vidéo à sa vraie taille, sans bandes noires) ; bouton « Détecter la langue et transcrire » (langue, coût + solde avant, bloqué si crédits insuffisants) ; progression par étapes (lecture du job toutes les 2,5 s) ; texte mot par mot synchronisé avec la vidéo (karaoké, clic = aller au mot), mots douteux soulignés, copier / SRT / TXT ; rotation iPhone prise en compte dans la sonde ; durée enregistrée dès l’aperçu. 63 tests unitaires verts |
-| 2026-10-18 | Design : analyse + T0.6 thèmes v2 | ✅ code / ⏳ à valider à l’œil | Analyse des captures Submagic / Caption Studio ; `docs/DESIGN.md`, `docs/features/languages.md`, D14–D19, CLAUDE.md §10 (licences, aucune couleur en dur) ; 3 palettes × 2 modes (tokens, cookie `sg-palette`, script anti-flash, landing toujours Cobalt), page Paramètres › Apparence, `/dev/themes`, polices Plus Jakarta Sans + Geist ; tests contraste / couleurs en dur / palette (75 unitaires verts) ; E2E `palette.spec.ts` écrit, pas encore lancé (serveur local ouvert) |
+| Date | Tâche | Résultat |
+|---|---|---|
+| 2026-10-17 | T0.1 à T0.5 : Next.js 16, thème, i18n FR/EN, CI + Netlify, Sentry + PostHog | ✅ |
+| 2026-10-18 | T1.1 à T1.3 : crédits (RLS, réserve/remboursement), lien magique + Turnstile, solde + historique | ✅ dev + prod |
+| 2026-10-18 | T2.1, T2.2 : upload vidéo, liste, page projet, renommer, supprimer | ✅ dev + prod |
+| 2026-10-18 | T2.3 + T3.1 moteur : premier vrai test (FR détecté 0,83 ; 47 mots ; 1 crédit ; vidéo sans audio refusée) | ✅ dev |
+| 2026-10-18 | Aperçu vidéo universel (iPhone HEVC/HDR → MP4 H.264, 1 Mo) | ✅ dev |
+| 2026-10-18 | Transcription dans le site (langue, coût, progression, karaoké, SRT/TXT) | ✅ dev, vu en capture |
+| 2026-10-18 | Analyse design Submagic / Caption Studio ; `DESIGN.md`, `languages.md`, D14–D19 | ✅ |
+| 2026-10-18 | T0.6 thèmes v2 : 3 palettes × 2 modes, tokens, Apparence, `/dev/themes`, tests contraste / couleurs en dur | ✅ dev, vu en capture |
+| 2026-10-18 | Bascule clair/sombre en un seul bouton (plus de « Système ») | ✅ |
 
 ## Problèmes ouverts
-- Le serveur local servait encore l’ancien CSS après les changements : redémarrer `npm run dev` pour voir les nouvelles couleurs.
-- E2E `tests/e2e/palette.spec.ts` à lancer (serveur local arrêté avant).
-- Pas encore de test E2E Playwright pour la page projet (il faut un compte de test connecté + worker Trigger.dev) : à ajouter.
-- Transcription UI : pas encore d’édition des mots (T3.2) ni de recherche dans le texte.
-- Aperçu : pas de limite de débit sur `requestPreview` (Upstash à venir) ; un aperçu bloqué en « processing » (worker mort) n’est pas relancé automatiquement.
-- Migration `video_preview` à appliquer sur PROD au moment du déploiement (accord d’Ashanti), avec le worker Trigger.dev déployé.
-- Dev : ne PAS lancer `npm run build` / `test:e2e` pendant que le serveur local tourne (ils partagent `.next` et le corrompent → page qui « clignote »). Arrêter le serveur avant, le relancer après.
-- Les tests d’intégration créent des comptes `@example.com` dans la base de dev et les suppriment à la fin ; en cas d’interruption, nettoyer les restes.
-- Anti-abus upload : pas encore de rate limiting ; type MIME seulement déclaré (vérifier les premiers octets) ; la durée est vérifiée côté serveur par la tâche de transcription.
-- Stockage vidéo PROVISOIRE sur Supabase Storage (50 Mo max, pas de carte bancaire). Prévu : Cloudflare R2 (carte requise) avant le lancement ; le client d’upload (TUS) sera à adapter en multipart S3.
-- Upload : pas encore de rate limiting (Upstash), durée vérifiée seulement côté navigateur (ffprobe serveur en T2.3), type MIME seulement déclaré (vérif magic bytes à ajouter).
-- Nom de domaine + Resend à prévoir avant d’inviter de vrais utilisateurs.
-- Emails Supabase limités (~2-4/h) : avant lancement, Resend + nom de domaine à acheter.
-- Anti-abus du bonus (suppression puis réinscription, emails jetables / +alias) : à traiter en T1.2 (captcha, rate limiting, registre des emails ayant reçu un bonus).
-- Tests d’intégration (`npm run test:integration`) lancés en local seulement, pas encore dans la CI (il faudrait des secrets GitHub vers un projet de test).
-- Projet Supabase de production (`semgen-prod`) à créer avant le lancement.
-- Paquets de test installés avec `--legacy-peer-deps` (conflit babel dans shadcn) : à réévaluer plus tard.
-- Vérifier la disponibilité des domaines (semgen.studio, semgen.com, semgen.ai) et de la marque (WIPO, EUIPO, USPTO — classes 9 et 42).
+- Le serveur local garde parfois l’ancien CSS : le redémarrer (`Ctrl+C`, `npm run dev`).
+- **Ne pas lancer `npm run build` / `test:e2e` pendant que le serveur local tourne** (`.next` partagé, page qui clignote).
+- E2E à ajouter/relancer : palettes, bascule de thème, page projet (compte de test + worker nécessaires).
+- Aperçu vidéo : pas de limite de débit sur « Réessayer » (Upstash) ; un aperçu bloqué en « processing » n’est pas relancé automatiquement.
+- Upload : pas de rate limiting ; type MIME seulement déclaré (vérifier les premiers octets).
+- Stockage vidéo provisoire Supabase (50 Mo) → R2 avant le lancement (adapter le client TUS en multipart S3).
+- Emails Supabase limités (~2-4/h) : Resend + domaine avant de vrais utilisateurs. Domaines (semgen.studio/.com/.ai) et marque (OMPI, EUIPO, USPTO classes 9 et 42) à vérifier.
+- Tests d’intégration hors CI (il faudrait des secrets GitHub vers un projet de test) ; ils créent des comptes `@example.com` supprimés à la fin (nettoyer à la main si interrompus).
+- Paquets installés avec `--legacy-peer-deps` (conflit babel shadcn) : à réévaluer.
+- Dossier `capture/` ignoré par git (captures et références d’Ashanti) : le garder en local.
