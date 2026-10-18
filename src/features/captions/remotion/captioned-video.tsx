@@ -2,7 +2,14 @@ import type { CSSProperties } from "react";
 import { AbsoluteFill, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 
 import { fontFamily } from "../fonts";
-import { applyCase, isSpoken, layoutLines, wordMotionAt, type WordMotion } from "../motion";
+import {
+  activeWindow,
+  applyCase,
+  isActiveWord,
+  layoutLines,
+  wordMotionAt,
+  type WordMotion,
+} from "../motion";
 import { findPageIndex, type CaptionPage, type CaptionWord } from "../paginate";
 import type { CaptionFill, CaptionStyle, TextLook } from "../style";
 
@@ -151,8 +158,10 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
                 look={look}
                 style={style}
                 motion={wordMotionAt(page, wordIndex, timeMs, style)}
-                spoken={isSpoken(word, timeMs)}
-                upcoming={style.reveal === "page" && timeMs < word.start}
+                spoken={isActiveWord(page, wordIndex, timeMs)}
+                upcoming={
+                  style.reveal === "page" && timeMs < activeWindow(page, wordIndex).start
+                }
                 fontPx={(look.sizePct / 100) * height}
               />
             );
@@ -166,7 +175,9 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
 export function CaptionedVideo({ videoSrc, pages, style }: CaptionedVideoProps) {
   return (
     <AbsoluteFill>
-      {videoSrc ? <OffthreadVideo src={videoSrc} /> : null}
+      {/* In the preview, wait for the video when it buffers instead of letting the captions run
+          ahead of the sound. Ignored at export, where every frame is rendered exactly. */}
+      {videoSrc ? <OffthreadVideo src={videoSrc} pauseWhenBuffering /> : null}
       <CaptionLayer pages={pages} style={style} />
     </AbsoluteFill>
   );

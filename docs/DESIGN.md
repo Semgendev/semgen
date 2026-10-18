@@ -49,7 +49,7 @@ Chargées par `next/font/google` (auto-hébergées au build, pas de dépendance 
 - Tout est coupé si `prefers-reduced-motion: reduce`.
 
 ## 7. Écrans et structure
-- **Éditeur** (desktop) : barre du haut (projet, annuler/rétablir, format, crédits, Exporter) · panneaux à gauche (Texte, Styles, Langues, Montage, Format, Audio) · **aperçu au centre (grand)** · transcription sous l'aperçu · inspecteur à droite · timeline repliable en bas. Voir `capture/design/semgen-design-references2/visuels/02-maquettes-structure.png`.
+- **Éditeur** (desktop) : barre du haut (projet, annuler/rétablir, format, crédits, Exporter) · panneaux à gauche (Texte, Styles, Langues, Montage, Format, Audio) · **aperçu au centre (grand)** · transcription sous l'aperçu · inspecteur à droite · timeline repliable en bas. Voir `capture/semgen-design-references/visuels/02-maquettes-structure.png`.
 - **Mobile** : éditeur simplifié en feuilles du bas (style, texte, langues, export) ; pas de timeline complète.
 - **Paramètres › Apparence** : `/[locale]/settings/appearance` (3 cartes de palette avec mini-aperçu, 3 modes, enregistrement automatique sur l'appareil).
 - **Page de test interne** : `/[locale]/dev/themes` (désactivée en production sauf `SEMGEN_DEV_PAGES=1`).

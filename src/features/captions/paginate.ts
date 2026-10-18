@@ -4,10 +4,18 @@ import type { CaptionStyle } from "./style";
 
 // Times are in milliseconds, like the transcript.
 export type CaptionWord = { text: string; start: number; end: number; emphasis: boolean };
-export type CaptionPage = { start: number; end: number; words: CaptionWord[] };
+// start/end = when the caption is on screen; speechEnd = when its last word is said.
+export type CaptionPage = { start: number; end: number; speechEnd: number; words: CaptionWord[] };
 
-// A caption stays on screen a little after its last word, unless the next one starts first.
-export const HOLD_MS = 600;
+// Timing rules of professional subtitles:
+// - the text shows up slightly before the voice, so it is readable when the word is heard;
+export const TEXT_LEAD_MS = 120;
+// - it stays a little after its last word...
+export const HOLD_MS = 800;
+// - ...and bridges short silences up to the next caption, so the screen never flickers empty;
+export const BRIDGE_GAP_MS = 1500;
+// - and no caption is shorter than this, so it can always be read.
+export const MIN_PAGE_MS = 900;
 const MAX_PAUSE_MS = 700;
 const SENTENCE_END = /[.!?…。！？]$/;
 // Hesitations stay in the transcript (useful for auto-cut later) but never in the captions.
@@ -54,6 +62,46 @@ export function pickEmphasis(words: Pick<CaptionWord, "text">[]): number {
   return best;
 }
 
+function charCount(group: TranscriptWord[]): number {
+  return group.reduce((sum, item, position) => sum + item.text.length + (position ? 1 : 0), 0);
+}
+
+// A caption of a single word flashes by too fast to read: glue it to its neighbour when they are
+// said in one breath ("tu vas bien." rather than "tu vas" / "bien.").
+function mergeOrphans(
+  groups: TranscriptWord[][],
+  maxWords: number,
+  maxChars: number,
+): TranscriptWord[][] {
+  const result: TranscriptWord[][] = [];
+  const fits = (a: TranscriptWord[], b: TranscriptWord[]) => {
+    const tail = a[a.length - 1];
+    const head = b[0];
+    return (
+      !!tail &&
+      !!head &&
+      tail.speaker === head.speaker &&
+      head.start - tail.end <= MAX_PAUSE_MS &&
+      a.length + b.length <= maxWords + 1 &&
+      charCount(a) + 1 + charCount(b) <= maxChars
+    );
+  };
+  groups.forEach((group, index) => {
+    const previous = result[result.length - 1];
+    const next = groups[index + 1];
+    const orphan = group.length === 1;
+    const previousEndsSentence = SENTENCE_END.test(previous?.[previous.length - 1]?.text ?? ".");
+    if (orphan && previous && !previousEndsSentence && fits(previous, group)) {
+      previous.push(...group);
+    } else if (orphan && next && !SENTENCE_END.test(group[0]?.text ?? "") && fits(group, next)) {
+      next.unshift(...group);
+    } else {
+      result.push([...group]);
+    }
+  });
+  return result;
+}
+
 // Groups transcript words into captions shown one after the other.
 export function paginate(
   words: TranscriptWord[],
@@ -89,15 +137,28 @@ export function paginate(
     }
   });
 
-  return groups.map((group, index) => {
+  const merged = mergeOrphans(groups, style.maxWordsPerPage, maxChars);
+  const starts: number[] = [];
+  merged.forEach((group, index) => {
+    const lead = (group[0]?.start ?? 0) - TEXT_LEAD_MS;
+    // never before the previous caption has finished its last word
+    const previous = merged[index - 1];
+    starts.push(Math.max(0, lead, previous?.[previous.length - 1]?.end ?? 0));
+  });
+
+  return merged.map((group, index) => {
     const emphasis = pickEmphasis(group);
-    const first = group[0];
-    const last = group[group.length - 1];
-    const nextStart = groups[index + 1]?.[0]?.start ?? Infinity;
-    const lastEnd = last?.end ?? 0;
+    const start = starts[index] ?? 0;
+    const lastEnd = group[group.length - 1]?.end ?? 0;
+    const nextStart = starts[index + 1] ?? Infinity;
+    const wanted =
+      nextStart - lastEnd <= BRIDGE_GAP_MS
+        ? nextStart
+        : Math.max(lastEnd + HOLD_MS, start + MIN_PAGE_MS);
     return {
-      start: first?.start ?? 0,
-      end: Math.max(lastEnd, Math.min(lastEnd + HOLD_MS, nextStart)),
+      start,
+      end: Math.max(start + 1, Math.min(wanted, nextStart)),
+      speechEnd: lastEnd,
       words: group.map((word, position) => ({
         text: word.text,
         start: word.start,

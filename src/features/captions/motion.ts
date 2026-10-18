@@ -1,7 +1,7 @@
 import { Easing, interpolate } from "remotion";
 
 import type { AnimationIn, AnimationOut, CaptionStyle } from "./style";
-import type { CaptionPage, CaptionWord } from "./paginate";
+import { TEXT_LEAD_MS, type CaptionPage, type CaptionWord } from "./paginate";
 
 // How a word looks at one instant. Pure: the same time always gives the same picture, which is what
 // makes the preview and the exported video identical.
@@ -88,9 +88,16 @@ export function wordAppearAt(
 ): number {
   const word = page.words[wordIndex];
   if (!word) return page.start;
-  // Synced to speech, but never later than the caption itself (no empty frame at the start).
-  if (style.reveal === "word") return Math.max(page.start, word.start - style.animation.inMs * 0.3);
+  // Slightly ahead of the voice, so the word is readable when it is heard.
+  if (style.reveal === "word") return Math.max(page.start, word.start - TEXT_LEAD_MS);
   return page.start + wordIndex * style.animation.staggerMs;
+}
+
+// The caption leaves only once its last word is said; if the next caption follows right away there
+// is little or no time for an exit, and it is simply replaced (like professional subtitles).
+function leaveWindow(page: CaptionPage, outMs: number): { at: number; duration: number } {
+  const at = Math.max(page.end - outMs, page.speechEnd);
+  return { at, duration: Math.max(0, page.end - at) };
 }
 
 // Full motion of one word at `timeMs`.
@@ -105,13 +112,27 @@ export function wordMotionAt(
     timeMs - wordAppearAt(page, wordIndex, style),
     style.animation.inMs,
   );
-  const leaveAt = page.end - style.animation.outMs;
-  const leave = motionOut(style.animation.out, timeMs - leaveAt, style.animation.outMs);
-  return combine(appear, leave);
+  const leave = leaveWindow(page, style.animation.outMs);
+  return combine(appear, motionOut(style.animation.out, timeMs - leave.at, leave.duration));
 }
 
-export function isSpoken(word: Pick<CaptionWord, "start" | "end">, timeMs: number): boolean {
-  return timeMs >= word.start && timeMs < word.end;
+// The highlight switches a hair before the voice (the eye is slower than the ear) and stays on
+// through the tiny silences between words, so it never blinks off mid-sentence.
+export const ACTIVE_LEAD_MS = 40;
+const ACTIVE_BRIDGE_MS = 400;
+
+export function activeWindow(page: CaptionPage, wordIndex: number): { start: number; end: number } {
+  const word = page.words[wordIndex];
+  if (!word) return { start: Infinity, end: -Infinity };
+  const next = page.words[wordIndex + 1];
+  const end =
+    next && next.start - word.end <= ACTIVE_BRIDGE_MS ? next.start - ACTIVE_LEAD_MS : word.end;
+  return { start: word.start - ACTIVE_LEAD_MS, end };
+}
+
+export function isActiveWord(page: CaptionPage, wordIndex: number, timeMs: number): boolean {
+  const window = activeWindow(page, wordIndex);
+  return timeMs >= window.start && timeMs < window.end;
 }
 
 export function applyCase(text: string, textCase: CaptionStyle["textCase"]): string {

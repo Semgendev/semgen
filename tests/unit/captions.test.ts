@@ -1,13 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isActiveWord,
   layoutLines,
   motionIn,
   motionOut,
   wordAppearAt,
   wordMotionAt,
 } from "@/features/captions/motion";
-import { findPageIndex, HOLD_MS, paginate, pickEmphasis } from "@/features/captions/paginate";
+import {
+  BRIDGE_GAP_MS,
+  findPageIndex,
+  HOLD_MS,
+  MIN_PAGE_MS,
+  paginate,
+  pickEmphasis,
+  TEXT_LEAD_MS,
+} from "@/features/captions/paginate";
 import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
 import { resolveCaptionStyle } from "@/features/captions/project-style";
 import { captionStyleSchema } from "@/features/captions/style";
@@ -71,10 +80,42 @@ describe("paginate", () => {
     );
   });
 
-  it("keeps a caption a little after its last word, but never over the next one", () => {
-    const pages = paginate([word("Bonjour.", 0, 500), word("Merci.", 700, 1000)], line);
-    expect(pages[0]?.end).toBe(700);
-    expect(pages[1]?.end).toBe(1000 + HOLD_MS);
+  it("shows the text slightly before the voice", () => {
+    const pages = paginate([word("Bonjour", 1000, 1400), word("à", 1400, 1500)], line);
+    expect(pages[0]?.start).toBe(1000 - TEXT_LEAD_MS);
+  });
+
+  it("bridges short silences so the screen never flickers empty between captions", () => {
+    const pages = paginate([word("Bonjour.", 0, 500), word("Merci.", 1500, 1900)], line);
+    expect(pages[0]?.end).toBe(pages[1]?.start);
+    expect(pages[1]?.end).toBe(1900 + HOLD_MS);
+  });
+
+  it("leaves after a long silence, but never before it could be read", () => {
+    const gap = 500 + BRIDGE_GAP_MS + 1000;
+    const pages = paginate([word("Oui.", 0, 200), word("Bien.", gap, gap + 300)], line);
+    expect(pages[0]!.end - pages[0]!.start).toBeGreaterThanOrEqual(MIN_PAGE_MS);
+    expect(pages[0]!.end).toBeLessThan(pages[1]!.start);
+  });
+
+  it("never cuts a caption before its last word is said", () => {
+    const pages = paginate(
+      [word("Vite.", 0, 300), word("Très", 320, 500), word("vite.", 500, 800)],
+      line,
+    );
+    expect(pages[0]!.end).toBeGreaterThanOrEqual(300);
+  });
+
+  it("glues a lonely word to its neighbour instead of flashing it alone", () => {
+    const words = [
+      word("Salut", 0, 300),
+      word("Claude,", 300, 700),
+      word("j'espère", 700, 1100),
+      word("que", 1100, 1300),
+      word("bien.", 1300, 1700),
+    ];
+    const texts = paginate(words, line).map((page) => page.words.map((item) => item.text));
+    expect(texts.every((group) => group.length > 1)).toBe(true);
   });
 
   it("starts a new caption when the speaker changes", () => {
@@ -113,6 +154,20 @@ describe("motion", () => {
     expect(peak).toBeGreaterThan(1);
   });
 
+  it("starts the exit only once the last word is said", () => {
+    const style = CAPTION_PRESETS.cinema;
+    const page = paginate([word("Fin.", 0, 500)], style)[0]!;
+    expect(wordMotionAt(page, 0, 499, style).opacity).toBeCloseTo(1);
+    expect(wordMotionAt(page, 0, page.end - 1, style).opacity).toBeLessThan(0.2);
+  });
+
+  it("keeps the active word lit through the tiny silences between words", () => {
+    const page = paginate([word("Un", 0, 200), word("deux", 300, 500)], line)[0]!;
+    expect(isActiveWord(page, 0, 250)).toBe(true);
+    expect(isActiveWord(page, 1, 250)).toBe(false);
+    expect(isActiveWord(page, 1, 300)).toBe(true);
+  });
+
   it("fades out at the end of the caption", () => {
     expect(motionOut("fade", 0, 200).opacity).toBe(1);
     expect(motionOut("fade", 200, 200).opacity).toBeCloseTo(0);
@@ -130,7 +185,9 @@ describe("motion", () => {
     expect(wordAppearAt(page, 1, byWord)).toBeLessThanOrEqual(1500);
     expect(wordAppearAt(page, 1, byWord)).toBeGreaterThan(1000);
     const byPage = { reveal: "page" as const, animation: CAPTION_PRESETS.cinema.animation };
-    expect(wordAppearAt(page, 1, byPage)).toBe(1000 + CAPTION_PRESETS.cinema.animation.staggerMs);
+    expect(wordAppearAt(page, 1, byPage)).toBe(
+      page.start + CAPTION_PRESETS.cinema.animation.staggerMs,
+    );
   });
 });
 
