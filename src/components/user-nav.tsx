@@ -9,9 +9,10 @@ import { Link } from "@/i18n/routing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function UserNavContent() {
-  const t = await getTranslations();
+  // Read the session first: it is the request-time access that makes the rest dynamic.
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getClaims();
+  const t = await getTranslations();
 
   if (!data?.claims) {
     return (
