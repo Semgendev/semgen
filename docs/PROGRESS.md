@@ -5,7 +5,7 @@
 ## État actuel (pause du 2026-10-18)
 - **Phase :** 2 — Upload et projets → Phase 3 (transcription) en cours
 - **Fait et validé en dev ET prod :** connexion lien magique + captcha, crédits (10 offerts, 1 seul bonus par boîte mail), upload vidéo (50 Mo, Supabase Storage provisoire), liste des projets + page projet avec lecteur, renommer, supprimer.
-- **Fait côté code, testé en dev seulement (NON envoyé en prod, NON poussé sur GitHub tant qu’Ashanti n’a pas dit « push ») :** moteur de transcription (T2.3 + T3.1) : tables `jobs` + `transcripts`, `request_transcription()`, tâche Trigger.dev `transcribe-project` (ffprobe serveur, crédits selon la durée réelle, AssemblyAI, remboursement auto), interface `TranscriptionProvider` (AssemblyAI ; ElevenLabs Scribe prévu pour les langues africaines).
+- **Fait côté code, testé en dev seulement (NON envoyé en prod ; poussé sur GitHub le 2026-10-18) :** moteur de transcription (T2.3 + T3.1) : tables `jobs` + `transcripts`, `request_transcription()`, tâche Trigger.dev `transcribe-project` (ffprobe serveur, crédits selon la durée réelle, AssemblyAI, remboursement auto), interface `TranscriptionProvider` (AssemblyAI ; ElevenLabs Scribe prévu pour les langues africaines).
 - **Migrations :** 4 sur dev + prod (credits_and_profiles, signup_bonus_claims, projects_and_video_storage, + jobs sur DEV seulement). `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
 - **Tests :** 45 unitaires, 33 d’intégration (base dev), 27 E2E (build prod sur le port 3100). Tout vert au dernier passage.
 
@@ -41,8 +41,11 @@
 | 2026-10-18 | T2.1 | ✅ | Upload vidéo (TUS, 50 Mo, Supabase Storage provisoire) testé en dev ET prod : projet « uploaded » + fichier stocké |
 | 2026-10-18 | T2.2 | ✅ | Liste des projets (miniatures via lien signé), page projet avec lecteur vidéo, renommer, supprimer (fichier + ligne), redirection après upload |
 | 2026-10-18 | T2.3 + T3.1 (moteur) | ✅ | Premier vrai test (dev) : vidéo FR de 9,8 Mo → langue fr détectée (0,83), 47 mots, 1 crédit débité (10→9) ; vidéo sans audio → refus propre `no_audio`, 0 crédit. Script : scripts/try-transcription.mts. Reste l’interface |
+| 2026-10-18 | Aperçu vidéo universel | ✅ dev | Colonnes `preview_status`/`preview_video_key` (migration sur DEV seulement) ; tâche `create-video-preview` (copie H.264/AAC 720p, HDR→SDR, source gardée si déjà .mp4 H.264 8 bits) ; lancée après l’upload et à l’ouverture d’un projet « pending » ; page projet avec attente + « Réessayer ». Testé : iPhone HEVC 10 bits .mov → mp4 1 Mo, couleurs OK |
 
 ## Problèmes ouverts
+- Aperçu : pas de limite de débit sur `requestPreview` (Upstash à venir) ; un aperçu bloqué en « processing » (worker mort) n’est pas relancé automatiquement.
+- Migration `video_preview` à appliquer sur PROD au moment du déploiement (accord d’Ashanti), avec le worker Trigger.dev déployé.
 - Dev : ne PAS lancer `npm run build` / `test:e2e` pendant que le serveur local tourne (ils partagent `.next` et le corrompent → page qui « clignote »). Arrêter le serveur avant, le relancer après.
 - Les tests d’intégration créent des comptes `@example.com` dans la base de dev et les suppriment à la fin ; en cas d’interruption, nettoyer les restes.
 - Anti-abus upload : pas encore de rate limiting ; type MIME seulement déclaré (vérifier les premiers octets) ; la durée est vérifiée côté serveur par la tâche de transcription.

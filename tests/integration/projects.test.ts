@@ -252,16 +252,34 @@ describe.skipIf(!configured)("project service (Supabase dev project)", () => {
   it("lists projects with signed video links, newest first", async () => {
     const user = await createUser(admin);
     const client = await signIn(user.email);
-    await uploadedProject(client, user.id);
+    const { projectId, path } = await uploadedProject(client, user.id);
     const second = await createProject(client, "No video yet");
 
-    const projects = await listProjects(client);
-    expect(projects).toHaveLength(2);
-    expect(projects[0]?.id).toBe(second);
+    // Before the server prepares a browser-safe preview, no playable link is given.
+    const before = await listProjects(client);
+    expect(before).toHaveLength(2);
+    expect(before[0]?.id).toBe(second);
+    expect(await getVideoUrls(client, before)).toEqual({});
 
-    const urls = await getVideoUrls(client, projects);
-    expect(Object.keys(urls)).toHaveLength(1);
+    await admin
+      .from("projects")
+      .update({ preview_status: "ready", preview_video_key: path })
+      .eq("id", projectId);
+    const urls = await getVideoUrls(client, await listProjects(client));
+    expect(Object.keys(urls)).toEqual([projectId]);
     expect(Object.values(urls)[0]).toContain("/object/sign/videos/");
+  });
+
+  it("does not let a user change the preview state of their own project", async () => {
+    const user = await createUser(admin);
+    const client = await signIn(user.email);
+    const projectId = await createProject(client);
+
+    const { error } = await client
+      .from("projects")
+      .update({ preview_status: "ready", preview_video_key: "x/y/z.mp4" })
+      .eq("id", projectId);
+    expect(error).not.toBeNull();
   });
 
   it("renames only the caller's project and validates the title", async () => {

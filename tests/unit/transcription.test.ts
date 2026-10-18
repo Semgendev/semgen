@@ -46,6 +46,10 @@ describe("parseFfprobeOutput", () => {
       width: 1080,
       height: 1920,
       fps: 29.97,
+      videoCodec: null,
+      pixelFormat: null,
+      colorTransfer: null,
+      audioCodec: null,
     });
   });
 

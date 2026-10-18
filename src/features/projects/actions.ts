@@ -1,5 +1,7 @@
 "use server";
 
+import { tasks } from "@trigger.dev/sdk";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { projectIdSchema, projectTitleSchema } from "./schemas";
@@ -37,7 +39,46 @@ export async function completeUpload(projectId: string): Promise<CompleteUploadR
   if (!auth.user) return { ok: false, code: "unauthorized" };
 
   const { error } = await supabase.rpc("mark_project_uploaded", { p_project_id: parsed.data });
-  return error ? { ok: false, code: "unknown" } : { ok: true };
+  if (error) return { ok: false, code: "unknown" };
+
+  // Best effort: if the queue is down, the project page asks again (see requestPreview).
+  try {
+    await tasks.trigger("create-video-preview", { projectId: parsed.data });
+  } catch {
+    // The preview stays "pending" and is retried when the project page opens.
+  }
+  return { ok: true };
+}
+
+export type RequestPreviewResult = { ok: true } | { ok: false; code: "unauthorized" | "unknown" };
+
+// Starts (or restarts) the browser-safe preview of a project the caller owns.
+// Safe to call twice: the task claims the project atomically and ignores a second run.
+export async function requestPreview(projectId: string): Promise<RequestPreviewResult> {
+  const parsed = projectIdSchema.safeParse(projectId);
+  if (!parsed.success) return { ok: false, code: "unknown" };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { ok: false, code: "unauthorized" };
+
+  // Ownership check through RLS: a foreign or missing project returns nothing.
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, preview_status")
+    .eq("id", parsed.data)
+    .maybeSingle();
+  if (!project) return { ok: false, code: "unknown" };
+  if (project.preview_status === "ready" || project.preview_status === "processing") {
+    return { ok: true };
+  }
+
+  try {
+    await tasks.trigger("create-video-preview", { projectId: parsed.data });
+    return { ok: true };
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
 }
 
 export async function renameProjectAction(

@@ -7,6 +7,8 @@ const valid = {
   title: "airport background2",
   status: "uploaded",
   source_video_key: "user/project/source.mp4",
+  preview_status: "pending",
+  preview_video_key: null,
   source_size_bytes: 5_950_000,
   duration_s: null,
   detected_language: null,

@@ -13,11 +13,17 @@ export const projectStatusSchema = z.enum([
 
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
+export const previewStatusSchema = z.enum(["pending", "processing", "ready", "failed"]);
+
+export type PreviewStatus = z.infer<typeof previewStatusSchema>;
+
 export const projectSummarySchema = z.object({
   id: z.uuid(),
   title: z.string(),
   status: projectStatusSchema,
   source_video_key: z.string().nullable(),
+  preview_status: previewStatusSchema,
+  preview_video_key: z.string().nullable(),
   source_size_bytes: z.number().nullable(),
   duration_s: z.number().nullable(),
   detected_language: z.string().nullable(),
@@ -27,7 +33,7 @@ export const projectSummarySchema = z.object({
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 
 const COLUMNS =
-  "id, title, status, source_video_key, source_size_bytes, duration_s, detected_language, created_at";
+  "id, title, status, source_video_key, preview_status, preview_video_key, source_size_bytes, duration_s, detected_language, created_at";
 
 const SIGNED_URL_SECONDS = 60 * 60;
 
@@ -58,22 +64,25 @@ export async function getProject(supabase: SupabaseClient, projectId: string) {
   return data ? projectSummarySchema.parse(data) : null;
 }
 
-// Short-lived read links for the private bucket: one signed URL per project that has a video.
+// Short-lived read links for the private bucket, one per project whose browser-safe preview is
+// ready. The original file is never played in the browser (it may be HEVC, HDR, .mov...).
 export async function getVideoUrls(
   supabase: SupabaseClient,
   projects: ProjectSummary[],
 ): Promise<Record<string, string>> {
-  const withVideo = projects.filter((project) => project.source_video_key);
-  if (withVideo.length === 0) return {};
+  const playable = projects.filter(
+    (project) => project.preview_status === "ready" && project.preview_video_key,
+  );
+  if (playable.length === 0) return {};
 
   const { data, error } = await supabase.storage.from("videos").createSignedUrls(
-    withVideo.map((project) => project.source_video_key as string),
+    playable.map((project) => project.preview_video_key as string),
     SIGNED_URL_SECONDS,
   );
   if (error || !data) return {};
 
   const urls: Record<string, string> = {};
-  withVideo.forEach((project, index) => {
+  playable.forEach((project, index) => {
     const signed = data[index]?.signedUrl;
     if (signed) urls[project.id] = signed;
   });

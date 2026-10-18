@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { PreviewStatusPanel } from "@/features/projects/preview-status";
 import { ProjectActions } from "@/features/projects/project-actions";
 import { ProjectStatusBadge } from "@/features/projects/project-status-badge";
 import { getProject, getVideoUrls } from "@/features/projects/service";
@@ -51,6 +52,8 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
         >
           {t("noVideoSupport")}
         </video>
+      ) : project.source_video_key && project.preview_status !== "ready" ? (
+        <PreviewStatusPanel projectId={project.id} status={project.preview_status} />
       ) : (
         <p className="text-muted-foreground">{t("noVideo")}</p>
       )}

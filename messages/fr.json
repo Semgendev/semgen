@@ -97,6 +97,9 @@
     "myProjects": "Mes projets",
     "noVideo": "Aucune vidéo n’est disponible pour ce projet pour le moment.",
     "noVideoSupport": "Ton navigateur ne peut pas lire cette vidéo.",
+    "previewPreparing": "Préparation de l’aperçu… Cela prend quelques secondes à quelques minutes.",
+    "previewFailed": "L’aperçu n’a pas pu être préparé. Ta vidéo d’origine est bien conservée.",
+    "previewRetry": "Réessayer",
     "status": {
       "uploading": "Envoi en cours",
       "uploaded": "Envoyée",

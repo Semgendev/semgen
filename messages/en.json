@@ -97,6 +97,9 @@
     "myProjects": "My projects",
     "noVideo": "No video is available for this project yet.",
     "noVideoSupport": "Your browser cannot play this video.",
+    "previewPreparing": "Preparing the preview… This takes a few seconds to a few minutes.",
+    "previewFailed": "The preview could not be prepared. Your original video is safe.",
+    "previewRetry": "Try again",
     "status": {
       "uploading": "Uploading",
       "uploaded": "Uploaded",

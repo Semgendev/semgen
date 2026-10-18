@@ -7,6 +7,9 @@ const ffprobeOutputSchema = z.object({
     .array(
       z.object({
         codec_type: z.string(),
+        codec_name: z.string().optional(),
+        pix_fmt: z.string().optional(),
+        color_transfer: z.string().optional(),
         width: z.number().optional(),
         height: z.number().optional(),
         avg_frame_rate: z.string().optional(),
@@ -23,6 +26,10 @@ export type MediaInfo = {
   width: number | null;
   height: number | null;
   fps: number | null;
+  videoCodec: string | null;
+  pixelFormat: string | null;
+  colorTransfer: string | null;
+  audioCodec: string | null;
 };
 
 function parseFrameRate(value: string | undefined): number | null {
@@ -36,16 +43,21 @@ function parseFrameRate(value: string | undefined): number | null {
 export function parseFfprobeOutput(raw: unknown): MediaInfo {
   const output = ffprobeOutputSchema.parse(raw);
   const video = output.streams.find((stream) => stream.codec_type === "video");
+  const audio = output.streams.find((stream) => stream.codec_type === "audio");
   const duration = Number(output.format.duration);
 
   if (!Number.isFinite(duration) || duration <= 0) throw new Error("unreadable_duration");
 
   return {
     durationSeconds: Math.round(duration * 1000) / 1000,
-    hasAudio: output.streams.some((stream) => stream.codec_type === "audio"),
+    hasAudio: Boolean(audio),
     width: video?.width ?? null,
     height: video?.height ?? null,
     fps: parseFrameRate(video?.avg_frame_rate) ?? parseFrameRate(video?.r_frame_rate),
+    videoCodec: video?.codec_name ?? null,
+    pixelFormat: video?.pix_fmt ?? null,
+    colorTransfer: video?.color_transfer ?? null,
+    audioCodec: audio?.codec_name ?? null,
   };
 }
 
