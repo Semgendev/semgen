@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activeAmount,
+  exitMs,
   isActiveWord,
   layoutLines,
   motionIn,
@@ -16,6 +18,7 @@ import {
   paginate,
   pickEmphasis,
   TEXT_LEAD_MS,
+  visiblePageIndices,
 } from "@/features/captions/paginate";
 import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
 import { resolveCaptionStyle } from "@/features/captions/project-style";
@@ -149,16 +152,32 @@ describe("motion", () => {
     }
   });
 
-  it("pops past its size before settling", () => {
-    const peak = Math.max(...[60, 120, 180, 240].map((t) => motionIn("pop", t, 300).scale));
-    expect(peak).toBeGreaterThan(1);
+  it("pops past its size on a real spring (5–12 % overshoot), then settles", () => {
+    const samples = Array.from({ length: 30 }, (_, i) => motionIn("pop", i * 10, 300).scale);
+    const peak = Math.max(...samples);
+    expect(peak).toBeGreaterThan(1.03);
+    expect(peak).toBeLessThan(1.13);
+    expect(motionIn("pop", 300, 300).scale).toBe(1);
   });
 
-  it("starts the exit only once the last word is said", () => {
+  it("makes the word readable fast: opacity is full well before the movement ends", () => {
+    expect(motionIn("rise", 170, 500).opacity).toBe(1);
+    expect(motionIn("rise", 170, 500).translateYEm).toBeGreaterThan(0);
+  });
+
+  it("starts the exit only once the caption is over, and finishes it smoothly", () => {
     const style = CAPTION_PRESETS.cinema;
     const page = paginate([word("Fin.", 0, 500)], style)[0]!;
-    expect(wordMotionAt(page, 0, 499, style).opacity).toBeCloseTo(1);
-    expect(wordMotionAt(page, 0, page.end - 1, style).opacity).toBeLessThan(0.2);
+    expect(wordMotionAt(page, 0, page.end - 1, style).opacity).toBeCloseTo(1);
+    expect(wordMotionAt(page, 0, page.end + exitMs(style) - 1, style).opacity).toBeLessThan(0.1);
+  });
+
+  it("cross-fades two captions instead of swapping them from one frame to the next", () => {
+    const pages = paginate([word("Bonjour.", 0, 500), word("Merci.", 700, 1000)], line);
+    const exit = 150;
+    expect(visiblePageIndices(pages, pages[1]!.start + 50, exit)).toEqual([0, 1]);
+    expect(visiblePageIndices(pages, pages[1]!.start + exit, exit)).toEqual([1]);
+    expect(visiblePageIndices(pages, 100, exit)).toEqual([0]);
   });
 
   it("keeps the active word lit through the tiny silences between words", () => {
@@ -166,6 +185,16 @@ describe("motion", () => {
     expect(isActiveWord(page, 0, 250)).toBe(true);
     expect(isActiveWord(page, 1, 250)).toBe(false);
     expect(isActiveWord(page, 1, 300)).toBe(true);
+  });
+
+  it("glides the highlight from one word to the next instead of blinking", () => {
+    const page = paginate([word("Un", 0, 200), word("deux", 300, 500)], line)[0]!;
+    // fully lit in the middle of its word, partly lit while it hands over to the next one
+    expect(activeAmount(page, 0, 150)).toBeCloseTo(1);
+    const handover = activeAmount(page, 0, 300);
+    expect(handover).toBeGreaterThan(0);
+    expect(handover).toBeLessThan(1);
+    expect(activeAmount(page, 1, 300)).toBeGreaterThan(0);
   });
 
   it("fades out at the end of the caption", () => {

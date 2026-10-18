@@ -1,16 +1,24 @@
 import type { CSSProperties } from "react";
-import { AbsoluteFill, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  interpolate,
+  interpolateColors,
+  OffthreadVideo,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 
 import { fontFamily } from "../fonts";
 import {
+  activeAmount,
   activeWindow,
   applyCase,
-  isActiveWord,
+  exitMs,
   layoutLines,
   wordMotionAt,
   type WordMotion,
 } from "../motion";
-import { findPageIndex, type CaptionPage, type CaptionWord } from "../paginate";
+import { visiblePageIndices, type CaptionPage, type CaptionWord } from "../paginate";
 import type { CaptionFill, CaptionStyle, TextLook } from "../style";
 
 // The one composition used both by the in-app preview (@remotion/player) and by the final export
@@ -48,20 +56,48 @@ function filterFor(look: TextLook, motion: WordMotion): string | undefined {
   return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
+function transparent(color: string): string {
+  return `${color.slice(0, 7)}00`;
+}
+
+// Blends the normal and the highlighted fill: plain colours fade into each other, gradients switch
+// at mid-point (they cannot be blended).
+function mixFill(base: CaptionFill, active: CaptionFill | null, amount: number): CaptionFill {
+  if (!active || amount <= 0) return base;
+  if (amount >= 1) return active;
+  if (base.type === "solid" && active.type === "solid") {
+    return { type: "solid", color: interpolateColors(amount, [0, 1], [base.color, active.color]) };
+  }
+  return amount >= 0.5 ? active : base;
+}
+
 type WordProps = {
   word: CaptionWord;
   look: TextLook;
   style: CaptionStyle;
   motion: WordMotion;
-  spoken: boolean;
-  upcoming: boolean;
+  // how lit the highlight is, 0 → 1
+  active: number;
+  // 0 = not said yet, 1 = said (fades the upcoming words in karaoke styles)
+  said: number;
   fontPx: number;
 };
 
-function Word({ word, look, style, motion, spoken, upcoming, fontPx }: WordProps) {
-  const active = spoken ? style.active : null;
-  const box = active?.box ?? look.box;
-  const fill = active?.fill ?? look.fill;
+function Word({ word, look, style, motion, active, said, fontPx }: WordProps) {
+  const highlight = style.active;
+  // The highlight box keeps the same size whether it is lit or not, so the text never moves.
+  const box = highlight?.box ?? look.box;
+  const boxColor = highlight?.box
+    ? interpolateColors(
+        active,
+        [0, 1],
+        [look.box?.color ?? transparent(highlight.box.color), highlight.box.color],
+      )
+    : look.box?.color;
+  const fill = mixFill(look.fill, highlight?.fill ?? null, active);
+  const scale = motion.scale * (1 + ((highlight?.scale ?? 1) - 1) * active);
+  const upcoming =
+    style.reveal === "page" ? interpolate(said, [0, 1], [style.upcomingOpacity, 1]) : 1;
   const hidden = 1 - motion.reveal;
   const clip =
     hidden <= 0.001
@@ -80,10 +116,11 @@ function Word({ word, look, style, motion, spoken, upcoming, fontPx }: WordProps
         fontSize: fontPx,
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
-        opacity: motion.opacity * (upcoming ? style.upcomingOpacity : 1),
-        transform: `translateY(${motion.translateYEm}em) scale(${motion.scale * (active?.scale ?? 1)})`,
+        opacity: motion.opacity * upcoming,
+        transform: `translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
+        willChange: "transform, opacity",
         filter: filterFor(look, motion),
-        backgroundColor: box?.color,
+        backgroundColor: boxColor,
         borderRadius: box ? `${box.radiusEm}em` : undefined,
         padding: box ? `${box.paddingYEm}em ${box.paddingXEm}em` : undefined,
         margin: box ? `0 -${box.paddingXEm * 0.5}em` : undefined,
@@ -106,13 +143,17 @@ function Word({ word, look, style, motion, spoken, upcoming, fontPx }: WordProps
   );
 }
 
-export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoSrc">) {
-  const frame = useCurrentFrame();
-  const { fps, height } = useVideoConfig();
-  const timeMs = (frame / fps) * 1000;
-  const page = pages[findPageIndex(pages, timeMs)];
-  if (!page) return null;
-
+function PageBlock({
+  page,
+  style,
+  timeMs,
+  height,
+}: {
+  page: CaptionPage;
+  style: CaptionStyle;
+  timeMs: number;
+  height: number;
+}) {
   const lines = layoutLines(page.words, style);
   const baseFontPx = (style.base.sizePct / 100) * height;
 
@@ -158,10 +199,11 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
                 look={look}
                 style={style}
                 motion={wordMotionAt(page, wordIndex, timeMs, style)}
-                spoken={isActiveWord(page, wordIndex, timeMs)}
-                upcoming={
-                  style.reveal === "page" && timeMs < activeWindow(page, wordIndex).start
-                }
+                active={activeAmount(page, wordIndex, timeMs)}
+                said={interpolate(timeMs - activeWindow(page, wordIndex).start, [0, 90], [0, 1], {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                })}
                 fontPx={(look.sizePct / 100) * height}
               />
             );
@@ -169,6 +211,23 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
         </div>
       ))}
     </div>
+  );
+}
+
+// The current caption, plus the previous one while it is leaving: they cross over smoothly.
+export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoSrc">) {
+  const frame = useCurrentFrame();
+  const { fps, height } = useVideoConfig();
+  const timeMs = (frame / fps) * 1000;
+  return (
+    <>
+      {visiblePageIndices(pages, timeMs, exitMs(style)).map((index) => {
+        const page = pages[index];
+        return page ? (
+          <PageBlock key={index} page={page} style={style} timeMs={timeMs} height={height} />
+        ) : null;
+      })}
+    </>
   );
 }
 

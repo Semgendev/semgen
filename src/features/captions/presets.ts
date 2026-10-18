@@ -120,7 +120,7 @@ export const CAPTION_PRESETS: Record<PresetId, CaptionStyle> = {
     reveal: "word",
     upcomingOpacity: 1,
     active: null,
-    animation: { in: "pop", inMs: 280, staggerMs: 0, out: "none", outMs: 0 },
+    animation: { in: "pop", inMs: 320, staggerMs: 0, out: "blur", outMs: 140 },
   },
 
   // Karaoke: the whole sentence is there, the word being said lights up in a coloured box.

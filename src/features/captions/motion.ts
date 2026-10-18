@@ -1,4 +1,4 @@
-import { Easing, interpolate } from "remotion";
+import { Easing, interpolate, spring } from "remotion";
 
 import type { AnimationIn, AnimationOut, CaptionStyle } from "./style";
 import { TEXT_LEAD_MS, type CaptionPage, type CaptionWord } from "./paginate";
@@ -17,6 +17,25 @@ export type WordMotion = {
 export const RESTING: WordMotion = { opacity: 1, translateYEm: 0, scale: 1, blurEm: 0, reveal: 1 };
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+const easeOutExpo = Easing.out(Easing.exp);
+
+// A real spring (mass, stiffness, damping) that settles exactly at `durationMs`. Time is passed in
+// ms with fps = 1000, so the curve does not depend on the frame rate of the video.
+export function springAt(
+  t: number,
+  durationMs: number,
+  config: { stiffness: number; damping: number; mass: number },
+): number {
+  if (t <= 0) return 0;
+  if (t >= durationMs) return 1;
+  return spring({ frame: t, fps: 1000, config, durationInFrames: durationMs });
+}
+
+// Opacity rises in a straight, fast line while the movement is still settling: the word is
+// readable almost at once (what motion designers do).
+function quickOpacity(t: number, durationMs: number): number {
+  return interpolate(t, [0, Math.min(160, durationMs * 0.5)], [0, 1], clamp);
+}
 
 // `t` = time since the word started to appear, in ms.
 export function motionIn(kind: AnimationIn, t: number, durationMs: number): WordMotion {
@@ -27,22 +46,19 @@ export function motionIn(kind: AnimationIn, t: number, durationMs: number): Word
     case "fade":
       return { ...RESTING, opacity: Easing.out(Easing.quad)(p) };
     case "pop": {
-      // grows past its size then settles: a short, punchy bounce
-      const scale = interpolate(p, [0, 1], [0.55, 1], {
-        ...clamp,
-        easing: Easing.out(Easing.back(2.4)),
-      });
-      return { ...RESTING, opacity: interpolate(p, [0, 0.35], [0, 1], clamp), scale };
+      // grows past its size (~8 %) then settles, on a spring
+      const s = springAt(t, durationMs, { stiffness: 220, damping: 14, mass: 0.6 });
+      return { ...RESTING, opacity: quickOpacity(t, durationMs), scale: 0.6 + 0.4 * s };
     }
     case "rise": {
-      const eased = Easing.out(Easing.cubic)(p);
-      return { ...RESTING, opacity: eased, translateYEm: (1 - eased) * 0.45 };
+      const eased = easeOutExpo(p);
+      return { ...RESTING, opacity: quickOpacity(t, durationMs), translateYEm: (1 - eased) * 0.45 };
     }
     case "blur": {
-      const eased = Easing.out(Easing.cubic)(p);
+      const eased = easeOutExpo(p);
       return {
         ...RESTING,
-        opacity: eased,
+        opacity: quickOpacity(t, durationMs),
         blurEm: (1 - eased) * 0.25,
         scale: 1 + (1 - eased) * 0.12,
       };
@@ -59,14 +75,16 @@ export function motionIn(kind: AnimationIn, t: number, durationMs: number): Word
 // `t` = time since the caption started to leave, in ms.
 export function motionOut(kind: AnimationOut, t: number, durationMs: number): WordMotion {
   if (kind === "none" || durationMs <= 0 || t <= 0) return RESTING;
+  // the movement accelerates away, the opacity drops a bit earlier: a clean, quick exit
   const p = interpolate(t, [0, durationMs], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
+  const opacity = 1 - interpolate(t, [0, durationMs * 0.85], [0, 1], clamp);
   switch (kind) {
     case "fade":
-      return { ...RESTING, opacity: 1 - p };
+      return { ...RESTING, opacity };
     case "sink":
-      return { ...RESTING, opacity: 1 - p, translateYEm: p * 0.3 };
+      return { ...RESTING, opacity, translateYEm: p * 0.3 };
     case "blur":
-      return { ...RESTING, opacity: 1 - p, blurEm: p * 0.25 };
+      return { ...RESTING, opacity, blurEm: p * 0.2, translateYEm: -p * 0.12 };
   }
 }
 
@@ -93,11 +111,14 @@ export function wordAppearAt(
   return page.start + wordIndex * style.animation.staggerMs;
 }
 
-// The caption leaves only once its last word is said; if the next caption follows right away there
-// is little or no time for an exit, and it is simply replaced (like professional subtitles).
+// The caption leaves once its time is over, and its exit overlaps the entrance of the next one: the
+// two cross over smoothly instead of the text being swapped from one frame to the next.
+export function exitMs(style: Pick<CaptionStyle, "animation">): number {
+  return style.animation.out === "none" ? 0 : style.animation.outMs;
+}
+
 function leaveWindow(page: CaptionPage, outMs: number): { at: number; duration: number } {
-  const at = Math.max(page.end - outMs, page.speechEnd);
-  return { at, duration: Math.max(0, page.end - at) };
+  return { at: page.end, duration: outMs };
 }
 
 // Full motion of one word at `timeMs`.
@@ -112,8 +133,26 @@ export function wordMotionAt(
     timeMs - wordAppearAt(page, wordIndex, style),
     style.animation.inMs,
   );
-  const leave = leaveWindow(page, style.animation.outMs);
+  const leave = leaveWindow(page, exitMs(style));
   return combine(appear, motionOut(style.animation.out, timeMs - leave.at, leave.duration));
+}
+
+// How "on" the highlight of a word is (0 → 1). It lights up in a few frames and fades out a bit
+// more slowly, so it glides from one word to the next instead of blinking.
+const ACTIVE_RAMP_IN_MS = 90;
+const ACTIVE_RAMP_OUT_MS = 140;
+
+export function activeAmount(page: CaptionPage, wordIndex: number, timeMs: number): number {
+  const window = activeWindow(page, wordIndex);
+  const on = interpolate(timeMs, [window.start, window.start + ACTIVE_RAMP_IN_MS], [0, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
+  const off = interpolate(timeMs, [window.end, window.end + ACTIVE_RAMP_OUT_MS], [1, 0], {
+    ...clamp,
+    easing: Easing.inOut(Easing.quad),
+  });
+  return on * off;
 }
 
 // The highlight switches a hair before the voice (the eye is slower than the ear) and stays on

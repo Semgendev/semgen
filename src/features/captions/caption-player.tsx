@@ -11,7 +11,8 @@ import { paginate } from "./paginate";
 import { CaptionedVideo, type CaptionedVideoProps } from "./remotion/captioned-video";
 import type { CaptionStyle } from "./style";
 
-export const CAPTION_FPS = 30;
+// 60 images per second in the preview: half the steps between two frames, so motion looks smooth.
+export const CAPTION_FPS = 60;
 
 type VideoMeta = { width: number; height: number; durationS: number };
 

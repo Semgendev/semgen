@@ -169,8 +169,23 @@ export function paginate(
   });
 }
 
-// The caption on screen at a given time, or -1 (binary search: called on every frame).
-export function findPageIndex(pages: Pick<CaptionPage, "start" | "end">[], timeMs: number): number {
+// Captions on screen at a given time: the current one, plus the previous one while its exit is still
+// playing (`exitMs` after its end). At most two, oldest first.
+export function visiblePageIndices(
+  pages: Pick<CaptionPage, "start" | "end">[],
+  timeMs: number,
+  exitMs: number,
+): number[] {
+  const last = lastStartedIndex(pages, timeMs);
+  const visible: number[] = [];
+  for (const index of [last - 1, last]) {
+    const page = pages[index];
+    if (page && timeMs >= page.start && timeMs < page.end + exitMs) visible.push(index);
+  }
+  return visible;
+}
+
+function lastStartedIndex(pages: Pick<CaptionPage, "start">[], timeMs: number): number {
   let low = 0;
   let high = pages.length - 1;
   let found = -1;
@@ -184,6 +199,12 @@ export function findPageIndex(pages: Pick<CaptionPage, "start" | "end">[], timeM
       high = middle - 1;
     }
   }
+  return found;
+}
+
+// The caption on screen at a given time, or -1 (binary search: called on every frame).
+export function findPageIndex(pages: Pick<CaptionPage, "start" | "end">[], timeMs: number): number {
+  const found = lastStartedIndex(pages, timeMs);
   const page = pages[found];
   return page && timeMs < page.end ? found : -1;
 }
