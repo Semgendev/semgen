@@ -49,7 +49,7 @@ const WordButton = memo(function WordButton({
         active ? "bg-primary text-primary-foreground" : "hover:bg-accent",
         flagged &&
           !active &&
-          "underline decoration-amber-500 decoration-dotted decoration-2 underline-offset-4",
+          "decoration-warning underline decoration-dotted decoration-2 underline-offset-4",
       )}
     >
       {word.text}

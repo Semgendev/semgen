@@ -43,7 +43,8 @@
     "signedInAs": "Connecté en tant que",
     "signOut": "Se déconnecter",
     "signIn": "Se connecter",
-    "myAccount": "Mon espace"
+    "myAccount": "Mon espace",
+    "appearance": "Apparence"
   },
   "credits": {
     "balance": "{count, plural, one {# crédit} other {# crédits}}",
@@ -148,5 +149,34 @@
       "ready": "Prête",
       "failed": "Échec"
     }
+  },
+  "appearance": {
+    "breadcrumb": "Paramètres",
+    "title": "Apparence",
+    "subtitle": "Choisis ton mode et ta palette. Ta vidéo et tes sous-titres restent exactement les mêmes, quelle que soit la palette.",
+    "mode": "Mode",
+    "modes": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    },
+    "palette": "Palette",
+    "paletteHint": "L’identité visuelle de ton espace de travail.",
+    "palettes": {
+      "cobalt": {
+        "name": "Cobalt & Or",
+        "mood": "Pro et fiable"
+      },
+      "etincelle": {
+        "name": "Étincelle",
+        "mood": "Audacieuse"
+      },
+      "teal": {
+        "name": "Teal & Safran",
+        "mood": "Chaleureuse et calme"
+      }
+    },
+    "savedAutomatically": "Enregistré automatiquement sur cet appareil.",
+    "back": "Retour à mon espace"
   }
 }

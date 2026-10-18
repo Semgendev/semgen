@@ -1,44 +1,71 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Every colour comes from src/styles/tokens.css (3 palettes x light/dark, WCAG AA checked).
+   Components must never use raw colours: use these utilities (bg-surface, text-brand-text, …). */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
+  --font-heading: var(--font-jakarta);
+
+  /* SemGen tokens */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-brand-text: var(--brand-text);
+  --color-brand-border: var(--brand-border);
+  --color-spark: var(--spark);
+  --color-on-spark: var(--on-spark);
+  --color-spark-text: var(--spark-text);
+  --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  /* shadcn/ui names, mapped onto the tokens once */
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--brand);
+  --color-primary-foreground: var(--on-brand);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--text-2);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
   --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-input: var(--border-strong);
+  --color-ring: var(--focus);
+  --color-chart-1: var(--brand);
+  --color-chart-2: var(--spark);
+  --color-chart-3: var(--info);
+  --color-chart-4: var(--success);
+  --color-chart-5: var(--warning);
+  --color-sidebar: var(--surface);
+  --color-sidebar-foreground: var(--text);
+  --color-sidebar-primary: var(--brand);
+  --color-sidebar-primary-foreground: var(--on-brand);
+  --color-sidebar-accent: var(--surface-2);
+  --color-sidebar-accent-foreground: var(--text);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--focus);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,74 +76,10 @@
 }
 
 :root {
-  /* Brand colour: change this single number to re-colour the whole app (277 = violet/indigo). */
-  --brand-hue: 277;
-  --background: oklch(0.995 0.003 var(--brand-hue));
-  --foreground: oklch(0.2 0.03 var(--brand-hue));
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.03 var(--brand-hue));
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.03 var(--brand-hue));
-  --primary: oklch(0.5 0.23 var(--brand-hue));
-  --primary-foreground: oklch(0.99 0.005 var(--brand-hue));
-  --secondary: oklch(0.96 0.02 var(--brand-hue));
-  --secondary-foreground: oklch(0.3 0.1 var(--brand-hue));
-  --muted: oklch(0.96 0.01 var(--brand-hue));
-  --muted-foreground: oklch(0.5 0.03 var(--brand-hue));
-  --accent: oklch(0.94 0.04 var(--brand-hue));
-  --accent-foreground: oklch(0.3 0.12 var(--brand-hue));
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.015 var(--brand-hue));
-  --input: oklch(0.91 0.015 var(--brand-hue));
-  --ring: oklch(0.6 0.2 var(--brand-hue));
-  --chart-1: oklch(0.6 0.2 var(--brand-hue));
-  --chart-2: oklch(0.7 0.15 calc(var(--brand-hue) + 60));
-  --chart-3: oklch(0.5 0.23 var(--brand-hue));
-  --chart-4: oklch(0.75 0.12 calc(var(--brand-hue) - 60));
-  --chart-5: oklch(0.4 0.18 var(--brand-hue));
+  /* 12 px cards, 10 px controls: calm and precise, softer than a pro tool (see docs/DESIGN.md). */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0.008 var(--brand-hue));
-  --sidebar-foreground: oklch(0.2 0.03 var(--brand-hue));
-  --sidebar-primary: oklch(0.5 0.23 var(--brand-hue));
-  --sidebar-primary-foreground: oklch(0.99 0.005 var(--brand-hue));
-  --sidebar-accent: oklch(0.94 0.04 var(--brand-hue));
-  --sidebar-accent-foreground: oklch(0.3 0.12 var(--brand-hue));
-  --sidebar-border: oklch(0.91 0.015 var(--brand-hue));
-  --sidebar-ring: oklch(0.6 0.2 var(--brand-hue));
-}
-
-.dark {
-  --background: oklch(0.16 0.025 var(--brand-hue));
-  --foreground: oklch(0.97 0.01 var(--brand-hue));
-  --card: oklch(0.21 0.03 var(--brand-hue));
-  --card-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --popover: oklch(0.21 0.03 var(--brand-hue));
-  --popover-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --primary: oklch(0.68 0.19 var(--brand-hue));
-  --primary-foreground: oklch(0.15 0.03 var(--brand-hue));
-  --secondary: oklch(0.28 0.05 var(--brand-hue));
-  --secondary-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --muted: oklch(0.27 0.03 var(--brand-hue));
-  --muted-foreground: oklch(0.72 0.04 var(--brand-hue));
-  --accent: oklch(0.3 0.07 var(--brand-hue));
-  --accent-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.65 0.2 var(--brand-hue));
-  --chart-1: oklch(0.68 0.19 var(--brand-hue));
-  --chart-2: oklch(0.75 0.14 calc(var(--brand-hue) + 60));
-  --chart-3: oklch(0.6 0.22 var(--brand-hue));
-  --chart-4: oklch(0.78 0.12 calc(var(--brand-hue) - 60));
-  --chart-5: oklch(0.5 0.18 var(--brand-hue));
-  --sidebar: oklch(0.21 0.03 var(--brand-hue));
-  --sidebar-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --sidebar-primary: oklch(0.68 0.19 var(--brand-hue));
-  --sidebar-primary-foreground: oklch(0.15 0.03 var(--brand-hue));
-  --sidebar-accent: oklch(0.3 0.07 var(--brand-hue));
-  --sidebar-accent-foreground: oklch(0.97 0.01 var(--brand-hue));
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.65 0.2 var(--brand-hue));
+  /* Overlay behind dialogs: a token too, so no raw black in components. */
+  --overlay: color-mix(in oklab, var(--bg) 70%, transparent);
 }
 
 @layer base {
@@ -128,5 +91,18 @@
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading tracking-tight;
+  }
+  /* Palette and mode changes fade quickly; never for people who asked for less motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    body {
+      transition:
+        background-color 150ms ease,
+        color 150ms ease;
+    }
   }
 }

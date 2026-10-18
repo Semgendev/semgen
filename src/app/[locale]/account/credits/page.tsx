@@ -42,9 +42,7 @@ async function CreditsContent({ locale }: { locale: string }) {
                     })}
                   </time>
                 </div>
-                <span
-                  className={entry.delta > 0 ? "font-semibold text-emerald-600" : "font-semibold"}
-                >
+                <span className={entry.delta > 0 ? "text-success font-semibold" : "font-semibold"}>
                   {entry.delta > 0 ? `+${entry.delta}` : entry.delta}
                 </span>
               </li>

@@ -97,3 +97,10 @@
 - Spécifications détaillées : `docs/features/*.md`
 - Coûts et crédits : `docs/COSTS.md`
 - Décisions prises : `docs/DECISIONS.md`
+
+## 10. Licences et composants tiers (non négociable)
+
+- **Autorisé** : MIT, ISC, Apache-2.0, BSD, OFL (polices). **Interdit** : AGPL/GPL, Commons Clause, « gratuit jusqu'à X employés » (sauf Remotion, voir `docs/DECISIONS.md` D14), composants Pro non achetés, code, textes ou visuels copiés chez un concurrent.
+- Avant d'installer un composant, une icône ou une police : lire le fichier LICENSE du dépôt, demander confirmation à Ashanti, puis noter l'ajout dans `docs/THIRD_PARTY.md` (nom, version, licence, URL, date, fichiers).
+- En cas de doute : ne pas utiliser, proposer une alternative MIT.
+- **Couleurs** : aucune couleur en dur (`#hex`, `rgb()`) dans les composants, uniquement les variables de tokens (voir D15 et la palette choisie).

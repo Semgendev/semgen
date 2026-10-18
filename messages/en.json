@@ -43,7 +43,8 @@
     "signedInAs": "Signed in as",
     "signOut": "Sign out",
     "signIn": "Sign in",
-    "myAccount": "My account"
+    "myAccount": "My account",
+    "appearance": "Appearance"
   },
   "credits": {
     "balance": "{count, plural, one {# credit} other {# credits}}",
@@ -148,5 +149,34 @@
       "ready": "Ready",
       "failed": "Failed"
     }
+  },
+  "appearance": {
+    "breadcrumb": "Settings",
+    "title": "Appearance",
+    "subtitle": "Pick your mode and palette. Your video and captions stay exactly the same, whatever the palette.",
+    "mode": "Mode",
+    "modes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "palette": "Palette",
+    "paletteHint": "The visual identity of your workspace.",
+    "palettes": {
+      "cobalt": {
+        "name": "Cobalt & Gold",
+        "mood": "Professional and trusted"
+      },
+      "etincelle": {
+        "name": "Spark",
+        "mood": "Bold"
+      },
+      "teal": {
+        "name": "Teal & Saffron",
+        "mood": "Warm and calm"
+      }
+    },
+    "savedAutomatically": "Saved automatically on this device.",
+    "back": "Back to my account"
   }
 }

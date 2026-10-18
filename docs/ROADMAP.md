@@ -5,9 +5,11 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 ## Phase 0 — Fondations
 - [x] T0.1 🔵 Initialiser Next.js + TypeScript strict + Tailwind + shadcn/ui + ESLint/Prettier + Vitest + Playwright
 - [x] T0.2 🔵 Thème clair/sombre (`next-themes`) + design system (couleurs, typos, composants de base)
-- [ ] T0.3 🟢 i18n FR/EN (`next-intl`) + sélecteur de langue
+- [x] T0.3 🟢 i18n FR/EN (`next-intl`) + sélecteur de langue
 - [x] T0.4 🔵 CI GitHub Actions (lint, typecheck, tests) + déploiement Netlify preview
 - [x] T0.5 🔵 Sentry + PostHog
+- [x] T0.6 🟣 Système de thèmes v2 : 3 palettes × clair/sombre (D15), tokens, Paramètres › Apparence, `/dev/themes`, tests de contraste et « aucune couleur en dur » (voir `docs/DESIGN.md`)
+- [ ] T0.7 🔵 Refonte visuelle des écrans existants avec le nouveau design (page projet, liste, upload, compte, connexion)
 
 ## Phase 1 — Comptes et crédits (F1)
 - [x] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`
@@ -17,10 +19,12 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 ## Phase 2 — Upload et projets (F2)
 - [x] T2.1 🔵 Upload multipart vers R2 (URL signée), barre de progression, contrôle taille/type/durée
 - [x] T2.2 🔵 Tableau de bord des projets (liste, renommer, supprimer)
-- [ ] T2.3 🟣 Mise en place Trigger.dev + table `jobs` + progression en temps réel
+- [x] T2.3 🟣 Mise en place Trigger.dev + table `jobs` + progression en temps réel
+- [x] T2.4 🔵 Aperçu vidéo lisible partout (copie H.264, HDR iPhone)
+- [ ] T2.5 🔵 Aperçu **instantané** : la vidéo s'affiche dès qu'elle est choisie (fichier local) pendant que l'envoi continue en arrière-plan (D17)
 
 ## Phase 3 — Transcription (F3)
-- [ ] T3.1 🔵 Extraction audio FFmpeg + AssemblyAI + détection langue + intervenants
+- [x] T3.1 🔵 Extraction audio FFmpeg + AssemblyAI + détection langue + intervenants (+ interface : texte synchronisé, SRT/TXT)
 - [ ] T3.2 🔵 Éditeur de transcription (corriger un mot, fusionner/scinder)
 
 ## Phase 4 — Sous-titres animés (F4, F8)
@@ -31,7 +35,8 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 
 ## Phase 5 — Traduction (F5)
 - [ ] T5.1 🔵 Traduction par segment (Claude Haiku) + redistribution du timing
-- [ ] T5.2 🔵 Sélecteur multi-langues « tout traduire en 1 clic » + bascule de langue dans l'éditeur
+- [ ] T5.2 🔵 Sélecteur multi-langues « tout traduire en 1 clic » (100+ langues, groupes par région, langues africaines) + bascule de langue dans l'éditeur
+- [ ] T5.3 🟢 Interface en plusieurs langues : ES, PT, AR (droite à gauche) d'abord, puis la liste de `docs/features/languages.md`
 
 ## Phase 6 — Montage automatique (F6)
 - [ ] T6.1 🔵 Détection silences + mots de remplissage

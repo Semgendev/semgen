@@ -35,6 +35,9 @@ async function AccountContent({ locale }: { locale: string }) {
         <Link href="/account/credits" className={buttonVariants({ variant: "outline" })}>
           {tc("viewHistory")}
         </Link>
+        <Link href="/settings/appearance" className={buttonVariants({ variant: "outline" })}>
+          {t("appearance")}
+        </Link>
         <form action={signOut}>
           <input type="hidden" name="locale" value={locale} />
           <Button type="submit" variant="outline">

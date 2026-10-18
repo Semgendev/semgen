@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCreditBalance } from "@/features/credits/queries";
 import { Link } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function UserNavContent() {
@@ -29,9 +30,13 @@ async function UserNavContent() {
       <Link
         href="/account/credits"
         aria-label={t("credits.balanceLabel", { count: balance })}
-        className={buttonVariants({ variant: "outline" })}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          // The "spark" accent is reserved for credits and AI actions (D15).
+          "border-spark/40 text-spark-text hover:bg-spark/10",
+        )}
       >
-        <Coins className="size-4" />
+        <Coins className="size-4" aria-hidden="true" />
         {t("credits.balance", { count: balance })}
       </Link>
       <Link href="/account" className={buttonVariants({ variant: "ghost" })}>
