@@ -60,6 +60,47 @@
       "refund": "Refund"
     }
   },
+  "transcription": {
+    "title": "Transcription",
+    "intro": "We detect the spoken language and write the text word by word, with the exact moment each word is said.",
+    "languageLabel": "Spoken language",
+    "auto": "Detect automatically",
+    "cost": "Cost: {count, plural, one {# credit} other {# credits}}",
+    "costUnknown": "Cost: 1 credit per minute of video",
+    "balance": "{count, plural, one {# credit} other {# credits}} left",
+    "notEnoughCredits": "This video needs {cost} credits and you have {balance}.",
+    "start": "Detect language and transcribe",
+    "retry": "Try again",
+    "youCanWait": "You can leave this page: the transcription keeps running and will be here when you come back.",
+    "step": {
+      "queued": "Waiting in line…",
+      "checking": "Checking the video…",
+      "preparing": "Preparing the audio…",
+      "transcribing": "Transcribing…"
+    },
+    "detectedLanguage": "Detected language: {language}",
+    "copy": "Copy",
+    "copied": "Copied",
+    "showDoubts": "Underline doubtful words ({count})",
+    "doubtful": "Doubtful word ({percent}% confidence)",
+    "jumpTo": "Jump to {time}",
+    "errors": {
+      "no_audio": "This video has no sound. No credits were used.",
+      "no_speech": "No speech was detected. Your credits were refunded.",
+      "too_long": "This video is too long for your plan. No credits were used.",
+      "insufficient_credits": "You don’t have enough credits for this video.",
+      "video_unavailable": "Your video could not be found. No credits were used.",
+      "no_video": "This project has no video.",
+      "provider_failed": "The transcription service failed. Your credits were refunded, you can try again.",
+      "provider_timeout": "The transcription took too long. Your credits were refunded, you can try again.",
+      "queue_unavailable": "The service is briefly unavailable. No credits were used, try again in a moment.",
+      "invalid": "Invalid request. Reload the page and try again.",
+      "unauthorized": "Sign in again to continue.",
+      "not_ready": "The video is not ready yet.",
+      "already_running": "A transcription is already running for this project.",
+      "unknown": "Something went wrong. Your credits are safe, you can try again."
+    }
+  },
   "projects": {
     "newTitle": "New project",
     "newSubtitle": "Upload a video. We detect the spoken language automatically before transcribing.",

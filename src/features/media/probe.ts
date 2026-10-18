@@ -14,6 +14,9 @@ const ffprobeOutputSchema = z.object({
         height: z.number().optional(),
         avg_frame_rate: z.string().optional(),
         r_frame_rate: z.string().optional(),
+        // Phones store portrait videos as landscape pixels plus a rotation flag.
+        tags: z.object({ rotate: z.string().optional() }).optional(),
+        side_data_list: z.array(z.object({ rotation: z.number().optional() })).optional(),
       }),
     )
     .default([]),
@@ -40,6 +43,16 @@ function parseFrameRate(value: string | undefined): number | null {
   return Number.isFinite(fps) && fps > 0 && fps < 1000 ? Math.round(fps * 1000) / 1000 : null;
 }
 
+type RawVideoStream = z.infer<typeof ffprobeOutputSchema>["streams"][number];
+
+function isQuarterTurn(video: RawVideoStream | undefined): boolean {
+  if (!video) return false;
+  const degrees =
+    video.side_data_list?.find((entry) => entry.rotation !== undefined)?.rotation ??
+    Number(video.tags?.rotate ?? 0);
+  return Math.abs(Math.round(degrees)) % 180 === 90;
+}
+
 export function parseFfprobeOutput(raw: unknown): MediaInfo {
   const output = ffprobeOutputSchema.parse(raw);
   const video = output.streams.find((stream) => stream.codec_type === "video");
@@ -51,8 +64,9 @@ export function parseFfprobeOutput(raw: unknown): MediaInfo {
   return {
     durationSeconds: Math.round(duration * 1000) / 1000,
     hasAudio: Boolean(audio),
-    width: video?.width ?? null,
-    height: video?.height ?? null,
+    // Displayed size: swapped when the video is rotated by a quarter turn.
+    width: (isQuarterTurn(video) ? video?.height : video?.width) ?? null,
+    height: (isQuarterTurn(video) ? video?.width : video?.height) ?? null,
     fps: parseFrameRate(video?.avg_frame_rate) ?? parseFrameRate(video?.r_frame_rate),
     videoCodec: video?.codec_name ?? null,
     pixelFormat: video?.pix_fmt ?? null,

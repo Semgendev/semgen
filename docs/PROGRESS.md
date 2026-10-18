@@ -42,8 +42,11 @@
 | 2026-10-18 | T2.2 | ✅ | Liste des projets (miniatures via lien signé), page projet avec lecteur vidéo, renommer, supprimer (fichier + ligne), redirection après upload |
 | 2026-10-18 | T2.3 + T3.1 (moteur) | ✅ | Premier vrai test (dev) : vidéo FR de 9,8 Mo → langue fr détectée (0,83), 47 mots, 1 crédit débité (10→9) ; vidéo sans audio → refus propre `no_audio`, 0 crédit. Script : scripts/try-transcription.mts. Reste l’interface |
 | 2026-10-18 | Aperçu vidéo universel | ✅ dev | Colonnes `preview_status`/`preview_video_key` (migration sur DEV seulement) ; tâche `create-video-preview` (copie H.264/AAC 720p, HDR→SDR, source gardée si déjà .mp4 H.264 8 bits) ; lancée après l’upload et à l’ouverture d’un projet « pending » ; page projet avec attente + « Réessayer ». Testé : iPhone HEVC 10 bits .mov → mp4 1 Mo, couleurs OK |
+| 2026-10-18 | Transcription dans le site (T3.1 UI) | ✅ à valider visuellement | Page projet en 2 colonnes (vidéo à sa vraie taille, sans bandes noires) ; bouton « Détecter la langue et transcrire » (langue, coût + solde avant, bloqué si crédits insuffisants) ; progression par étapes (lecture du job toutes les 2,5 s) ; texte mot par mot synchronisé avec la vidéo (karaoké, clic = aller au mot), mots douteux soulignés, copier / SRT / TXT ; rotation iPhone prise en compte dans la sonde ; durée enregistrée dès l’aperçu. 63 tests unitaires verts |
 
 ## Problèmes ouverts
+- Pas encore de test E2E Playwright pour la page projet (il faut un compte de test connecté + worker Trigger.dev) : à ajouter.
+- Transcription UI : pas encore d’édition des mots (T3.2) ni de recherche dans le texte.
 - Aperçu : pas de limite de débit sur `requestPreview` (Upstash à venir) ; un aperçu bloqué en « processing » (worker mort) n’est pas relancé automatiquement.
 - Migration `video_preview` à appliquer sur PROD au moment du déploiement (accord d’Ashanti), avec le worker Trigger.dev déployé.
 - Dev : ne PAS lancer `npm run build` / `test:e2e` pendant que le serveur local tourne (ils partagent `.next` et le corrompent → page qui « clignote »). Arrêter le serveur avant, le relancer après.

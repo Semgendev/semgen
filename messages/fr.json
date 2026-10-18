@@ -60,6 +60,47 @@
       "refund": "Remboursement"
     }
   },
+  "transcription": {
+    "title": "Transcription",
+    "intro": "Nous détectons la langue parlée et écrivons le texte, mot par mot, avec le moment exact où chaque mot est dit.",
+    "languageLabel": "Langue parlée",
+    "auto": "Détecter automatiquement",
+    "cost": "Coût : {count, plural, one {# crédit} other {# crédits}}",
+    "costUnknown": "Coût : 1 crédit par minute de vidéo",
+    "balance": "il te reste {count, plural, one {# crédit} other {# crédits}}",
+    "notEnoughCredits": "Il faut {cost} crédits pour cette vidéo et tu en as {balance}.",
+    "start": "Détecter la langue et transcrire",
+    "retry": "Réessayer",
+    "youCanWait": "Tu peux quitter cette page : la transcription continue et sera là à ton retour.",
+    "step": {
+      "queued": "En file d’attente…",
+      "checking": "Vérification de la vidéo…",
+      "preparing": "Préparation du son…",
+      "transcribing": "Transcription en cours…"
+    },
+    "detectedLanguage": "Langue détectée : {language}",
+    "copy": "Copier",
+    "copied": "Copié",
+    "showDoubts": "Souligner les mots douteux ({count})",
+    "doubtful": "Mot douteux ({percent} % de confiance)",
+    "jumpTo": "Aller à {time}",
+    "errors": {
+      "no_audio": "Cette vidéo n’a pas de son. Aucun crédit n’a été utilisé.",
+      "no_speech": "Aucune parole n’a été détectée. Tes crédits ont été remboursés.",
+      "too_long": "Cette vidéo est trop longue pour ton offre. Aucun crédit n’a été utilisé.",
+      "insufficient_credits": "Tu n’as pas assez de crédits pour cette vidéo.",
+      "video_unavailable": "Ta vidéo est introuvable. Aucun crédit n’a été utilisé.",
+      "no_video": "Ce projet n’a pas de vidéo.",
+      "provider_failed": "Le service de transcription a échoué. Tes crédits ont été remboursés, tu peux réessayer.",
+      "provider_timeout": "La transcription a pris trop de temps. Tes crédits ont été remboursés, tu peux réessayer.",
+      "queue_unavailable": "Le service est momentanément indisponible. Aucun crédit n’a été utilisé, réessaie dans un instant.",
+      "invalid": "Demande invalide. Recharge la page et réessaie.",
+      "unauthorized": "Reconnecte-toi pour continuer.",
+      "not_ready": "La vidéo n’est pas encore prête.",
+      "already_running": "Une transcription est déjà en cours pour ce projet.",
+      "unknown": "Une erreur est survenue. Tes crédits sont protégés, tu peux réessayer."
+    }
+  },
   "projects": {
     "newTitle": "Nouveau projet",
     "newSubtitle": "Importe une vidéo. Nous détectons automatiquement la langue parlée avant de transcrire.",

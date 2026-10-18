@@ -53,6 +53,21 @@ describe("parseFfprobeOutput", () => {
     });
   });
 
+  it("swaps width and height for phone videos stored rotated", () => {
+    const info = parseFfprobeOutput({
+      streams: [
+        {
+          codec_type: "video",
+          width: 1920,
+          height: 1080,
+          side_data_list: [{ rotation: -90 }],
+        },
+      ],
+      format: { duration: "10" },
+    });
+    expect([info.width, info.height]).toEqual([1080, 1920]);
+  });
+
   it("detects silent videos and rejects unreadable durations", () => {
     const silent = parseFfprobeOutput({
       streams: [{ codec_type: "video", width: 640, height: 360, r_frame_rate: "25/1" }],

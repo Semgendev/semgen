@@ -66,6 +66,16 @@ export const createVideoPreview = task({
       if (signError || !signed) throw new Error("video_unavailable");
 
       const info = await probeMedia(signed.signedUrl);
+      // Known as early as possible: the transcription cost is shown before the user starts it.
+      await supabase
+        .from("projects")
+        .update({
+          duration_s: info.durationSeconds,
+          width: info.width,
+          height: info.height,
+          fps: info.fps,
+        })
+        .eq("id", projectId);
 
       let previewKey = sourceKey;
       let converted = false;
