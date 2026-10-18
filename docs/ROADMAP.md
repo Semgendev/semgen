@@ -16,7 +16,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 
 ## Phase 2 — Upload et projets (F2)
 - [x] T2.1 🔵 Upload multipart vers R2 (URL signée), barre de progression, contrôle taille/type/durée
-- [ ] T2.2 🔵 Tableau de bord des projets (liste, renommer, supprimer)
+- [x] T2.2 🔵 Tableau de bord des projets (liste, renommer, supprimer)
 - [ ] T2.3 🟣 Mise en place Trigger.dev + table `jobs` + progression en temps réel
 
 ## Phase 3 — Transcription (F3)

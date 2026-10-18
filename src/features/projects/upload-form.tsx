@@ -7,7 +7,7 @@ import { useRef, useState, type DragEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 
 import { completeUpload, createProject } from "./actions";
 import {
@@ -29,6 +29,7 @@ type State =
 
 export function UploadForm() {
   const t = useTranslations("projects");
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [state, setState] = useState<State>({ step: "idle" });
@@ -88,7 +89,12 @@ export function UploadForm() {
       await handle.current.promise;
       setState({ step: "finishing" });
       const completed = await completeUpload(created.id);
-      setState(completed.ok ? { step: "done" } : { step: "error", code: "unknown" });
+      if (completed.ok) {
+        setState({ step: "done" });
+        router.push(`/projects/${created.id}`);
+      } else {
+        setState({ step: "error", code: "unknown" });
+      }
     } catch {
       setState({ step: "error", code: "upload_failed" });
     } finally {

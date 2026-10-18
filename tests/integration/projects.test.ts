@@ -3,6 +3,14 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 
+import {
+  deleteProjectWithFiles,
+  getProject,
+  getVideoUrls,
+  listProjects,
+  renameProject,
+} from "@/features/projects/service";
+
 // Runs against the DEV Supabase project only (creates and deletes real users and files).
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -220,5 +228,85 @@ describe.skipIf(!configured)("projects and video storage (Supabase dev project)"
 
     const mark = await client.rpc("mark_project_uploaded", { p_project_id: projectId });
     expect(mark.error?.message).toContain("upload_not_found");
+  });
+});
+
+describe.skipIf(!configured)("project service (Supabase dev project)", () => {
+  const admin = configured
+    ? createClient(url, secretKey, noSession)
+    : (null as unknown as SupabaseClient);
+
+  async function uploadedProject(client: SupabaseClient, userId: string) {
+    const projectId = await createProject(client);
+    const path = `${userId}/${projectId}/source.mp4`;
+    const upload = await client.storage
+      .from("videos")
+      .upload(path, VIDEO_BYTES, { contentType: "video/mp4" });
+    expect(upload.error).toBeNull();
+    await client.rpc("mark_project_uploaded", { p_project_id: projectId });
+    return { projectId, path };
+  }
+
+  it("lists projects with signed video links, newest first", async () => {
+    const user = await createUser(admin);
+    const client = await signIn(user.email);
+    await uploadedProject(client, user.id);
+    const second = await createProject(client, "No video yet");
+
+    const projects = await listProjects(client);
+    expect(projects).toHaveLength(2);
+    expect(projects[0]?.id).toBe(second);
+
+    const urls = await getVideoUrls(client, projects);
+    expect(Object.keys(urls)).toHaveLength(1);
+    expect(Object.values(urls)[0]).toContain("/object/sign/videos/");
+  });
+
+  it("renames only the caller's project and validates the title", async () => {
+    const alice = await createUser(admin);
+    const bob = await createUser(admin);
+    const aliceClient = await signIn(alice.email);
+    const bobClient = await signIn(bob.email);
+    const projectId = await createProject(aliceClient);
+
+    expect(await renameProject(aliceClient, projectId, "New name")).toEqual({ ok: true });
+    expect(await renameProject(aliceClient, projectId, "   ")).toEqual({
+      ok: false,
+      code: "invalid",
+    });
+    expect(await renameProject(bobClient, projectId, "Hacked")).toEqual({
+      ok: false,
+      code: "not_found",
+    });
+    expect((await getProject(aliceClient, projectId))?.title).toBe("New name");
+    expect(await getProject(bobClient, projectId)).toBeNull();
+  });
+
+  it("deletes the project and its video file together", async () => {
+    const user = await createUser(admin);
+    const client = await signIn(user.email);
+    const { projectId, path } = await uploadedProject(client, user.id);
+
+    expect(await deleteProjectWithFiles(client, user.id, projectId)).toEqual({ ok: true });
+
+    expect(await getProject(client, projectId)).toBeNull();
+    const { data: files } = await admin.storage.from("videos").list(`${user.id}/${projectId}`);
+    expect(files ?? []).toEqual([]);
+    const download = await admin.storage.from("videos").download(path);
+    expect(download.error).not.toBeNull();
+  });
+
+  it("refuses to delete someone else's project and keeps their video", async () => {
+    const alice = await createUser(admin);
+    const bob = await createUser(admin);
+    const aliceClient = await signIn(alice.email);
+    const bobClient = await signIn(bob.email);
+    const { projectId, path } = await uploadedProject(aliceClient, alice.id);
+
+    const attempt = await deleteProjectWithFiles(bobClient, bob.id, projectId);
+    expect(attempt).toEqual({ ok: false, code: "not_found" });
+
+    expect(await getProject(aliceClient, projectId)).not.toBeNull();
+    expect((await admin.storage.from("videos").download(path)).error).toBeNull();
   });
 });

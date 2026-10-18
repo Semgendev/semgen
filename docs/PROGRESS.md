@@ -4,8 +4,8 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T2.2 (liste des projets) — pas encore commencée
-- **Prochaine étape :** T2.2 : liste des projets (statut, renommer, supprimer vidéo + ligne), puis T2.3 (Trigger.dev) et T3.1 (détection de langue + transcription AssemblyAI)
+- **Tâche en cours :** T2.2 faite côté code (à valider visuellement par Ashanti) — T2.3 non commencée
+- **Prochaine étape :** valider T2.2 (liste, lecteur, renommer, supprimer), puis T2.3 Trigger.dev (compte à créer) et T3.1 transcription via une interface TranscriptionProvider (AssemblyAI d’abord, ElevenLabs Scribe ensuite pour les langues africaines ; vise l’international)
 - **Bloquants / à faire par Ashanti :** pour T2.3 : compte Trigger.dev ; pour T3.1 : compte AssemblyAI (clé API) ; carte bancaire/virtuelle pour Cloudflare R2 avant le lancement
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
@@ -27,6 +27,7 @@
 | 2026-10-18 | T1.2 (partie 1) | ✅ | Lien magique + Turnstile + registre des bonus + pages login/account ; testé de bout en bout sur dev et prod (10 crédits, un seul bonus) |
 | 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
 | 2026-10-18 | T2.1 | ✅ | Upload vidéo (TUS, 50 Mo, Supabase Storage provisoire) testé en dev ET prod : projet « uploaded » + fichier stocké |
+| 2026-10-18 | T2.2 | ✅ | Liste des projets (miniatures via lien signé), page projet avec lecteur vidéo, renommer, supprimer (fichier + ligne), redirection après upload |
 
 ## Problèmes ouverts
 - Stockage vidéo PROVISOIRE sur Supabase Storage (50 Mo max, pas de carte bancaire). Prévu : Cloudflare R2 (carte requise) avant le lancement ; le client d’upload (TUS) sera à adapter en multipart S3.

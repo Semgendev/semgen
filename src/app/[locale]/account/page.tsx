@@ -26,6 +26,9 @@ async function AccountContent({ locale }: { locale: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-3">
+        <Link href="/projects" className={buttonVariants({ variant: "outline" })}>
+          {tp("myProjects")}
+        </Link>
         <Link href="/projects/new" className={buttonVariants({ variant: "default" })}>
           {tp("newProject")}
         </Link>

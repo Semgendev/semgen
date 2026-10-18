@@ -84,6 +84,25 @@
       "upload_failed": "L’envoi a échoué. Vérifie ta connexion et réessaie.",
       "unauthorized": "Reconnecte-toi pour envoyer une vidéo.",
       "unknown": "Une erreur est survenue. Réessaie."
+    },
+    "listTitle": "Mes projets",
+    "emptyList": "Tu n’as pas encore de projet. Importe ta première vidéo pour commencer.",
+    "rename": "Renommer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer ce projet ?",
+    "deleteBody": "« {title} » et sa vidéo seront supprimés définitivement. Cette action est irréversible.",
+    "deleteConfirm": "Supprimer définitivement",
+    "backToList": "Retour à mes projets",
+    "myProjects": "Mes projets",
+    "noVideo": "Aucune vidéo n’est disponible pour ce projet pour le moment.",
+    "noVideoSupport": "Ton navigateur ne peut pas lire cette vidéo.",
+    "status": {
+      "uploading": "Envoi en cours",
+      "uploaded": "Envoyée",
+      "processing": "Traitement",
+      "ready": "Prête",
+      "failed": "Échec"
     }
   }
 }

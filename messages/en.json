@@ -84,6 +84,25 @@
       "upload_failed": "The upload failed. Check your connection and try again.",
       "unauthorized": "Please sign in again to upload a video.",
       "unknown": "Something went wrong. Please try again."
+    },
+    "listTitle": "My projects",
+    "emptyList": "You have no project yet. Upload your first video to get started.",
+    "rename": "Rename",
+    "save": "Save",
+    "delete": "Delete",
+    "deleteTitle": "Delete this project?",
+    "deleteBody": "“{title}” and its video will be permanently deleted. This cannot be undone.",
+    "deleteConfirm": "Delete permanently",
+    "backToList": "Back to my projects",
+    "myProjects": "My projects",
+    "noVideo": "No video is available for this project yet.",
+    "noVideoSupport": "Your browser cannot play this video.",
+    "status": {
+      "uploading": "Uploading",
+      "uploaded": "Uploaded",
+      "processing": "Processing",
+      "ready": "Ready",
+      "failed": "Failed"
     }
   }
 }

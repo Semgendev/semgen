@@ -34,3 +34,11 @@ test("the upload page is protected and sends visitors to sign in", async ({ page
 
   await expect(page).toHaveURL(/\/en\/login\?next=/);
 });
+
+test("the projects list and a project page are protected", async ({ page }) => {
+  await page.goto("/fr/projects");
+  await expect(page).toHaveURL(/\/fr\/login\?next=/);
+
+  await page.goto("/en/projects/b28f9644-c3c7-4a31-8225-017f8b8bad2a");
+  await expect(page).toHaveURL(/\/en\/login\?next=/);
+});
