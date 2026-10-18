@@ -216,5 +216,17 @@
     },
     "savedAutomatically": "Saved automatically on this device.",
     "back": "Back to my account"
+  },
+  "captions": {
+    "stylesTitle": "Caption style",
+    "saveFailed": "The style could not be saved. Please try again.",
+    "styles": {
+      "cinema": "Cinema",
+      "elegance": "Elegance",
+      "viral": "Viral",
+      "karaoke": "Karaoke",
+      "neon": "Neon",
+      "minimal": "Minimal"
+    }
   }
 }

@@ -3,9 +3,14 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-// CLAUDE.md §10: components use design tokens only. The token files are the single exception.
+// CLAUDE.md §10: components use design tokens only. Exceptions: the token files, and the caption
+// presets, whose colours are video content that must never follow the app palette (DESIGN.md §3).
 const ROOT = join(process.cwd(), "src");
-const ALLOWED = new Set(["styles/tokens.css", "styles/tokens.json"]);
+const ALLOWED = new Set([
+  "styles/tokens.css",
+  "styles/tokens.json",
+  "features/captions/presets.ts",
+]);
 
 const RAW_HEX = /#[0-9a-fA-F]{3,8}\b(?![\w-])/;
 const TAILWIND_PALETTE =

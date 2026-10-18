@@ -135,7 +135,10 @@ export function UploadForm() {
         >
           {t("another")}
         </Button>
-        <Link href="/account" className="text-brand-text text-sm underline-offset-4 hover:underline">
+        <Link
+          href="/account"
+          className="text-brand-text text-sm underline-offset-4 hover:underline"
+        >
           {t("backToAccount")}
         </Link>
       </div>

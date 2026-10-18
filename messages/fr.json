@@ -216,5 +216,17 @@
     },
     "savedAutomatically": "Enregistré automatiquement sur cet appareil.",
     "back": "Retour à mon espace"
+  },
+  "captions": {
+    "stylesTitle": "Style des sous-titres",
+    "saveFailed": "Le style n’a pas pu être enregistré. Réessaie.",
+    "styles": {
+      "cinema": "Cinéma",
+      "elegance": "Élégance",
+      "viral": "Viral",
+      "karaoke": "Karaoké",
+      "neon": "Néon",
+      "minimal": "Minimal"
+    }
   }
 }

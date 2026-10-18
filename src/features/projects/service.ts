@@ -28,12 +28,14 @@ export const projectSummarySchema = z.object({
   duration_s: z.number().nullable(),
   detected_language: z.string().nullable(),
   created_at: z.string(),
+  // validated by features/captions/project-style.ts when used
+  caption_style: z.unknown().optional(),
 });
 
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 
 const COLUMNS =
-  "id, title, status, source_video_key, preview_status, preview_video_key, source_size_bytes, duration_s, detected_language, created_at";
+  "id, title, status, source_video_key, preview_status, preview_video_key, source_size_bytes, duration_s, detected_language, created_at, caption_style";
 
 const SIGNED_URL_SECONDS = 60 * 60;
 

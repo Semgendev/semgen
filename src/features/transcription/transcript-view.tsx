@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+import { usePublishCaptionWords } from "../captions/caption-words";
 import { usePlayerControls, usePlayerTime } from "../projects/player";
 import { revertTranscript, saveTranscript } from "./actions";
 import {
@@ -168,6 +169,12 @@ export function TranscriptView({
   const container = useRef<HTMLDivElement>(null);
 
   const { words, segments } = history.present;
+  // Every correction shows up at once in the captions on the video.
+  const publishWords = usePublishCaptionWords();
+  useEffect(() => {
+    publishWords?.(words);
+  }, [publishWords, words]);
+  // Every correction shows up at once in the captions on the video.  const publishWords = usePublishCaptionWords();  useEffect(() => {    publishWords?.(words);  }, [publishWords, words]);
   const dirty = history.present !== saved;
   const activeWord = findActiveWordIndex(words, timeMs);
   const activeSegment = activeWord >= 0 ? findSegmentIndex(segments, activeWord) : -1;
