@@ -6,7 +6,7 @@ import { refreshSession } from "@/lib/supabase/proxy";
 
 const intlMiddleware = createMiddleware({ locales, defaultLocale });
 
-const PROTECTED_PATH = /^\/(en|fr)\/account(\/|$)/;
+const PROTECTED_PATH = /^\/(en|fr)\/(account|projects)(\/|$)/;
 
 export default async function proxy(request: NextRequest) {
   const response = intlMiddleware(request);

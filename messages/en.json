@@ -60,5 +60,31 @@
       "job": "Used for a task",
       "refund": "Refund"
     }
+  },
+  "projects": {
+    "newTitle": "New project",
+    "newSubtitle": "Upload a video. We detect the spoken language automatically before transcribing.",
+    "dropHint": "Drag a video here",
+    "chooseFile": "Choose a video",
+    "formats": "MP4, MOV, WEBM or MKV · up to {size} MB · up to {minutes} min",
+    "titleLabel": "Project name",
+    "start": "Upload video",
+    "cancel": "Cancel",
+    "uploading": "Uploading… {percent}%",
+    "finishing": "Finishing…",
+    "done": "Upload complete",
+    "doneBody": "Your video is safely stored. Language detection and transcription come next.",
+    "another": "Upload another video",
+    "backToAccount": "Back to my account",
+    "newProject": "New project",
+    "errors": {
+      "empty": "This file is empty.",
+      "unsupported_type": "Unsupported format. Use MP4, MOV, WEBM or MKV.",
+      "too_large": "This video is too large for your plan.",
+      "too_long": "This video is too long for your plan.",
+      "upload_failed": "The upload failed. Check your connection and try again.",
+      "unauthorized": "Please sign in again to upload a video.",
+      "unknown": "Something went wrong. Please try again."
+    }
   }
 }

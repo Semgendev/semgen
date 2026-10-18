@@ -4,8 +4,8 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T1.2 : reste uniquement le bouton Google. T1.3 faite côté code (à vérifier visuellement connecté)
-- **Prochaine étape :** Google (T1.2) ou Phase 2 (upload vidéo vers R2 : compte Cloudflare déjà prêt)
+- **Tâche en cours :** T2.1 (upload) — code prêt, migration projects/videos écrite mais PAS encore envoyée sur dev (attente accord Ashanti)
+- **Prochaine étape :** envoyer la migration sur dev, lancer tests d’intégration, test réel d’upload dans le navigateur, puis T2.2
 - **Bloquants / à faire par Ashanti :** créer le projet Google Cloud + identifiants OAuth quand on fera Google
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
@@ -28,6 +28,9 @@
 | 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
 
 ## Problèmes ouverts
+- Stockage vidéo PROVISOIRE sur Supabase Storage (50 Mo max, pas de carte bancaire). Prévu : Cloudflare R2 (carte requise) avant le lancement ; le client d’upload (TUS) sera à adapter en multipart S3.
+- Upload : pas encore de rate limiting (Upstash), durée vérifiée seulement côté navigateur (ffprobe serveur en T2.3), type MIME seulement déclaré (vérif magic bytes à ajouter).
+- Nom de domaine + Resend à prévoir avant d’inviter de vrais utilisateurs.
 - Emails Supabase limités (~2-4/h) : avant lancement, Resend + nom de domaine à acheter.
 - Anti-abus du bonus (suppression puis réinscription, emails jetables / +alias) : à traiter en T1.2 (captcha, rate limiting, registre des emails ayant reçu un bonus).
 - Tests d’intégration (`npm run test:integration`) lancés en local seulement, pas encore dans la CI (il faudrait des secrets GitHub vers un projet de test).

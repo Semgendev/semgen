@@ -60,5 +60,31 @@
       "job": "Utilisés pour une tâche",
       "refund": "Remboursement"
     }
+  },
+  "projects": {
+    "newTitle": "Nouveau projet",
+    "newSubtitle": "Importe une vidéo. Nous détectons automatiquement la langue parlée avant de transcrire.",
+    "dropHint": "Glisse une vidéo ici",
+    "chooseFile": "Choisir une vidéo",
+    "formats": "MP4, MOV, WEBM ou MKV · jusqu’à {size} Mo · jusqu’à {minutes} min",
+    "titleLabel": "Nom du projet",
+    "start": "Envoyer la vidéo",
+    "cancel": "Annuler",
+    "uploading": "Envoi en cours… {percent} %",
+    "finishing": "Finalisation…",
+    "done": "Envoi terminé",
+    "doneBody": "Ta vidéo est bien enregistrée. La détection de la langue et la transcription arrivent ensuite.",
+    "another": "Envoyer une autre vidéo",
+    "backToAccount": "Retour à mon espace",
+    "newProject": "Nouveau projet",
+    "errors": {
+      "empty": "Ce fichier est vide.",
+      "unsupported_type": "Format non pris en charge. Utilise MP4, MOV, WEBM ou MKV.",
+      "too_large": "Cette vidéo est trop lourde pour ton offre.",
+      "too_long": "Cette vidéo est trop longue pour ton offre.",
+      "upload_failed": "L’envoi a échoué. Vérifie ta connexion et réessaie.",
+      "unauthorized": "Reconnecte-toi pour envoyer une vidéo.",
+      "unknown": "Une erreur est survenue. Réessaie."
+    }
   }
 }

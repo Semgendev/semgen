@@ -12,6 +12,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 async function AccountContent({ locale }: { locale: string }) {
   const t = await getTranslations("account");
   const tc = await getTranslations("credits");
+  const tp = await getTranslations("projects");
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect(`/${locale}/login`);
@@ -25,7 +26,10 @@ async function AccountContent({ locale }: { locale: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-3">
-        <Link href="/account/credits" className={buttonVariants({ variant: "default" })}>
+        <Link href="/projects/new" className={buttonVariants({ variant: "default" })}>
+          {tp("newProject")}
+        </Link>
+        <Link href="/account/credits" className={buttonVariants({ variant: "outline" })}>
           {tc("viewHistory")}
         </Link>
         <form action={signOut}>
