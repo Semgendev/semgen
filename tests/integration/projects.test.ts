@@ -22,6 +22,20 @@ const noSession = { auth: { persistSession: false, autoRefreshToken: false } };
 const createdUserIds: string[] = [];
 const VIDEO_BYTES = new Uint8Array([0, 0, 0, 24, 102, 116, 121, 112, 109, 112, 52, 50]);
 
+afterAll(async () => {
+  if (!configured) return;
+  const admin = createClient(url, secretKey, noSession);
+  for (const id of createdUserIds) {
+    const { data } = await admin.storage.from("videos").list(id);
+    for (const folder of data ?? []) {
+      const { data: files } = await admin.storage.from("videos").list(`${id}/${folder.name}`);
+      const paths = (files ?? []).map((file) => `${id}/${folder.name}/${file.name}`);
+      if (paths.length > 0) await admin.storage.from("videos").remove(paths);
+    }
+    await admin.auth.admin.deleteUser(id);
+  }
+});
+
 async function createUser(admin: SupabaseClient) {
   const email = `test-${randomUUID()}@example.com`;
   const { data, error } = await admin.auth.admin.createUser({
@@ -61,18 +75,6 @@ describe.skipIf(!configured)("projects and video storage (Supabase dev project)"
   const admin = configured
     ? createClient(url, secretKey, noSession)
     : (null as unknown as SupabaseClient);
-
-  afterAll(async () => {
-    for (const id of createdUserIds) {
-      const { data } = await admin.storage.from("videos").list(id);
-      for (const folder of data ?? []) {
-        const { data: files } = await admin.storage.from("videos").list(`${id}/${folder.name}`);
-        const paths = (files ?? []).map((file) => `${id}/${folder.name}/${file.name}`);
-        if (paths.length > 0) await admin.storage.from("videos").remove(paths);
-      }
-      await admin.auth.admin.deleteUser(id);
-    }
-  });
 
   it("keeps the bucket private with server-side size and type limits", async () => {
     const { data, error } = await admin.storage.getBucket("videos");
