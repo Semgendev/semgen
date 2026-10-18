@@ -47,6 +47,23 @@ async function signIn(email: string): Promise<SupabaseClient> {
   return client;
 }
 
+async function jobFor(userId: string): Promise<string> {
+  const admin = createClient(url, secretKey, noSession);
+  const { data: project, error: projectError } = await admin
+    .from("projects")
+    .insert({ user_id: userId, title: "Test" })
+    .select("id")
+    .single();
+  if (projectError) throw projectError;
+  const { data: job, error } = await admin
+    .from("jobs")
+    .insert({ project_id: project.id, user_id: userId, type: "transcribe" })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return job.id as string;
+}
+
 async function balanceOf(admin: SupabaseClient, userId: string): Promise<number> {
   const { data, error } = await admin.from("credit_ledger").select("delta").eq("user_id", userId);
   if (error) throw error;
@@ -256,7 +273,7 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
 
   it("reserves credits, refuses double debit and overspending", async () => {
     const user = await createUser(admin, true);
-    const jobId = randomUUID();
+    const jobId = await jobFor(user.id);
 
     const first = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
@@ -275,14 +292,14 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
 
     const tooMuch = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
-      p_job_id: randomUUID(),
+      p_job_id: await jobFor(user.id),
       p_amount: 100,
     });
     expect(tooMuch.error?.message).toContain("insufficient_credits");
 
     const invalid = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
-      p_job_id: randomUUID(),
+      p_job_id: await jobFor(user.id),
       p_amount: 0,
     });
     expect(invalid.error?.message).toContain("invalid_arguments");
@@ -295,7 +312,7 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
 
     const all = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
-      p_job_id: randomUUID(),
+      p_job_id: await jobFor(user.id),
       p_amount: 10,
     });
     expect(all.error).toBeNull();
@@ -303,7 +320,7 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
 
     const more = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
-      p_job_id: randomUUID(),
+      p_job_id: await jobFor(user.id),
       p_amount: 1,
     });
     expect(more.error?.message).toContain("insufficient_credits");
@@ -312,7 +329,7 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
   it("refuses to reuse a job id across users", async () => {
     const alice = await createUser(admin, true);
     const bob = await createUser(admin, true);
-    const jobId = randomUUID();
+    const jobId = await jobFor(alice.id);
 
     const first = await admin.rpc("reserve_credits", {
       p_user_id: alice.id,
@@ -326,13 +343,13 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
       p_job_id: jobId,
       p_amount: 2,
     });
-    expect(second.error?.message).toContain("job_already_reserved");
+    expect(second.error?.message).toContain("job_not_found");
     expect(await balanceOf(admin, bob.id)).toBe(10);
   });
 
   it("refunds a failed job exactly once", async () => {
     const user = await createUser(admin, true);
-    const jobId = randomUUID();
+    const jobId = await jobFor(user.id);
     const reserved = await admin.rpc("reserve_credits", {
       p_user_id: user.id,
       p_job_id: jobId,
@@ -352,12 +369,24 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
     expect(await balanceOf(admin, user.id)).toBe(10);
   });
 
+  it("refuses a reservation for a job that does not exist", async () => {
+    const user = await createUser(admin, true);
+    const result = await admin.rpc("reserve_credits", {
+      p_user_id: user.id,
+      p_job_id: randomUUID(),
+      p_amount: 1,
+    });
+    expect(result.error?.message).toContain("job_not_found");
+    expect(await balanceOf(admin, user.id)).toBe(10);
+  });
+
   it("never lets two simultaneous reservations overspend", async () => {
     const user = await createUser(admin, true);
 
+    const jobIds = [await jobFor(user.id), await jobFor(user.id), await jobFor(user.id)];
     const results = await Promise.all(
-      [1, 2, 3].map(() =>
-        admin.rpc("reserve_credits", { p_user_id: user.id, p_job_id: randomUUID(), p_amount: 6 }),
+      jobIds.map((jobId) =>
+        admin.rpc("reserve_credits", { p_user_id: user.id, p_job_id: jobId, p_amount: 6 }),
       ),
     );
 

@@ -4,13 +4,13 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T2.2 faite côté code (à valider visuellement par Ashanti) — T2.3 non commencée
-- **Prochaine étape :** valider T2.2 (liste, lecteur, renommer, supprimer), puis T2.3 Trigger.dev (compte à créer) et T3.1 transcription via une interface TranscriptionProvider (AssemblyAI d’abord, ElevenLabs Scribe ensuite pour les langues africaines ; vise l’international)
+- **Tâche en cours :** T2.3 + T3.1 (moteur) — code écrit : tâche Trigger.dev transcribe-project (ffprobe, crédits à la durée réelle, AssemblyAI, remboursement auto), migration jobs+transcripts NON envoyée
+- **Prochaine étape :** migration dev (accord), FFmpeg sur le PC, login Trigger.dev, test réel ; puis interface (bouton, progression, texte) en Sonnet
 - **Bloquants / à faire par Ashanti :** pour T2.3 : compte Trigger.dev ; pour T3.1 : compte AssemblyAI (clé API) ; carte bancaire/virtuelle pour Cloudflare R2 avant le lancement
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
-- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [x] Cloudflare (Turnstile ; R2 plus tard) · [ ] Trigger.dev
-- [ ] AssemblyAI · [ ] Anthropic API · [ ] ElevenLabs · [ ] AWS (Remotion Lambda)
+- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [x] Cloudflare (Turnstile ; R2 plus tard) · [x] Trigger.dev (proj_cufdcyzzcdrndjgsbnxy)
+- [x] AssemblyAI · [ ] Anthropic API · [ ] ElevenLabs · [ ] AWS (Remotion Lambda)
 - [ ] FedaPay · [ ] pawaPay · [ ] Resend · [ ] Upstash · [x] Sentry · [x] PostHog
 
 ## Journal

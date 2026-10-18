@@ -310,3 +310,98 @@ describe.skipIf(!configured)("project service (Supabase dev project)", () => {
     expect((await admin.storage.from("videos").download(path)).error).toBeNull();
   });
 });
+
+describe.skipIf(!configured)("transcription jobs (Supabase dev project)", () => {
+  const admin = configured
+    ? createClient(url, secretKey, noSession)
+    : (null as unknown as SupabaseClient);
+
+  async function readyProject(client: SupabaseClient, userId: string) {
+    const projectId = await createProject(client);
+    await client.storage
+      .from("videos")
+      .upload(`${userId}/${projectId}/source.mp4`, VIDEO_BYTES, { contentType: "video/mp4" });
+    await client.rpc("mark_project_uploaded", { p_project_id: projectId });
+    return projectId;
+  }
+
+  it("queues one transcription job and blocks duplicates", async () => {
+    const user = await createUser(admin);
+    const client = await signIn(user.email);
+    const projectId = await readyProject(client, user.id);
+
+    const first = await client.rpc("request_transcription", {
+      p_project_id: projectId,
+      p_language: "fr",
+    });
+    expect(first.error).toBeNull();
+
+    const { data: jobs } = await client.from("jobs").select("id, status, type, options");
+    expect(jobs).toEqual([
+      { id: first.data, status: "queued", type: "transcribe", options: { language: "fr" } },
+    ]);
+    const { data: project } = await client
+      .from("projects")
+      .select("status")
+      .eq("id", projectId)
+      .single();
+    expect(project?.status).toBe("processing");
+
+    const again = await client.rpc("request_transcription", { p_project_id: projectId });
+    expect(again.error).not.toBeNull();
+  });
+
+  it("refuses projects that are not uploaded, not owned, or invalid languages", async () => {
+    const alice = await createUser(admin);
+    const bob = await createUser(admin);
+    const aliceClient = await signIn(alice.email);
+    const bobClient = await signIn(bob.email);
+
+    const notUploaded = await createProject(aliceClient);
+    const pending = await aliceClient.rpc("request_transcription", { p_project_id: notUploaded });
+    expect(pending.error?.message).toContain("project_not_ready");
+
+    const projectId = await readyProject(aliceClient, alice.id);
+    const steal = await bobClient.rpc("request_transcription", { p_project_id: projectId });
+    expect(steal.error?.message).toContain("project_not_found");
+
+    const badLanguage = await aliceClient.rpc("request_transcription", {
+      p_project_id: projectId,
+      p_language: "FR; drop table",
+    });
+    expect(badLanguage.error?.message).toContain("invalid_language");
+
+    const anon = createClient(url, publishableKey, noSession);
+    expect(
+      (await anon.rpc("request_transcription", { p_project_id: projectId })).error,
+    ).not.toBeNull();
+  });
+
+  it("keeps jobs and transcripts read-only for users", async () => {
+    const user = await createUser(admin);
+    const client = await signIn(user.email);
+    const projectId = await readyProject(client, user.id);
+    const { data: jobId } = await client.rpc("request_transcription", { p_project_id: projectId });
+
+    const update = await client
+      .from("jobs")
+      .update({ status: "succeeded" })
+      .eq("id", jobId)
+      .select();
+    expect(update.error !== null || update.data.length === 0).toBe(true);
+    const insertJob = await client
+      .from("jobs")
+      .insert({ project_id: projectId, user_id: user.id, type: "render" });
+    expect(insertJob.error).not.toBeNull();
+    const insertTranscript = await client.from("transcripts").insert({
+      project_id: projectId,
+      user_id: user.id,
+      language: "fr",
+      provider: "assemblyai",
+      text: "x",
+      words: [],
+      segments: [],
+    });
+    expect(insertTranscript.error).not.toBeNull();
+  });
+});
