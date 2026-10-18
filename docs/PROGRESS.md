@@ -43,8 +43,21 @@
 | 2026-10-18 | Analyse design Submagic / Caption Studio ; `DESIGN.md`, `languages.md`, D14–D19 | ✅ |
 | 2026-10-18 | T0.6 thèmes v2 : 3 palettes × 2 modes, tokens, Apparence, `/dev/themes`, tests contraste / couleurs en dur | ✅ dev, vu en capture |
 | 2026-10-18 | Bascule clair/sombre en un seul bouton (plus de « Système ») | ✅ |
+| 2026-10-18 | T0.7 + T2.5 : barre du haut commune (projets/compte), aperçu instantané à l’upload, liste et page projet restylées | 🟡 code fait, lint/types/75 tests verts ; à valider à l’œil par Ashanti (pas de capture E2E) |
+
+| 2026-10-18 | T3.2 éditeur de transcription : corriger un mot, nouvelle ligne, fusion, chercher/remplacer, annuler/rétablir, enregistrer (action serveur, sans migration) | 🟡 code fait, lint/types/tests unitaires verts ; à tester à l’œil ; E2E à écrire |
+
+| 2026-10-18 | Éditeur v2 (retours d’Ashanti) : mot modifiable directement au toucher, barre de recherche + icône chercher/remplacer, Entrée/Espace = pause (bureau) | 🟡 code fait, 89 tests unitaires verts ; à valider à l’œil |
+
+| 2026-10-18 | Éditeur v3 : recherche = trouver seulement ; outil « Remplacer un mot » séparé (icône seule, panneau avec titre, Chercher / Remplacer par, croix) ; icônes supprimer / nouvelle ligne au survol d’un mot | 🟡 code fait, 96 tests unitaires verts ; à valider à l’œil |
+
+| 2026-10-18 | Éditeur v4 : « Remplacer un mot » devient une fenêtre au centre (Chercher / Remplacer par / Tout remplacer / Annuler), comme la référence d’Ashanti | 🟡 code fait, 96 tests unitaires verts ; à valider à l’œil |
+
+| 2026-10-18 | Éditeur v5 : « Remplacer un mot » = petit panneau flottant déplaçable (sans flou), se ferme après « Tout remplacer » avec confirmation | 🟡 code fait, 96 tests verts ; déplacement à tester à l’œil (non couvert par les tests) |
 
 ## Problèmes ouverts
+- Éditeur : « Revenir au texte d’origine » après enregistrement demanderait une colonne en plus (migration) : à décider. Pas de rate limiting sur l’enregistrement (Upstash pas encore en place).
+- Correction automatique des fautes (Claude Haiku) : demandée par Ashanti, à spécifier ; compte Anthropic API à créer.
 - Le serveur local garde parfois l’ancien CSS : le redémarrer (`Ctrl+C`, `npm run dev`).
 - **Ne pas lancer `npm run build` / `test:e2e` pendant que le serveur local tourne** (`.next` partagé, page qui clignote).
 - E2E à ajouter/relancer : palettes, bascule de thème, page projet (compte de test + worker nécessaires).

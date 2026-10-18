@@ -135,7 +135,7 @@ export function TranscriptionSection({
         <h2 id="transcript-title" className="text-lg font-semibold">
           {t("title")}
         </h2>
-        <TranscriptView transcript={transcript} title={title} />
+        <TranscriptView transcript={transcript} title={title} projectId={projectId} />
       </section>
     );
   }

@@ -25,7 +25,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 
 ## Phase 3 — Transcription (F3)
 - [x] T3.1 🔵 Extraction audio FFmpeg + AssemblyAI + détection langue + intervenants (+ interface : texte synchronisé, SRT/TXT)
-- [ ] T3.2 🔵 Éditeur de transcription (corriger un mot, fusionner/scinder)
+- [x] T3.2 🔵 Éditeur de transcription (corriger un mot, fusionner/scinder)
 
 ## Phase 4 — Sous-titres animés (F4, F8)
 - [ ] T4.1 🟣 Composition Remotion unique (aperçu = export) + moteur de styles

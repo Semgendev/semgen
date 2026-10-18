@@ -15,9 +15,19 @@ import {
 type PlayerApi = {
   videoRef: RefObject<HTMLVideoElement | null>;
   setTimeMs: (ms: number) => void;
-  seek: (ms: number) => void;
+  // play=false moves the video without starting it (used when a word is opened for correction)
+  seek: (ms: number, play?: boolean) => void;
   isPlaying: () => boolean;
+  togglePlay: () => void;
 };
+
+// Keys must not hijack typing, buttons, links, dialogs or the browser's own video controls.
+function isShortcutBlocked(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  if (target.closest('input, textarea, select, button, a, video, [role="dialog"]')) return true;
+  return false;
+}
 
 // Two contexts on purpose: the API never changes, the time changes ~25 times per second.
 const PlayerApiContext = createContext<PlayerApi | null>(null);
@@ -31,19 +41,39 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     () => ({
       videoRef,
       setTimeMs,
-      seek: (ms) => {
+      seek: (ms, play = true) => {
         const video = videoRef.current;
         if (!video) return;
         video.currentTime = ms / 1000;
-        void video.play().catch(() => undefined);
+        if (play) void video.play().catch(() => undefined);
+        else video.pause();
       },
       isPlaying: () => {
         const video = videoRef.current;
         return Boolean(video && !video.paused && !video.ended);
       },
+      togglePlay: () => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (video.paused || video.ended) void video.play().catch(() => undefined);
+        else video.pause();
+      },
     }),
     [],
   );
+
+  // Desktop: Enter or Space plays/pauses the video without touching the player's icon.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      if (isShortcutBlocked(event.target) || !videoRef.current) return;
+      event.preventDefault();
+      api.togglePlay();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [api]);
 
   return (
     <PlayerApiContext.Provider value={api}>
