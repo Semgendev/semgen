@@ -7,7 +7,7 @@
 - **En ligne (dev ET prod) :** connexion lien magique + captcha, crédits (10 offerts), upload vidéo (50 Mo), liste des projets, page projet, renommer, supprimer.
 - **Code testé en DEV seulement (pas en prod) :** transcription complète (tables `jobs`/`transcripts`, tâche `transcribe-project`, interface : choix de langue, coût avant, progression, texte mot par mot synchronisé, mots douteux, copier/SRT/TXT) ; aperçu vidéo universel (copie H.264, tâche `create-video-preview`) ; thèmes v2 (3 palettes × clair/sombre, bouton soleil/lune, page Paramètres › Apparence, `/dev/themes`).
 - **GitHub :** tout est poussé (dernier push = `fe9350b`, 2026-10-18). Pousser de nouveau seulement quand Ashanti dit « push ». Rien de ceci n’est en prod : prod = ancienne version (déploiement Netlify automatique ou manuel à vérifier avant de dire le contraire).
-- **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs` et `video_preview`. `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
+- **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs`, `video_preview` et `transcript_original` (texte d’origine gardé). `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
 - **Tests :** 75 unitaires verts ; intégration (base dev) verts au dernier passage ; E2E : `theme.spec.ts` et `palette.spec.ts` modifiés/écrits mais **pas relancés** (arrêter `npm run dev` avant).
 
 ## Pour reprendre (ordre)
@@ -56,7 +56,7 @@
 | 2026-10-18 | Éditeur v6 : enregistrement automatique (1 s après la dernière modification, sablier puis « Enregistré », « Réessayer » si échec). v5 : « Remplacer un mot » = petit panneau flottant déplaçable (sans flou), se ferme après « Tout remplacer » avec confirmation | 🟡 code fait, 96 tests verts ; déplacement à tester à l’œil (non couvert par les tests) |
 
 ## Problèmes ouverts
-- Éditeur : « Revenir au texte d’origine » après enregistrement demanderait une colonne en plus (migration) : à décider. Pas de rate limiting sur l’enregistrement (Upstash pas encore en place).
+- Éditeur : l’original est gardé côté serveur (colonnes `original_words`, `original_segments`, `is_edited`) ; bouton « Revenir au texte d’origine » avec confirmation. Pas de rate limiting sur l’enregistrement (Upstash pas encore en place).
 - Correction automatique des fautes (Claude Haiku) : demandée par Ashanti, à spécifier ; compte Anthropic API à créer.
 - Le serveur local garde parfois l’ancien CSS : le redémarrer (`Ctrl+C`, `npm run dev`).
 - **Ne pas lancer `npm run build` / `test:e2e` pendant que le serveur local tourne** (`.next` partagé, page qui clignote).

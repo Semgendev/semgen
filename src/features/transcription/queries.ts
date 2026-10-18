@@ -8,6 +8,8 @@ export const transcriptSchema = z.object({
   language: z.string(),
   language_confidence: z.number().nullable(),
   provider: z.string(),
+  // true once the user saved a correction (the provider text is then kept aside on the server)
+  is_edited: z.boolean(),
   words: z.array(transcriptWordSchema),
   segments: z.array(transcriptSegmentSchema),
 });
@@ -31,7 +33,7 @@ export async function getTranscript(
 ): Promise<Transcript | null> {
   const { data, error } = await supabase
     .from("transcripts")
-    .select("id, language, language_confidence, provider, words, segments")
+    .select("id, language, language_confidence, provider, is_edited, words, segments")
     .eq("project_id", projectId)
     .eq("is_original", true)
     .maybeSingle();

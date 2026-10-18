@@ -6,12 +6,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../../messages/en.json";
 import { PlayerProvider, VideoPlayer } from "@/features/projects/player";
 import type { Transcript } from "@/features/transcription/queries";
-import { saveTranscript } from "@/features/transcription/actions";
+import { revertTranscript, saveTranscript } from "@/features/transcription/actions";
 import { TranscriptView } from "@/features/transcription/transcript-view";
 
 // Saving talks to the server: replaced by a fake that always succeeds.
 vi.mock("@/features/transcription/actions", () => ({
   saveTranscript: vi.fn().mockResolvedValue({ ok: true }),
+  revertTranscript: vi.fn(),
   startTranscription: vi.fn(),
 }));
 
@@ -20,6 +21,7 @@ const transcript: Transcript = {
   language: "fr",
   language_confidence: 0.83,
   provider: "assemblyai",
+  is_edited: false,
   words: [
     { text: "Salut", start: 1000, end: 1400, confidence: 0.98, speaker: null },
     { text: "Claude.", start: 1500, end: 1900, confidence: 0.4, speaker: null },
@@ -31,13 +33,13 @@ const transcript: Transcript = {
   ],
 };
 
-function renderView() {
+function renderView(override: Partial<Transcript> = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
       <PlayerProvider>
         <VideoPlayer src="https://example.com/video.mp4" fallback="no video" />
         <TranscriptView
-          transcript={transcript}
+          transcript={{ ...transcript, ...override }}
           title="My video"
           projectId="3f1c2a9e-5b7d-4e21-8a43-9c0d6b1e7f52"
         />
@@ -211,6 +213,47 @@ describe("TranscriptView", () => {
     expect(pause).not.toHaveBeenCalled();
     play.mockRestore();
     pause.mockRestore();
+  });
+
+  it("offers to go back to the original text only once something was saved", async () => {
+    const { unmount } = renderView();
+    expect(screen.queryByRole("button", { name: "Back to the original text" })).toBeNull();
+    unmount();
+    renderView({ is_edited: true });
+    expect(screen.getByRole("button", { name: "Back to the original text" })).toBeEnabled();
+  });
+
+  it("asks for confirmation, then puts the original text back", async () => {
+    vi.mocked(revertTranscript).mockResolvedValueOnce({
+      ok: true,
+      words: [{ text: "Original", start: 0, end: 500, confidence: 0.9, speaker: null }],
+      segments: [
+        { start: 0, end: 500, text: "Original", speaker: null, word_start: 0, word_end: 0 },
+      ],
+    });
+    renderView({ is_edited: true });
+
+    await userEvent.click(screen.getByRole("button", { name: "Back to the original text" }));
+    expect(screen.getByText("Go back to the original text?")).toBeInTheDocument();
+    expect(revertTranscript).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Restore the original text" }));
+    expect(await screen.findByText("Original text restored.")).toBeInTheDocument();
+    expect(revertTranscript).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Original" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Salut" })).not.toBeInTheDocument();
+    // The original is back: nothing left to restore, and nothing to save.
+    expect(screen.queryByRole("button", { name: "Back to the original text" })).toBeNull();
+  });
+
+  it("shows an error and keeps the corrections when going back fails", async () => {
+    vi.mocked(revertTranscript).mockResolvedValueOnce({ ok: false, code: "unknown" });
+    renderView({ is_edited: true });
+    await userEvent.click(screen.getByRole("button", { name: "Back to the original text" }));
+    await userEvent.click(screen.getByRole("button", { name: "Restore the original text" }));
+    expect(
+      await screen.findByText("Could not restore the original text. Please try again."),
+    ).toBeInTheDocument();
   });
 
   it("offers copy and downloads", () => {

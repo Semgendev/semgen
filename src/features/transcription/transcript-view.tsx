@@ -1,14 +1,33 @@
 "use client";
 
-import { Check, CircleAlert, Copy, Download, Loader2, Merge, Redo2, Undo2 } from "lucide-react";
+import {
+  Check,
+  CircleAlert,
+  Copy,
+  Download,
+  Loader2,
+  Merge,
+  Redo2,
+  RotateCcw,
+  Undo2,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 import { usePlayerControls, usePlayerTime } from "../projects/player";
-import { saveTranscript } from "./actions";
+import { revertTranscript, saveTranscript } from "./actions";
 import {
   deleteWord,
   editWord,
@@ -133,6 +152,11 @@ export function TranscriptView({
   const [replacePosition, setReplacePosition] = useState<PanelPosition>({ x: 16, y: 120 });
   // Short confirmation shown near the save status (e.g. "3 replacements").
   const [notice, setNotice] = useState<string | null>(null);
+  // true once an original text is kept aside on the server (after the first saved correction)
+  const [isEdited, setIsEdited] = useState(transcript.is_edited);
+  const [revertOpen, setRevertOpen] = useState(false);
+  const [revertError, setRevertError] = useState(false);
+  const [reverting, startReverting] = useTransition();
   const [currentMatch, setCurrentMatch] = useState<number | null>(null);
   const [saving, startSaving] = useTransition();
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -255,6 +279,7 @@ export function TranscriptView({
       const result = await saveTranscript(projectId, draft.words, draft.segments);
       if (result.ok) {
         setSaved(draft);
+        setIsEdited(true);
         setSaveState("saved");
       } else {
         setSaveState("error");
@@ -346,6 +371,25 @@ export function TranscriptView({
   }
 
   // Icons floating over a word act on that word directly (no need to open it first).
+  // Puts the provider's original text back (asked to confirm first, corrections are lost).
+  function revertToOriginal() {
+    startReverting(async () => {
+      const result = await revertTranscript(projectId);
+      if (result.ok) {
+        const restored: TranscriptDraft = { words: result.words, segments: result.segments };
+        setSaved(restored);
+        setHistory({ past: [], present: restored, future: [] });
+        setIsEdited(false);
+        setSaveState("idle");
+        setSelected(null);
+        setNotice(t("edit.revertDone"));
+        setRevertOpen(false);
+      } else {
+        setRevertError(true);
+      }
+    });
+  }
+
   function deleteAt(index: number) {
     commit(deleteWord(history.present, index));
     setSelected(null);
@@ -376,6 +420,18 @@ export function TranscriptView({
             : ""}
         </p>
         <div className="flex flex-wrap gap-2">
+          {isEdited ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving || dirty}
+              onClick={() => setRevertOpen(true)}
+            >
+              <RotateCcw aria-hidden="true" />
+              {t("edit.revert")}
+            </Button>
+          ) : null}
           <Button type="button" variant="outline" size="sm" onClick={copyText}>
             {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             {copied ? t("copied") : t("copy")}
@@ -578,6 +634,36 @@ export function TranscriptView({
           </div>
         ))}
       </div>
+
+      <Dialog
+        open={revertOpen}
+        onOpenChange={(open) => {
+          setRevertOpen(open);
+          if (!open) setRevertError(false);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("edit.revertTitle")}</DialogTitle>
+            <DialogDescription>{t("edit.revertBody")}</DialogDescription>
+          </DialogHeader>
+          {revertError ? (
+            <p role="alert" className="text-danger flex items-center gap-2 text-sm">
+              <CircleAlert className="size-4" aria-hidden="true" />
+              {t("edit.revertFailed")}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>
+              {t("edit.revertCancel")}
+            </DialogClose>
+            <Button variant="destructive" disabled={reverting} onClick={revertToOriginal}>
+              {reverting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+              {t("edit.revertConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
