@@ -2,21 +2,21 @@
 
 > Claude : mets ce fichier à jour à CHAQUE fin de tâche. Garde-le court (journal : 10 entrées max, les anciennes sont regroupées).
 
-## État actuel (2026-10-18, fin de session)
-- **Phase :** 3 terminée côté code (transcription visible dans le site) → refonte visuelle (T0.7) puis éditeur de transcription (T3.2).
+## État actuel (2026-10-18, fin de session — Opus)
+- **Phase :** 4 commencée. T0.7, T2.5, T3.2 faits. **T4.1 étapes 1-2 faites** (moteur Remotion + 6 styles + choix enregistré) ; **en attente des captures d’Ashanti** avant l’étape 3.
 - **En ligne (dev ET prod) :** connexion lien magique + captcha, crédits (10 offerts), upload vidéo (50 Mo), liste des projets, page projet, renommer, supprimer.
-- **Code testé en DEV seulement (pas en prod) :** transcription complète (tables `jobs`/`transcripts`, tâche `transcribe-project`, interface : choix de langue, coût avant, progression, texte mot par mot synchronisé, mots douteux, copier/SRT/TXT) ; aperçu vidéo universel (copie H.264, tâche `create-video-preview`) ; thèmes v2 (3 palettes × clair/sombre, bouton soleil/lune, page Paramètres › Apparence, `/dev/themes`).
-- **GitHub :** tout est poussé (dernier push = `fe9350b`, 2026-10-18). Pousser de nouveau seulement quand Ashanti dit « push ». Rien de ceci n’est en prod : prod = ancienne version (déploiement Netlify automatique ou manuel à vérifier avant de dire le contraire).
+- **Code testé en DEV seulement (pas en prod) :** transcription complète ; aperçu vidéo H.264 ; thèmes v2 ; refonte visuelle + aperçu instantané ; éditeur de transcription (correction au toucher, supprimer, nouvelle ligne, fusion, recherche, panneau flottant « Remplacer un mot », annuler/rétablir, **sauvegarde automatique**, **retour au texte d’origine**) ; **sous-titres animés Remotion** sur la page projet (styles Cinéma, Élégance, Viral, Karaoké, Néon, Minimal).
+- **GitHub :** poussé jusqu’à `04eef45`. **Commit local non poussé : `ed7e559`** (T4.1). Pousser seulement quand Ashanti dit « push ».
 - **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs`, `video_preview`, `transcript_original` et `project_caption_style`. `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
-- **Tests :** 75 unitaires verts ; intégration (base dev) verts au dernier passage ; E2E : `theme.spec.ts` et `palette.spec.ts` modifiés/écrits mais **pas relancés** (arrêter `npm run dev` avant).
+- **Tests :** 115 unitaires verts ; intégration (base dev) 34 verts ; E2E pas relancés (arrêter `npm run dev` avant).
 
 ## Pour reprendre (ordre)
-1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2, déjà connecté).
-2. Ashanti valide à l’œil `/fr/settings/appearance` et la page projet (captures dans `capture/`).
-3. **T0.7 — refonte visuelle (Sonnet)** : page projet, liste, upload, compte, connexion avec le design de `docs/DESIGN.md` (direction « Studio sobre » + galerie vivante). Inclure **T2.5 aperçu instantané** (D17 : la vidéo s’affiche dès le choix du fichier, avant la fin de l’envoi).
-4. **T3.2 — éditeur de transcription** (corriger un mot, fusionner/scinder).
-5. **Déploiement en prod** : migrations `jobs` + `video_preview` sur PROD (accord d’Ashanti), `npx trigger.dev deploy`, clés dans Netlify, `ASSEMBLYAI_API_KEY` dans Trigger.dev, puis `git push`.
-6. Ensuite (Opus pour T4.1) : moteur de styles de sous-titres Remotion (T4.x), traduction 100+ langues (T5.x), interface en plus de langues (T5.3, arabe en RTL).
+1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).
+2. **Captures des styles** (page projet avec transcription → « Style des sous-titres » → lancer la vidéo) : Cinéma, Élégance, Viral au minimum. Retoucher tailles/espacements/couleurs jusqu’à un rendu vraiment pro.
+3. **T4.1 étape 3 (Opus)** : galerie vivante (aperçu animé de chaque style sur la vidéo de l’utilisateur), puis commit.
+4. **T4.2 (Sonnet)** : 14 autres styles + personnalisation (police, couleurs, contour, position). **T4.4** : export Remotion Lambda (compte AWS à créer).
+5. **Déploiement en prod** quand T4.1 est validé : les 4 migrations DEV sur PROD (accord d’Ashanti), `npx trigger.dev deploy`, clés Netlify, `ASSEMBLYAI_API_KEY` dans Trigger.dev.
+6. Règle convenue : ne plus peaufiner l’éditeur de texte tant que les sous-titres animés ne sont pas validés (noter les retouches dans une liste).
 
 ## Où lire quoi
 - Design : `docs/DESIGN.md` · références et captures : `capture/design/` (brief, tokens, maquettes, captures Submagic / Caption Studio).
