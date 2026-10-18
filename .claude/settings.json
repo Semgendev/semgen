@@ -19,7 +19,10 @@
       "Bash(git log:*)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git init)"
+      "Bash(git init)",
+      "Read(./capture/**)",
+      "Bash(ls -lt capture*)",
+      "Bash(cd D:/Semgen-studio && ls -lt capture*)"
     ],
     "ask": [
       "Bash(npm install:*)",

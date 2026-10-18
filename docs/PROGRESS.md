@@ -4,7 +4,7 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T1.2 (pas encore commencée)
+- **Tâche en cours :** T1.2 — partie serveur faite (session, lien magique, anti-abus, migration registre bonus sur dev). Reste : pages connexion/compte (Sonnet), Turnstile, Google, URLs de redirection Supabase, migration prod
 - **Prochaine étape :** auth email + Google, pages connexion/inscription (le bonus de 10 crédits est déjà géré par la base)
 - **Bloquants / à faire par Ashanti :** supprimer l’ancien compte PostHog US ; plus tard : identifiants Google (Claude guidera)
 
@@ -26,6 +26,7 @@
 | 2026-10-18 | T1.1 | ✅ | Migration profiles + credit_ledger (ajout seul) + bonus 10 crédits à la confirmation d’email + reserve/refund_credits (serveur seul, verrou). Audit sécurité appliqué. 14 tests d’intégration verts sur semgen-dev |
 
 ## Problèmes ouverts
+- Emails Supabase limités (~2-4/h) : avant lancement, Resend + nom de domaine à acheter.
 - Anti-abus du bonus (suppression puis réinscription, emails jetables / +alias) : à traiter en T1.2 (captcha, rate limiting, registre des emails ayant reçu un bonus).
 - Tests d’intégration (`npm run test:integration`) lancés en local seulement, pas encore dans la CI (il faudrait des secrets GitHub vers un projet de test).
 - Projet Supabase de production (`semgen-prod`) à créer avant le lancement.

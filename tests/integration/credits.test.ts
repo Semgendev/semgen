@@ -80,6 +80,43 @@ describe.skipIf(!configured)("credits and profiles (Supabase dev project)", () =
     expect(await balanceOf(admin, user.id)).toBe(10);
   });
 
+  it("never grants a second bonus to the same mailbox after account deletion", async () => {
+    const first = await createUser(admin, true);
+    expect(await balanceOf(admin, first.id)).toBe(10);
+    await admin.auth.admin.deleteUser(first.id);
+
+    const { data, error } = await admin.auth.admin.createUser({
+      email: first.email.toUpperCase(),
+      password: PASSWORD,
+      email_confirm: true,
+    });
+    if (error) throw error;
+    createdUserIds.push(data.user.id);
+    expect(await balanceOf(admin, data.user.id)).toBe(0);
+  });
+
+  it("treats Gmail dots and +aliases as the same mailbox", async () => {
+    const local = `semgentest${randomUUID().slice(0, 8)}`;
+    const emails = [
+      `${local}@gmail.com`,
+      `${local.slice(0, 4)}.${local.slice(4)}+promo@googlemail.com`,
+    ];
+    const balances: number[] = [];
+
+    for (const email of emails) {
+      const { data, error } = await admin.auth.admin.createUser({
+        email,
+        password: PASSWORD,
+        email_confirm: true,
+      });
+      if (error) throw error;
+      createdUserIds.push(data.user.id);
+      balances.push(await balanceOf(admin, data.user.id));
+    }
+
+    expect(balances).toEqual([10, 0]);
+  });
+
   it("stores the signup locale on the profile", async () => {
     const { data, error } = await admin.auth.admin.createUser({
       email: `test-${randomUUID()}@example.com`,
