@@ -4,9 +4,9 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T1.2 — pages login/account faites. Reste : Turnstile (clé + Supabase), URLs de redirection Supabase, Google, migration prod, test réel du lien magique
-- **Prochaine étape :** auth email + Google, pages connexion/inscription (le bonus de 10 crédits est déjà géré par la base)
-- **Bloquants / à faire par Ashanti :** supprimer l’ancien compte PostHog US ; plus tard : identifiants Google (Claude guidera)
+- **Tâche en cours :** T1.2 presque finie — connexion par lien magique validée en dev ET en prod. Reste : bouton Google (identifiants Google Cloud)
+- **Prochaine étape :** Google (T1.2) puis T1.3 (affichage du solde + historique)
+- **Bloquants / à faire par Ashanti :** créer le projet Google Cloud + identifiants OAuth quand on fera Google
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
 - [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [x] Cloudflare (Turnstile ; R2 plus tard) · [ ] Trigger.dev
@@ -24,6 +24,7 @@
 | 2026-10-17 | T0.4 | ✅ | Site en ligne : https://semgen.netlify.app ; CI GitHub Actions (lint, types, tests, build, E2E), netlify.toml, middleware renommé en proxy, E2E sur build de production (port 3100) |
 | 2026-10-17 | T0.5 | ✅ | Sentry (erreurs) + PostHog (stats, région EU), inactifs sans clés, test unitaire ; clés dans .env.local (ignoré par git) et dans Netlify ; PostHog vérifié en ligne (pageview reçu) |
 | 2026-10-18 | T1.1 | ✅ | Migration profiles + credit_ledger (ajout seul) + bonus 10 crédits à la confirmation d’email + reserve/refund_credits (serveur seul, verrou). Audit sécurité appliqué. 14 tests d’intégration verts sur semgen-dev |
+| 2026-10-18 | T1.2 (partie 1) | ✅ | Lien magique + Turnstile + registre des bonus + pages login/account ; testé de bout en bout sur dev et prod (10 crédits, un seul bonus) |
 
 ## Problèmes ouverts
 - Emails Supabase limités (~2-4/h) : avant lancement, Resend + nom de domaine à acheter.
