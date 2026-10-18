@@ -9,7 +9,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 - [x] T0.4 🔵 CI GitHub Actions (lint, typecheck, tests) + déploiement Netlify preview
 - [x] T0.5 🔵 Sentry + PostHog
 - [x] T0.6 🟣 Système de thèmes v2 : 3 palettes × clair/sombre (D15), tokens, Paramètres › Apparence, `/dev/themes`, tests de contraste et « aucune couleur en dur » (voir `docs/DESIGN.md`)
-- [ ] T0.7 🔵 Refonte visuelle des écrans existants avec le nouveau design (page projet, liste, upload, compte, connexion)
+- [x] T0.7 🔵 Refonte visuelle des écrans existants avec le nouveau design (page projet, liste, upload, compte, connexion)
 
 ## Phase 1 — Comptes et crédits (F1)
 - [x] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`
@@ -21,7 +21,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 - [x] T2.2 🔵 Tableau de bord des projets (liste, renommer, supprimer)
 - [x] T2.3 🟣 Mise en place Trigger.dev + table `jobs` + progression en temps réel
 - [x] T2.4 🔵 Aperçu vidéo lisible partout (copie H.264, HDR iPhone)
-- [ ] T2.5 🔵 Aperçu **instantané** : la vidéo s'affiche dès qu'elle est choisie (fichier local) pendant que l'envoi continue en arrière-plan (D17)
+- [x] T2.5 🔵 Aperçu **instantané** : la vidéo s'affiche dès qu'elle est choisie (fichier local) pendant que l'envoi continue en arrière-plan (D17)
 
 ## Phase 3 — Transcription (F3)
 - [x] T3.1 🔵 Extraction audio FFmpeg + AssemblyAI + détection langue + intervenants (+ interface : texte synchronisé, SRT/TXT)
