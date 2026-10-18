@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, Info, Sparkles, XCircle } from "lucide-rea
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,10 @@ export default async function DevThemesPage({ params }: { params: Promise<{ loca
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 p-6 sm:py-12">
-      <h1 className="text-3xl font-bold">Design system — /dev/themes</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold">Design system — /dev/themes</h1>
+        <ThemeToggle />
+      </div>
       <AppearanceSettings />
 
       <section className="flex flex-col gap-4">
@@ -86,10 +90,12 @@ export default async function DevThemesPage({ params }: { params: Promise<{ loca
           </CardContent>
         </Card>
         <div className="bg-surface-2 flex flex-col gap-3 rounded-xl p-6">
-          <p className="font-medium">Surface 2 + loading</p>
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-24 w-full" />
+          <p className="font-medium">Surface 2 + loading (skeleton on surface)</p>
+          <div className="bg-surface flex flex-col gap-3 rounded-lg p-4">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-24 w-full" />
+          </div>
         </div>
       </section>
     </main>

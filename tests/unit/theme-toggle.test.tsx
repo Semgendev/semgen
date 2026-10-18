@@ -1,22 +1,27 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "next-themes";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const messages = {
   theme: {
-    light: "Light",
-    dark: "Dark",
-    system: "System",
-    label: "Change theme",
+    switchToDark: "Switch to dark mode",
+    switchToLight: "Switch to light mode",
   },
 };
 
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  document.documentElement.className = "";
+});
+
 describe("ThemeToggle", () => {
-  it("offers light, dark and system options", async () => {
+  it("is a single button that flips between light and dark", async () => {
+    localStorage.setItem("theme", "light");
     render(
       <NextIntlClientProvider locale="en" messages={messages}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -25,10 +30,14 @@ describe("ThemeToggle", () => {
       </NextIntlClientProvider>,
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Change theme" }));
+    // No menu and no "system" entry: one click, the other mode.
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.queryByText(/system/i)).not.toBeInTheDocument();
 
-    expect(await screen.findByRole("menuitem", { name: "Light" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Dark" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "System" })).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button")[0]!);
+    expect(document.documentElement).toHaveClass("dark");
+
+    await userEvent.click(screen.getAllByRole("button")[0]!);
+    expect(document.documentElement).not.toHaveClass("dark");
   });
 });

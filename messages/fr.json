@@ -1,9 +1,7 @@
 {
   "theme": {
-    "light": "Clair",
-    "dark": "Sombre",
-    "system": "Système",
-    "label": "Changer le thème"
+    "switchToDark": "Passer en mode sombre",
+    "switchToLight": "Passer en mode clair"
   },
   "language": {
     "fr": "Français",
@@ -153,13 +151,7 @@
   "appearance": {
     "breadcrumb": "Paramètres",
     "title": "Apparence",
-    "subtitle": "Choisis ton mode et ta palette. Ta vidéo et tes sous-titres restent exactement les mêmes, quelle que soit la palette.",
-    "mode": "Mode",
-    "modes": {
-      "light": "Clair",
-      "dark": "Sombre",
-      "system": "Système"
-    },
+    "subtitle": "Choisis ta palette. Ta vidéo et tes sous-titres restent exactement les mêmes, quelle que soit la palette. Le mode clair ou sombre se change avec l’icône en haut à droite.",
     "palette": "Palette",
     "paletteHint": "L’identité visuelle de ton espace de travail.",
     "palettes": {

@@ -1,43 +1,30 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
+// One button, one icon: it shows the mode you are in (sun = light, moon = dark) and a click
+// switches to the other. The first visit follows the device setting (next-themes "system"), but
+// there is no third "system" choice to confuse people. Icons and the accessible name are swapped
+// with CSS (`dark:`), so server and browser render the same HTML (no flash, no mismatch).
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const t = useTranslations("theme");
 
-  const OPTIONS = [
-    { value: "light", label: t("light"), Icon: Sun },
-    { value: "dark", label: t("dark"), Icon: Moon },
-    { value: "system", label: t("system"), Icon: Monitor },
-  ] as const;
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon" aria-label={t("label")} />}
-      >
-        <Sun className="size-4 scale-100 rotate-0 transition-transform dark:scale-0 dark:-rotate-90" />
-        <Moon className="absolute size-4 scale-0 rotate-90 transition-transform dark:scale-100 dark:rotate-0" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {OPTIONS.map(({ value, label, Icon }) => (
-          <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
-            <Icon className="size-4" />
-            {label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+    >
+      <Sun className="size-4 dark:hidden" aria-hidden="true" />
+      <Moon className="hidden size-4 dark:block" aria-hidden="true" />
+      <span className="sr-only dark:hidden">{t("switchToDark")}</span>
+      <span className="sr-only hidden dark:inline">{t("switchToLight")}</span>
+    </Button>
   );
 }

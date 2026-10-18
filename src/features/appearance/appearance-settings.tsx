@@ -1,22 +1,13 @@
 "use client";
 
-import { Check, Monitor, Moon, Sun } from "lucide-react";
+import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
-import { useSyncExternalStore, type KeyboardEvent } from "react";
+import type { KeyboardEvent } from "react";
 
 import { cn } from "@/lib/utils";
 
 import { PALETTES, type Palette } from "./palette";
 import { usePalette } from "./palette-provider";
-
-const MODES = [
-  { value: "light", Icon: Sun },
-  { value: "dark", Icon: Moon },
-  { value: "system", Icon: Monitor },
-] as const;
-
-const noopSubscribe = () => () => undefined;
 
 // Arrow keys move the selection inside a radiogroup, as screen-reader users expect.
 function onArrows<T>(
@@ -66,59 +57,9 @@ function PalettePreview({ palette }: { palette: Palette }) {
 export function AppearanceSettings() {
   const t = useTranslations("appearance");
   const { palette, setPalette } = usePalette();
-  const { theme, setTheme } = useTheme();
-  // next-themes only knows the stored mode after mounting: avoid a wrong selection on first paint.
-  const mounted = useSyncExternalStore(
-    noopSubscribe,
-    () => true,
-    () => false,
-  );
-  const mode = mounted ? (theme ?? "system") : "system";
 
   return (
-    <div className="flex flex-col gap-10">
-      <section aria-labelledby="mode-title" className="flex flex-col gap-3">
-        <h2 id="mode-title" className="text-lg font-semibold">
-          {t("mode")}
-        </h2>
-        <div
-          role="radiogroup"
-          aria-labelledby="mode-title"
-          className="grid grid-cols-3 gap-2 sm:max-w-md"
-        >
-          {MODES.map(({ value, Icon }) => {
-            const selected = mode === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                tabIndex={selected ? 0 : -1}
-                onClick={() => setTheme(value)}
-                onKeyDown={(event) =>
-                  onArrows(
-                    event,
-                    MODES.map((m) => m.value),
-                    mode as (typeof MODES)[number]["value"],
-                    setTheme,
-                  )
-                }
-                className={cn(
-                  "focus-visible:ring-focus flex min-h-11 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                  selected
-                    ? "border-brand-border bg-surface text-text"
-                    : "border-border-strong/50 text-text-2 hover:bg-surface-2",
-                )}
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                {t(`modes.${value}`)}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
+    <div className="flex flex-col gap-3">
       <section aria-labelledby="palette-title" className="flex flex-col gap-3">
         <div>
           <h2 id="palette-title" className="text-lg font-semibold">

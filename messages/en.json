@@ -1,9 +1,7 @@
 {
   "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System",
-    "label": "Change theme"
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   },
   "language": {
     "fr": "Français",
@@ -153,13 +151,7 @@
   "appearance": {
     "breadcrumb": "Settings",
     "title": "Appearance",
-    "subtitle": "Pick your mode and palette. Your video and captions stay exactly the same, whatever the palette.",
-    "mode": "Mode",
-    "modes": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System"
-    },
+    "subtitle": "Pick your palette. Your video and captions stay exactly the same, whatever the palette. Switch between light and dark with the icon at the top right.",
     "palette": "Palette",
     "paletteHint": "The visual identity of your workspace.",
     "palettes": {

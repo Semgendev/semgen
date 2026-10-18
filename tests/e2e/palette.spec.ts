@@ -26,7 +26,7 @@ test("palette choice is applied instantly, kept after reload, and never on the l
 test("dark mode and palette are independent", async ({ page }) => {
   await page.goto("/en/settings/appearance");
   await page.getByRole("radio", { name: /Spark/ }).click();
-  await page.getByRole("radio", { name: "Dark" }).click();
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
   const html = page.locator("html");
   await expect(html).toHaveClass(/dark/);
   await expect(html).toHaveAttribute("data-palette", "etincelle");
