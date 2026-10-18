@@ -14,9 +14,8 @@
     "title": "SemGen Studio",
     "subtitle": "Sous-titres, traduction et doublage vidéo en un clic",
     "cta": "Commencer maintenant",
-    "cardTitle": "Pour commencer",
-    "cardDescription": "Importe ta vidéo pour démarrer.",
-    "fileLabel": "Fichier vidéo"
+    "cardTitle": "Importe ta première vidéo",
+    "cardDescription": "Ajoute une vidéo : nous détectons sa langue puis nous la transcrivons."
   },
   "auth": {
     "title": "Connexion à SemGen",

@@ -14,9 +14,8 @@
     "title": "SemGen Studio",
     "subtitle": "Captions, translation and video dubbing in one click",
     "cta": "Get started",
-    "cardTitle": "Get started",
-    "cardDescription": "Upload your video to begin.",
-    "fileLabel": "Video file"
+    "cardTitle": "Upload your first video",
+    "cardDescription": "Add a video and we detect its language, then transcribe it."
   },
   "auth": {
     "title": "Sign in to SemGen",

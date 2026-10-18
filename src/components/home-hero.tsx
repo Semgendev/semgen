@@ -1,12 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Link } from "@/i18n/routing";
 
 export function HomeHero() {
   const t = useTranslations("hero");
@@ -27,12 +26,10 @@ export function HomeHero() {
           <CardTitle>{t("cardTitle")}</CardTitle>
           <CardDescription>{t("cardDescription")}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="demo-input">{t("fileLabel")}</Label>
-            <Input id="demo-input" type="file" />
-          </div>
-          <Button className="w-full">{t("cta")}</Button>
+        <CardContent>
+          <Link href="/projects/new" className={buttonVariants({ className: "w-full" })}>
+            {t("cta")}
+          </Link>
         </CardContent>
       </Card>
     </motion.section>
