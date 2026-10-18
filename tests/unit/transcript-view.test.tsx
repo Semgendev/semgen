@@ -124,6 +124,7 @@ describe("TranscriptView", () => {
     expect(screen.getByRole("button", { name: "Sxlut" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clxude." })).toBeInTheDocument();
     expect(screen.getByText("3 replacements")).toBeInTheDocument();
+    // Reopening after a replacement: both fields are empty again.    await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));    expect(screen.getByRole("textbox", { name: "Find a word" })).toHaveValue("");    expect(screen.getByRole("textbox", { name: "Replace with" })).toHaveValue("");
   });
 
   it("closes the replace panel with the cross and keeps the search bar independent", async () => {
@@ -135,6 +136,18 @@ describe("TranscriptView", () => {
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("textbox", { name: "Find a word" })).not.toBeInTheDocument();
     expect(screen.getByRole("searchbox", { name: "Search for a word" })).toHaveValue("allez");
+  });
+
+  it("keeps the typed words when the panel is closed without replacing", async () => {
+    renderView();
+    await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Find a word" }), "salut");
+    await userEvent.type(screen.getByRole("textbox", { name: "Replace with" }), "bonjour");
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));
+    expect(screen.getByRole("textbox", { name: "Find a word" })).toHaveValue("salut");
+    expect(screen.getByRole("textbox", { name: "Replace with" })).toHaveValue("bonjour");
   });
 
   it("deletes a word with the icon that floats above it", async () => {

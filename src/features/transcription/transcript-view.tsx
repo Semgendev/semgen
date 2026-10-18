@@ -138,6 +138,7 @@ export function TranscriptView({
   // Replace tool: its own word to look for, separate from the search bar.
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [replaceFind, setReplaceFind] = useState("");
+  const [replaceWith, setReplaceWith] = useState("");
   const [replacePosition, setReplacePosition] = useState<PanelPosition>({ x: 16, y: 120 });
   // Short confirmation shown near the save status (e.g. "3 replacements").
   const [notice, setNotice] = useState<string | null>(null);
@@ -314,6 +315,9 @@ export function TranscriptView({
     if (result.count === 0) return 0;
     commit(result.draft);
     setNotice(t("edit.replaced", { count: result.count }));
+    // Done: the next time the panel opens it is empty. (Closing without replacing keeps the words.)
+    setReplaceFind("");
+    setReplaceWith("");
     setSelected(null);
     return result.count;
   }
@@ -429,6 +433,8 @@ export function TranscriptView({
           initialPosition={replacePosition}
           find={replaceFind}
           onFind={setReplaceFind}
+          replacement={replaceWith}
+          onReplacement={setReplaceWith}
           matchCount={replaceMatches.length}
           onReplaceAll={replaceEverywhere}
           onClose={() => setReplaceOpen(false)}

@@ -17,6 +17,9 @@ type ReplacePanelProps = {
   onFind: (value: string) => void;
   matchCount: number;
   // Returns how many words were changed. When something changed, the panel closes itself.
+  // The word typed in "Replace with" lives in the parent: it survives closing the panel.
+  replacement: string;
+  onReplacement: (value: string) => void;
   onReplaceAll: (replacement: string) => number;
   onClose: () => void;
 };
@@ -30,12 +33,13 @@ export function ReplacePanel({
   find,
   onFind,
   matchCount,
+  replacement,
+  onReplacement,
   onReplaceAll,
   onClose,
 }: ReplacePanelProps) {
   const t = useTranslations("transcription.edit");
   const [position, setPosition] = useState(initialPosition);
-  const [replacement, setReplacement] = useState("");
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
   const panel = useRef<HTMLElement>(null);
   const grab = useRef<PanelPosition | null>(null);
@@ -161,7 +165,7 @@ export function ReplacePanel({
             autoComplete="off"
             className="min-h-10"
             onChange={(event) => {
-              setReplacement(event.target.value);
+              onReplacement(event.target.value);
               setMessage(null);
             }}
           />
