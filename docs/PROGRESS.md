@@ -4,8 +4,8 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T2.1 (upload) — code prêt, migration projects/videos écrite mais PAS encore envoyée sur dev (attente accord Ashanti)
-- **Prochaine étape :** envoyer la migration sur dev, lancer tests d’intégration, test réel d’upload dans le navigateur, puis T2.2
+- **Tâche en cours :** T2.1 (upload) — migration appliquée sur dev, 25 tests d’intégration verts. Reste : test réel d’upload dans le navigateur (Ashanti), migration prod après validation
+- **Prochaine étape :** test réel d’upload sur localhost, puis T2.2 (liste des projets)
 - **Bloquants / à faire par Ashanti :** créer le projet Google Cloud + identifiants OAuth quand on fera Google
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)

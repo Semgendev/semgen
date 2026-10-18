@@ -27,8 +27,18 @@ async function createUser(admin: SupabaseClient) {
 }
 
 async function signIn(email: string): Promise<SupabaseClient> {
+  const admin = createClient(url, secretKey, noSession);
+  const { data: link, error: linkError } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  });
+  if (linkError) throw linkError;
+
   const client = createClient(url, publishableKey, noSession);
-  const { error } = await client.auth.signInWithPassword({ email, password: PASSWORD });
+  const { error } = await client.auth.verifyOtp({
+    token_hash: link.properties.hashed_token,
+    type: "magiclink",
+  });
   if (error) throw error;
   return client;
 }
