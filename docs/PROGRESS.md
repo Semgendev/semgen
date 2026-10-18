@@ -4,9 +4,9 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T2.1 (upload) — migration appliquée sur dev, 25 tests d’intégration verts. Reste : test réel d’upload dans le navigateur (Ashanti), migration prod après validation
-- **Prochaine étape :** test réel d’upload sur localhost, puis T2.2 (liste des projets)
-- **Bloquants / à faire par Ashanti :** créer le projet Google Cloud + identifiants OAuth quand on fera Google
+- **Tâche en cours :** T2.2 (liste des projets) — pas encore commencée
+- **Prochaine étape :** T2.2 : liste des projets (statut, renommer, supprimer vidéo + ligne), puis T2.3 (Trigger.dev) et T3.1 (détection de langue + transcription AssemblyAI)
+- **Bloquants / à faire par Ashanti :** pour T2.3 : compte Trigger.dev ; pour T3.1 : compte AssemblyAI (clé API) ; carte bancaire/virtuelle pour Cloudflare R2 avant le lancement
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
 - [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [x] Cloudflare (Turnstile ; R2 plus tard) · [ ] Trigger.dev
@@ -26,6 +26,7 @@
 | 2026-10-18 | T1.1 | ✅ | Migration profiles + credit_ledger (ajout seul) + bonus 10 crédits à la confirmation d’email + reserve/refund_credits (serveur seul, verrou). Audit sécurité appliqué. 14 tests d’intégration verts sur semgen-dev |
 | 2026-10-18 | T1.2 (partie 1) | ✅ | Lien magique + Turnstile + registre des bonus + pages login/account ; testé de bout en bout sur dev et prod (10 crédits, un seul bonus) |
 | 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
+| 2026-10-18 | T2.1 | ✅ | Upload vidéo (TUS, 50 Mo, Supabase Storage provisoire) testé en dev ET prod : projet « uploaded » + fichier stocké |
 
 ## Problèmes ouverts
 - Stockage vidéo PROVISOIRE sur Supabase Storage (50 Mo max, pas de carte bancaire). Prévu : Cloudflare R2 (carte requise) avant le lancement ; le client d’upload (TUS) sera à adapter en multipart S3.
