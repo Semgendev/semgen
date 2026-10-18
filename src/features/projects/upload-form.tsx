@@ -1,8 +1,8 @@
 "use client";
 
-import { UploadCloud } from "lucide-react";
+import { AlertCircle, UploadCloud } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +34,16 @@ export function UploadForm() {
   const [title, setTitle] = useState("");
   const [state, setState] = useState<State>({ step: "idle" });
   const [dragging, setDragging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const handle = useRef<UploadHandle | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Instant preview (D17): play the local file right away, while the upload runs.
+  useEffect(() => {
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   const busy = state.step === "uploading" || state.step === "finishing";
 
@@ -44,16 +52,20 @@ export function UploadForm() {
     const check = validateVideoFile(candidate);
     if (!check.ok) {
       setFile(null);
+      setPreviewUrl(null);
       setState({ step: "error", code: check.error });
       return;
     }
     const durationError = validateVideoDuration(await readVideoDuration(candidate));
     if (durationError) {
       setFile(null);
+      setPreviewUrl(null);
       setState({ step: "error", code: durationError });
       return;
     }
     setFile(candidate);
+    setPreviewUrl(URL.createObjectURL(candidate));
+    setPreviewFailed(false);
     setTitle(defaultProjectTitle(candidate.name));
     setState({ step: "idle" });
   }
@@ -111,18 +123,19 @@ export function UploadForm() {
     return (
       <div role="status" className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">{t("done")}</h2>
-        <p className="text-muted-foreground">{t("doneBody")}</p>
+        <p className="text-text-2">{t("doneBody")}</p>
         <Button
           variant="outline"
           onClick={() => {
             setFile(null);
+            setPreviewUrl(null);
             setTitle("");
             setState({ step: "idle" });
           }}
         >
           {t("another")}
         </Button>
-        <Link href="/account" className="text-primary text-sm underline-offset-4 hover:underline">
+        <Link href="/account" className="text-brand-text text-sm underline-offset-4 hover:underline">
           {t("backToAccount")}
         </Link>
       </div>
@@ -131,6 +144,24 @@ export function UploadForm() {
 
   return (
     <div className="flex flex-col gap-4">
+      {previewUrl && !previewFailed ? (
+        <div className="flex justify-center">
+          <video
+            src={previewUrl}
+            controls
+            muted
+            playsInline
+            preload="metadata"
+            aria-label={t("localPreview")}
+            onError={() => setPreviewFailed(true)}
+            className="h-auto max-h-[60vh] w-auto max-w-full rounded-xl"
+          />
+        </div>
+      ) : null}
+      {file && previewFailed ? (
+        <p className="text-text-2 bg-surface-2 rounded-xl p-4 text-sm">{t("localPreviewFailed")}</p>
+      ) : null}
+
       <div
         onDragOver={(event) => {
           event.preventDefault();
@@ -138,12 +169,12 @@ export function UploadForm() {
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-          dragging ? "border-primary bg-accent" : "border-border"
-        }`}
+        className={`flex flex-col items-center gap-3 rounded-xl border-2 border-dashed text-center transition-colors ${
+          file ? "p-4" : "p-8"
+        } ${dragging ? "border-brand bg-surface-2" : "border-border"}`}
       >
-        <UploadCloud className="text-muted-foreground size-10" aria-hidden />
-        <p className="font-medium">{file ? file.name : t("dropHint")}</p>
+        {file ? null : <UploadCloud className="text-text-3 size-10" aria-hidden />}
+        <p className="font-medium break-all">{file ? file.name : t("dropHint")}</p>
         <p className="text-muted-foreground text-sm">
           {t("formats", {
             size: Math.round(MAX_VIDEO_BYTES / (1024 * 1024)),
@@ -159,8 +190,13 @@ export function UploadForm() {
           disabled={busy}
           onChange={(event) => void selectFile(event.target.files?.[0])}
         />
-        <Button variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
-          {t("chooseFile")}
+        <Button
+          variant="outline"
+          className="min-h-11"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+        >
+          {file ? t("changeFile") : t("chooseFile")}
         </Button>
       </div>
 
@@ -184,10 +220,10 @@ export function UploadForm() {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={state.step === "uploading" ? state.percent : 100}
-            className="bg-muted h-2 w-full overflow-hidden rounded-full"
+            className="bg-surface-2 h-2 w-full overflow-hidden rounded-full"
           >
             <div
-              className="bg-primary h-full transition-all"
+              className="bg-brand h-full transition-all"
               style={{ width: `${state.step === "uploading" ? state.percent : 100}%` }}
             />
           </div>
@@ -200,7 +236,8 @@ export function UploadForm() {
       ) : null}
 
       {state.step === "error" ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-danger flex items-start gap-2 text-sm">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t(`errors.${state.code}`)}
         </p>
       ) : null}

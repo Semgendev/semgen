@@ -54,7 +54,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center p-6">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-4 sm:p-6">
       <Suspense fallback={<Skeleton className="h-40 w-full" />}>
         <AccountContent locale={locale} />
       </Suspense>

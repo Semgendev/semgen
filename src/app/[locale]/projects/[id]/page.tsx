@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -39,7 +40,14 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   return (
     <PlayerProvider>
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold break-words">{project.title}</h1>
+        <Link
+          href="/projects"
+          className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {t("backToList")}
+        </Link>
+        <h1 className="text-2xl font-bold break-words sm:text-3xl">{project.title}</h1>
         <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
           <ProjectStatusBadge status={project.status} />
           <time dateTime={project.created_at}>
@@ -54,7 +62,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
         <div className="flex flex-col gap-6 lg:sticky lg:top-6">
           {videoUrl ? (
             <VideoPlayer src={videoUrl} fallback={t("noVideoSupport")} />
@@ -79,9 +87,6 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
         ) : null}
       </div>
 
-      <Link href="/projects" className="text-primary text-sm underline-offset-4 hover:underline">
-        {t("backToList")}
-      </Link>
     </PlayerProvider>
   );
 }
@@ -93,7 +98,7 @@ export default function ProjectPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 p-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6">
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <ProjectContent params={params} />
       </Suspense>

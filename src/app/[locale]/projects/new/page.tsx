@@ -9,8 +9,8 @@ export default async function NewProjectPage({ params }: { params: Promise<{ loc
   const t = await getTranslations("projects");
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center p-6">
-      <Card>
+    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center p-4 sm:p-6">
+      <Card className="rounded-xl">
         <CardHeader>
           <h1 className="text-2xl leading-none font-semibold">{t("newTitle")}</h1>
           <CardDescription>{t("newSubtitle")}</CardDescription>
