@@ -6,7 +6,7 @@
 - **Phase :** 3 terminée côté code (transcription visible dans le site) → refonte visuelle (T0.7) puis éditeur de transcription (T3.2).
 - **En ligne (dev ET prod) :** connexion lien magique + captcha, crédits (10 offerts), upload vidéo (50 Mo), liste des projets, page projet, renommer, supprimer.
 - **Code testé en DEV seulement (pas en prod) :** transcription complète (tables `jobs`/`transcripts`, tâche `transcribe-project`, interface : choix de langue, coût avant, progression, texte mot par mot synchronisé, mots douteux, copier/SRT/TXT) ; aperçu vidéo universel (copie H.264, tâche `create-video-preview`) ; thèmes v2 (3 palettes × clair/sombre, bouton soleil/lune, page Paramètres › Apparence, `/dev/themes`).
-- **GitHub :** dernier push = `bb71a10`. **Depuis, 6 commits NON poussés** (aperçu vidéo, transcription UI, thèmes, bascule clair/sombre). Pousser seulement quand Ashanti dit « push ».
+- **GitHub :** tout est poussé (dernier push = `fe9350b`, 2026-10-18). Pousser de nouveau seulement quand Ashanti dit « push ». Rien de ceci n’est en prod : prod = ancienne version (déploiement Netlify automatique ou manuel à vérifier avant de dire le contraire).
 - **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs` et `video_preview`. `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
 - **Tests :** 75 unitaires verts ; intégration (base dev) verts au dernier passage ; E2E : `theme.spec.ts` et `palette.spec.ts` modifiés/écrits mais **pas relancés** (arrêter `npm run dev` avant).
 
