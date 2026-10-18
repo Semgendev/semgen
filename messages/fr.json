@@ -45,5 +45,20 @@
     "signOut": "Se déconnecter",
     "signIn": "Se connecter",
     "myAccount": "Mon espace"
+  },
+  "credits": {
+    "balance": "{count, plural, one {# crédit} other {# crédits}}",
+    "balanceLabel": "Solde de crédits : {count}. Voir l’historique",
+    "currentBalance": "Solde actuel : {count, plural, one {# crédit} other {# crédits}}",
+    "title": "Mes crédits",
+    "empty": "Aucun mouvement de crédits pour le moment.",
+    "back": "Retour à mon espace",
+    "viewHistory": "Voir l’historique des crédits",
+    "reasons": {
+      "signup_bonus": "Bonus de bienvenue",
+      "purchase": "Achat de crédits",
+      "job": "Utilisés pour une tâche",
+      "refund": "Remboursement"
+    }
   }
 }

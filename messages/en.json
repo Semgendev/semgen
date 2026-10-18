@@ -45,5 +45,20 @@
     "signOut": "Sign out",
     "signIn": "Sign in",
     "myAccount": "My account"
+  },
+  "credits": {
+    "balance": "{count, plural, one {# credit} other {# credits}}",
+    "balanceLabel": "Credit balance: {count}. View history",
+    "currentBalance": "Current balance: {count, plural, one {# credit} other {# credits}}",
+    "title": "My credits",
+    "empty": "No credit movements yet.",
+    "back": "Back to my account",
+    "viewHistory": "View credit history",
+    "reasons": {
+      "signup_bonus": "Welcome bonus",
+      "purchase": "Credit purchase",
+      "job": "Used for a task",
+      "refund": "Refund"
+    }
   }
 }

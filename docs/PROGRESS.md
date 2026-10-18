@@ -4,8 +4,8 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T1.2 presque finie — connexion par lien magique validée en dev ET en prod. Reste : bouton Google (identifiants Google Cloud)
-- **Prochaine étape :** Google (T1.2) puis T1.3 (affichage du solde + historique)
+- **Tâche en cours :** T1.2 : reste uniquement le bouton Google. T1.3 faite côté code (à vérifier visuellement connecté)
+- **Prochaine étape :** Google (T1.2) ou Phase 2 (upload vidéo vers R2 : compte Cloudflare déjà prêt)
 - **Bloquants / à faire par Ashanti :** créer le projet Google Cloud + identifiants OAuth quand on fera Google
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
@@ -25,6 +25,7 @@
 | 2026-10-17 | T0.5 | ✅ | Sentry (erreurs) + PostHog (stats, région EU), inactifs sans clés, test unitaire ; clés dans .env.local (ignoré par git) et dans Netlify ; PostHog vérifié en ligne (pageview reçu) |
 | 2026-10-18 | T1.1 | ✅ | Migration profiles + credit_ledger (ajout seul) + bonus 10 crédits à la confirmation d’email + reserve/refund_credits (serveur seul, verrou). Audit sécurité appliqué. 14 tests d’intégration verts sur semgen-dev |
 | 2026-10-18 | T1.2 (partie 1) | ✅ | Lien magique + Turnstile + registre des bonus + pages login/account ; testé de bout en bout sur dev et prod (10 crédits, un seul bonus) |
+| 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
 
 ## Problèmes ouverts
 - Emails Supabase limités (~2-4/h) : avant lancement, Resend + nom de domaine à acheter.

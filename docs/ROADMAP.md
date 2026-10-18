@@ -12,7 +12,7 @@ Légende modèle conseillé : 🟣 Opus · 🔵 Sonnet · 🟢 Haiku
 ## Phase 1 — Comptes et crédits (F1)
 - [x] T1.1 🟣 Schéma Supabase + RLS + `credit_ledger` + fonctions `reserve_credits` / `refund_credits`
 - [ ] T1.2 🔵 Auth email + Google, pages connexion/inscription, 10 crédits offerts à l'inscription
-- [ ] T1.3 🔵 Affichage du solde + historique des crédits
+- [x] T1.3 🔵 Affichage du solde + historique des crédits
 
 ## Phase 2 — Upload et projets (F2)
 - [ ] T2.1 🔵 Upload multipart vers R2 (URL signée), barre de progression, contrôle taille/type/durée

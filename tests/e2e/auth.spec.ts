@@ -22,3 +22,9 @@ test("the home page links to sign-in", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/en\/login/);
 });
+
+test("the credits page is protected too", async ({ page }) => {
+  await page.goto("/fr/account/credits");
+
+  await expect(page).toHaveURL(/\/fr\/login\?next=/);
+});

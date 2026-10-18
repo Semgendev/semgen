@@ -2,14 +2,16 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { signOut } from "@/features/auth/actions";
+import { Link } from "@/i18n/routing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function AccountContent({ locale }: { locale: string }) {
   const t = await getTranslations("account");
+  const tc = await getTranslations("credits");
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect(`/${locale}/login`);
@@ -22,7 +24,10 @@ async function AccountContent({ locale }: { locale: string }) {
           {t("signedInAs")} <strong>{data.user.email}</strong>
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-wrap gap-3">
+        <Link href="/account/credits" className={buttonVariants({ variant: "default" })}>
+          {tc("viewHistory")}
+        </Link>
         <form action={signOut}>
           <input type="hidden" name="locale" value={locale} />
           <Button type="submit" variant="outline">
