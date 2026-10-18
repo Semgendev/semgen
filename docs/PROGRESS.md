@@ -53,7 +53,7 @@
 
 | 2026-10-18 | Éditeur v4 : « Remplacer un mot » devient une fenêtre au centre (Chercher / Remplacer par / Tout remplacer / Annuler), comme la référence d’Ashanti | 🟡 code fait, 96 tests unitaires verts ; à valider à l’œil |
 
-| 2026-10-18 | Éditeur v5 : « Remplacer un mot » = petit panneau flottant déplaçable (sans flou), se ferme après « Tout remplacer » avec confirmation | 🟡 code fait, 96 tests verts ; déplacement à tester à l’œil (non couvert par les tests) |
+| 2026-10-18 | Éditeur v6 : enregistrement automatique (1 s après la dernière modification, sablier puis « Enregistré », « Réessayer » si échec). v5 : « Remplacer un mot » = petit panneau flottant déplaçable (sans flou), se ferme après « Tout remplacer » avec confirmation | 🟡 code fait, 96 tests verts ; déplacement à tester à l’œil (non couvert par les tests) |
 
 ## Problèmes ouverts
 - Éditeur : « Revenir au texte d’origine » après enregistrement demanderait une colonne en plus (migration) : à décider. Pas de rate limiting sur l’enregistrement (Upstash pas encore en place).

@@ -1,17 +1,6 @@
 "use client";
 
-import {
-  Check,
-  CircleAlert,
-  CircleDot,
-  Copy,
-  Download,
-  Loader2,
-  Merge,
-  Redo2,
-  Save,
-  Undo2,
-} from "lucide-react";
+import { Check, CircleAlert, Copy, Download, Loader2, Merge, Redo2, Undo2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
@@ -43,6 +32,8 @@ import {
 } from "./view";
 
 const MAX_UNDO_STEPS = 100;
+// Pause after the last change before saving by itself.
+const AUTOSAVE_DELAY_MS = 1000;
 
 type WordCellProps = {
   word: TranscriptWord;
@@ -258,7 +249,7 @@ export function TranscriptView({
     box.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [activeSegment, isPlaying]);
 
-  function save() {
+  const save = useCallback(() => {
     const draft = history.present;
     startSaving(async () => {
       const result = await saveTranscript(projectId, draft.words, draft.segments);
@@ -269,7 +260,25 @@ export function TranscriptView({
         setSaveState("error");
       }
     });
-  }
+  }, [history.present, projectId]);
+
+  // Automatic saving: shortly after the last change (no button). After a failure it waits for the
+  // next change or the "Try again" button instead of hammering the server.
+  useEffect(() => {
+    if (!dirty || saving || saveState === "error") return;
+    const timer = setTimeout(save, AUTOSAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [dirty, saving, saveState, save]);
+
+  // Leaving the tab (or the phone locking) saves right away.
+  useEffect(() => {
+    if (!dirty || saving || saveState === "error") return;
+    function onHidden() {
+      if (document.visibilityState === "hidden") save();
+    }
+    document.addEventListener("visibilitychange", onHidden);
+    return () => document.removeEventListener("visibilitychange", onHidden);
+  }, [dirty, saving, saveState, save]);
 
   async function copyText() {
     try {
@@ -441,42 +450,34 @@ export function TranscriptView({
         />
       ) : null}
 
-      {dirty || saveState !== "idle" ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" size="sm" disabled={!dirty || saving} onClick={save}>
-            {saving ? (
-              <Loader2 className="animate-spin" aria-hidden="true" />
-            ) : (
-              <Save aria-hidden="true" />
-            )}
-            {saving ? t("edit.saving") : t("edit.save")}
-          </Button>
-          <p className="text-text-2 flex items-center gap-1 text-sm" aria-live="polite">
-            {saveState === "error" ? (
-              <span className="text-danger flex items-center gap-1">
-                <CircleAlert className="size-4" aria-hidden="true" />
-                {t("edit.saveFailed")}
-              </span>
-            ) : dirty ? (
-              <>
-                <CircleDot className="text-warning size-4" aria-hidden="true" />
-                {t("edit.unsaved")}
-              </>
-            ) : (
-              <>
-                <Check className="text-success size-4" aria-hidden="true" />
-                {t("edit.saved")}
-              </>
-            )}
+      {/* Always rendered (even when empty) so the text below does not jump when the status appears. */}
+      <div className="flex min-h-6 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+        {saveState === "error" ? (
+          <p className="text-danger flex items-center gap-2 text-sm">
+            <CircleAlert className="size-4" aria-hidden="true" />
+            {t("edit.saveFailed")}
+            <Button type="button" variant="outline" size="sm" onClick={save}>
+              {t("edit.retry")}
+            </Button>
           </p>
-          {notice ? (
-            <p className="text-text-2 flex items-center gap-1 text-sm" aria-live="polite">
-              <Check className="text-success size-4" aria-hidden="true" />
-              {notice}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+        ) : dirty || saving ? (
+          <p className="text-text-2 flex items-center gap-2 text-sm">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            {t("edit.saving")}
+          </p>
+        ) : saveState === "saved" ? (
+          <p className="text-text-2 flex items-center gap-2 text-sm">
+            <Check className="text-success size-4" aria-hidden="true" />
+            {t("edit.saved")}
+          </p>
+        ) : null}
+        {notice ? (
+          <p className="text-text-2 flex items-center gap-2 text-sm">
+            <Check className="text-success size-4" aria-hidden="true" />
+            {notice}
+          </p>
+        ) : null}
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <p className="text-text-3 text-sm">{t("edit.hint")}</p>

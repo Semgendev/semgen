@@ -6,7 +6,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../../messages/en.json";
 import { PlayerProvider, VideoPlayer } from "@/features/projects/player";
 import type { Transcript } from "@/features/transcription/queries";
+import { saveTranscript } from "@/features/transcription/actions";
 import { TranscriptView } from "@/features/transcription/transcript-view";
+
+// Saving talks to the server: replaced by a fake that always succeeds.
+vi.mock("@/features/transcription/actions", () => ({
+  saveTranscript: vi.fn().mockResolvedValue({ ok: true }),
+  startTranscription: vi.fn(),
+}));
 
 const transcript: Transcript = {
   id: "b28f9644-c3c7-4a31-8225-017f8b8bad2a",
@@ -39,7 +46,10 @@ function renderView() {
   );
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.mocked(saveTranscript).mockClear();
+});
 
 describe("TranscriptView", () => {
   it("shows the detected language, every word and the doubtful ones", () => {
@@ -91,8 +101,26 @@ describe("TranscriptView", () => {
 
     expect(screen.queryByRole("textbox", { name: "Word to fix" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Allons" })).toBeInTheDocument();
-    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    // No Save button: the change is saved by itself (spinner first, then "Saved").
+    expect(screen.getByText("Saving…")).toBeInTheDocument();
+    expect(await screen.findByText("Saved", {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(saveTranscript).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(saveTranscript).mock.calls[0]?.[1]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ text: "Allons" })]),
+    );
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+  });
+
+  it("shows a clear error with a Try again button when saving fails", async () => {
+    vi.mocked(saveTranscript).mockResolvedValueOnce({ ok: false, code: "unknown" });
+    renderView();
+    await userEvent.click(screen.getByRole("button", { name: "Allez" }));
+    await userEvent.keyboard("Allons{Enter}");
+    expect(
+      await screen.findByText("Saving failed. Please try again.", {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Saved", {}, { timeout: 3000 })).toBeInTheDocument();
   });
 
   it("highlights search results and shows the count", async () => {
