@@ -18,3 +18,6 @@ npm-debug.log*
 
 # Screenshots shared with Claude (kept local)
 /capture/
+
+# Trigger.dev local build output
+.trigger/

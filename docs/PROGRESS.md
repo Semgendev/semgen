@@ -11,7 +11,7 @@
 
 ## Pour reprendre (ordre)
 1. Nouveau terminal VS Code (FFmpeg 9.0.2 installé via winget, PATH à recharger) → `npx trigger.dev@latest login` puis `npx trigger.dev@latest dev` (à laisser tourner).
-2. Premier vrai test : lancer une transcription de « airport background2 » (compte dev d’Ashanti, ~1 crédit) avec un petit script (appelle request_transcription puis tasks.trigger) → vérifier langue détectée, texte, crédits, remboursement si erreur.
+2. ✅ Premier vrai test fait (voir journal).
 3. Interface (Sonnet) : bouton « Détecter la langue et transcrire » (choix de langue, coût affiché avant), progression en direct (Realtime sur `jobs`), affichage du texte mot par mot, mots peu sûrs surlignés. Textes FR/EN.
 4. Déploiement du worker (`npx trigger.dev deploy`, clé PROD dans Netlify, ASSEMBLYAI_API_KEY dans Trigger.dev), migration jobs sur PROD (accord d’Ashanti), `git push`.
 5. Ensuite : ElevenLabs Scribe (compte + clé), limite d’uploads (Upstash), éditeur de transcription (T3.2).
@@ -40,7 +40,7 @@
 | 2026-10-18 | T1.3 | ✅ | Solde dans la barre du haut + page /account/credits (historique du carnet), lecture seule via RLS |
 | 2026-10-18 | T2.1 | ✅ | Upload vidéo (TUS, 50 Mo, Supabase Storage provisoire) testé en dev ET prod : projet « uploaded » + fichier stocké |
 | 2026-10-18 | T2.2 | ✅ | Liste des projets (miniatures via lien signé), page projet avec lecteur vidéo, renommer, supprimer (fichier + ligne), redirection après upload |
-| 2026-10-18 | T2.3 + T3.1 (moteur) | 🔄 | Pipeline de transcription écrit et testé sans appel réel (fixtures) ; migration jobs appliquée sur dev ; reste le premier vrai test et l’interface |
+| 2026-10-18 | T2.3 + T3.1 (moteur) | ✅ | Premier vrai test (dev) : vidéo FR de 9,8 Mo → langue fr détectée (0,83), 47 mots, 1 crédit débité (10→9) ; vidéo sans audio → refus propre `no_audio`, 0 crédit. Script : scripts/try-transcription.mts. Reste l’interface |
 
 ## Problèmes ouverts
 - Dev : ne PAS lancer `npm run build` / `test:e2e` pendant que le serveur local tourne (ils partagent `.next` et le corrompent → page qui « clignote »). Arrêter le serveur avant, le relancer après.
