@@ -17,5 +17,33 @@
     "cardTitle": "Pour commencer",
     "cardDescription": "Importe ta vidéo pour démarrer.",
     "fileLabel": "Fichier vidéo"
+  },
+  "auth": {
+    "title": "Connexion à SemGen",
+    "subtitle": "Entre ton e-mail et nous t’envoyons un lien de connexion sécurisé. Pas de mot de passe.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "toi@exemple.com",
+    "submit": "Envoie-moi un lien de connexion",
+    "sending": "Envoi…",
+    "google": "Continuer avec Google",
+    "or": "ou",
+    "sentTitle": "Vérifie ta boîte mail",
+    "sentBody": "Nous avons envoyé un lien de connexion à ton e-mail. Il expire vite, ouvre-le rapidement.",
+    "bonus": "Nouveau ici ? Tu reçois 10 crédits offerts dès que ton e-mail est vérifié.",
+    "linkError": "Ce lien de connexion est invalide ou a expiré. Demande-en un nouveau.",
+    "errors": {
+      "invalid_email": "Entre une adresse e-mail valide.",
+      "disposable_email": "Les adresses e-mail jetables ne sont pas acceptées.",
+      "captcha": "La vérification de sécurité a échoué. Réessaie.",
+      "rate_limited": "Trop de tentatives. Attends quelques minutes puis réessaie.",
+      "unknown": "Une erreur est survenue. Réessaie."
+    }
+  },
+  "account": {
+    "title": "Mon espace",
+    "signedInAs": "Connecté en tant que",
+    "signOut": "Se déconnecter",
+    "signIn": "Se connecter",
+    "myAccount": "Mon espace"
   }
 }

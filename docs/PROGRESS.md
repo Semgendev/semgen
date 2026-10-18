@@ -4,12 +4,12 @@
 
 ## État actuel
 - **Phase :** 1 — Comptes et crédits
-- **Tâche en cours :** T1.2 — partie serveur faite (session, lien magique, anti-abus, migration registre bonus sur dev). Reste : pages connexion/compte (Sonnet), Turnstile, Google, URLs de redirection Supabase, migration prod
+- **Tâche en cours :** T1.2 — pages login/account faites. Reste : Turnstile (clé + Supabase), URLs de redirection Supabase, Google, migration prod, test réel du lien magique
 - **Prochaine étape :** auth email + Google, pages connexion/inscription (le bonus de 10 crédits est déjà géré par la base)
 - **Bloquants / à faire par Ashanti :** supprimer l’ancien compte PostHog US ; plus tard : identifiants Google (Claude guidera)
 
 ## Comptes à créer (au fur et à mesure, Claude dira quand)
-- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [ ] Cloudflare (R2) · [ ] Trigger.dev
+- [x] GitHub (repo Semgendev/semgen) · [x] Netlify (compte existant) · [x] Supabase (projet semgen-dev, ref lbigqadoaciuvvhdhitr) · [x] Cloudflare (Turnstile ; R2 plus tard) · [ ] Trigger.dev
 - [ ] AssemblyAI · [ ] Anthropic API · [ ] ElevenLabs · [ ] AWS (Remotion Lambda)
 - [ ] FedaPay · [ ] pawaPay · [ ] Resend · [ ] Upstash · [x] Sentry · [x] PostHog
 

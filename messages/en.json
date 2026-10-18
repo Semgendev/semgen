@@ -17,5 +17,33 @@
     "cardTitle": "Get started",
     "cardDescription": "Upload your video to begin.",
     "fileLabel": "Video file"
+  },
+  "auth": {
+    "title": "Sign in to SemGen",
+    "subtitle": "Enter your email and we will send you a secure sign-in link. No password needed.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "submit": "Send me a sign-in link",
+    "sending": "Sending…",
+    "google": "Continue with Google",
+    "or": "or",
+    "sentTitle": "Check your inbox",
+    "sentBody": "We sent a sign-in link to your email. It expires shortly, so open it soon.",
+    "bonus": "New here? You get 10 free credits once your email is verified.",
+    "linkError": "This sign-in link is invalid or has expired. Please request a new one.",
+    "errors": {
+      "invalid_email": "Please enter a valid email address.",
+      "disposable_email": "Disposable email addresses are not accepted.",
+      "captcha": "The security check failed. Please try again.",
+      "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
+      "unknown": "Something went wrong. Please try again."
+    }
+  },
+  "account": {
+    "title": "My account",
+    "signedInAs": "Signed in as",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "myAccount": "My account"
   }
 }

@@ -61,3 +61,23 @@ export async function signOut(formData: FormData) {
   await supabase.auth.signOut();
   redirect(`/${locale}`);
 }
+
+export async function signInWithGoogle(formData: FormData) {
+  const locale = localeSchema.parse(formData.get("locale"));
+  const next = safeNextPath(formData.get("next")?.toString(), locale);
+
+  const origin = (await headers()).get("origin");
+  if (!origin) redirect(`/${locale}/login?error=link`);
+
+  const callback = new URL(`/${locale}/auth/callback`, origin);
+  callback.searchParams.set("next", next);
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: callback.toString() },
+  });
+
+  if (error || !data.url) redirect(`/${locale}/login?error=link`);
+  redirect(data.url);
+}
