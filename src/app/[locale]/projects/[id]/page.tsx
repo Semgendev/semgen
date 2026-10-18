@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,8 @@ import { Link } from "@/i18n/routing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function ProjectContent({ params }: { params: Promise<{ locale: string; id: string }> }) {
+  // Per-user page: rendered on every request, never prerendered (libraries below read the clock).
+  await connection();
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("projects");
