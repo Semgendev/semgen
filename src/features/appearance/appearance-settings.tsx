@@ -68,7 +68,11 @@ export function AppearanceSettings() {
   const { palette, setPalette } = usePalette();
   const { theme, setTheme } = useTheme();
   // next-themes only knows the stored mode after mounting: avoid a wrong selection on first paint.
-  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
   const mode = mounted ? (theme ?? "system") : "system";
 
   return (
