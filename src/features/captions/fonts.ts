@@ -1,38 +1,49 @@
-import { loadFont as loadAnton } from "@remotion/google-fonts/Anton";
-import { loadFont as loadBebas } from "@remotion/google-fonts/BebasNeue";
-import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
-import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
-import { loadFont as loadPoppins } from "@remotion/google-fonts/Poppins";
+import { continueRender, delayRender, staticFile } from "remotion";
 
+import { FONT_FACES } from "./fonts-data";
 import type { FontId } from "./style";
 
-// Caption fonts (all SIL OFL 1.1, see docs/THIRD_PARTY.md). Only the weights and scripts the styles use
-// are loaded; Remotion waits for them before showing or rendering a frame.
-const SUBSETS = { subsets: ["latin", "latin-ext"] as ("latin" | "latin-ext")[] };
-
-const loaders: Record<FontId, () => string> = {
-  anton: () => loadAnton("normal", { weights: ["400"], ...SUBSETS }).fontFamily,
-  bebas: () => loadBebas("normal", { weights: ["400"], ...SUBSETS }).fontFamily,
-  montserrat: () => {
-    loadMontserrat("italic", { weights: ["800", "900"], ...SUBSETS });
-    return loadMontserrat("normal", { weights: ["500", "700", "800", "900"], ...SUBSETS })
-      .fontFamily;
-  },
-  playfair: () => {
-    loadPlayfair("normal", { weights: ["700", "900"], ...SUBSETS });
-    return loadPlayfair("italic", { weights: ["400", "700", "900"], ...SUBSETS }).fontFamily;
-  },
-  poppins: () =>
-    loadPoppins("normal", { weights: ["500", "600", "700", "800", "900"], ...SUBSETS }).fontFamily,
-};
+// Caption fonts (all SIL OFL 1.1, see docs/THIRD_PARTY.md), served by the app itself from
+// public/fonts/captions (see scripts/host-caption-fonts.mjs): no request to a third party, and the
+// browser caches them for a year. Only the weights and scripts the styles use are shipped.
+// Remotion waits for the fonts before it shows or renders a frame.
 
 const loaded = new Map<FontId, string>();
+
+function loadFaces(id: FontId): string {
+  const faces = FONT_FACES.filter((face) => face.id === id);
+  const family = faces[0]?.family ?? id;
+  if (typeof document === "undefined" || typeof FontFace === "undefined") return family;
+
+  const handle = delayRender(`Loading caption font ${id}`);
+  Promise.all(
+    faces.map(async (face) => {
+      const source = new FontFace(
+        face.family,
+        `url(${staticFile(`fonts/captions/${face.file}`)})`,
+        {
+          style: face.style,
+          weight: face.weight,
+          unicodeRange: face.unicodeRange,
+          display: "block",
+        },
+      );
+      // latin (French, English, Spanish…) is awaited; latin-ext is registered and fetched by the browser
+      // only when a text really needs it, which halves what the gallery downloads at load
+      if (face.unicodeRange.startsWith("U+0000")) document.fonts.add(await source.load());
+      else document.fonts.add(source);
+    }),
+  )
+    .catch(() => undefined)
+    .finally(() => continueRender(handle));
+  return family;
+}
 
 // CSS font-family for a font id, loading it the first time.
 export function fontFamily(id: FontId): string {
   const known = loaded.get(id);
   if (known) return known;
-  const family = `"${loaders[id]()}", sans-serif`;
+  const family = `"${loadFaces(id)}", sans-serif`;
   loaded.set(id, family);
   return family;
 }
