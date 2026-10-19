@@ -8,10 +8,11 @@
 /* Every colour comes from src/styles/tokens.css (3 palettes x light/dark, WCAG AA checked).
    Components must never use raw colours: use these utilities (bg-surface, text-brand-text, …). */
 @theme inline {
-  /* --font-arabic only exists on right-to-left pages: Arabic letters first, Latin ones still in Geist */
-  --font-sans: var(--font-arabic, var(--font-geist-sans)), var(--font-geist-sans);
+  /* --font-script only exists on pages of a language with its own script (Arabic, Hindi): those letters
+     first, Latin ones still in Geist */
+  --font-sans: var(--font-script, var(--font-geist-sans)), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-arabic, var(--font-jakarta)), var(--font-jakarta);
+  --font-heading: var(--font-script, var(--font-jakarta)), var(--font-jakarta);
 
   /* SemGen tokens */
   --color-bg: var(--bg);

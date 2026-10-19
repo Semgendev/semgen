@@ -10,7 +10,13 @@ import {
 } from "remotion";
 
 import { fitScale, MAX_BLOCK_HEIGHT_PCT, measureText, safeCenterY } from "../fit";
-import { ARABIC_TEXT, fontFamily, loadScriptFonts, useFontsVersion } from "../fonts";
+import {
+  ARABIC_TEXT,
+  DEVANAGARI_TEXT,
+  fontFamily,
+  loadScriptFonts,
+  useFontsVersion,
+} from "../fonts";
 import {
   ACTIVE_LEAD_MS,
   activeAmount,
@@ -401,9 +407,9 @@ function Word({
           position: "relative",
           ...mainStyle,
           clipPath: clip ?? riseClip,
-          // The Arabic font has overlapping outlines: an outline alone would show them as boxes,
-          // so Arabic hollow letters are drawn translucent instead.
-          ...(look.stroke && rtl
+          // The Arabic and Devanagari fonts have overlapping outlines: an outline alone would show
+          // them as boxes, so hollow letters of these scripts are drawn translucent instead.
+          ...(look.stroke && (rtl || DEVANAGARI_TEXT.test(word.text))
             ? { color: `${look.stroke.color.slice(0, 7)}59` }
             : {
                 WebkitTextStroke: look.stroke

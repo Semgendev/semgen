@@ -17,6 +17,11 @@ const ARABIC_FAMILY = "Cairo";
 export const ARABIC_TEXT = /[؀-ۿݐ-ݿࡰ-ࣿﭐ-﷿ﹰ-﻿]/;
 let arabicLoaded = false;
 
+// Same for Devanagari (Hindi, Marathi, Nepali): Noto Sans Devanagari, one variable file.
+const DEVANAGARI_FAMILY = "Noto Sans Devanagari";
+export const DEVANAGARI_TEXT = /[ऀ-ॿ]/;
+let devanagariLoaded = false;
+
 function loadFaces(id: string, awaitAll = false): string {
   const faces = FONT_FACES.filter((face) => face.id === id);
   const family = faces[0]?.family ?? id;
@@ -52,16 +57,21 @@ function loadFaces(id: string, awaitAll = false): string {
 export function fontFamily(id: FontId): string {
   const known = loaded.get(id);
   if (known) return known;
-  const family = `"${loadFaces(id)}", "${ARABIC_FAMILY}", sans-serif`;
+  const family = `"${loadFaces(id)}", "${ARABIC_FAMILY}", "${DEVANAGARI_FAMILY}", sans-serif`;
   loaded.set(id, family);
   return family;
 }
 
-// Loads the fonts of the other scripts a caption needs (Arabic), before its first frame is shown.
+// Loads the fonts of the other scripts a caption needs (Arabic, Devanagari), before its first frame is shown.
 export function loadScriptFonts(text: string): void {
-  if (arabicLoaded || !ARABIC_TEXT.test(text)) return;
-  arabicLoaded = true;
-  loadFaces("cairo", true);
+  if (!arabicLoaded && ARABIC_TEXT.test(text)) {
+    arabicLoaded = true;
+    loadFaces("cairo", true);
+  }
+  if (!devanagariLoaded && DEVANAGARI_TEXT.test(text)) {
+    devanagariLoaded = true;
+    loadFaces("noto-devanagari", true);
+  }
 }
 
 // Changes each time the browser finishes loading fonts: captions laid out with a fallback font

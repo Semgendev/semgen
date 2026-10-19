@@ -36,7 +36,7 @@ const jakarta = Plus_Jakarta_Sans({
 // the browser only downloads it when a page shows Arabic text.
 const notoArabic = localFont({
   src: "../fonts/noto-sans-arabic.woff2",
-  variable: "--font-arabic",
+  variable: "--font-script",
   weight: "100 900",
   preload: false,
   // no local fallback face: it would also catch Latin letters, which must stay in Geist
@@ -50,6 +50,30 @@ const notoArabic = localFont({
     },
   ],
 });
+
+// Hindi interface: Noto Sans Devanagari (OFL 1.1), same idea: Devanagari letters only, fetched only
+// on Hindi pages. Only one of the two fonts is ever applied to a page (both set --font-script).
+const notoDevanagari = localFont({
+  src: "../fonts/noto-sans-devanagari.woff2",
+  variable: "--font-script",
+  weight: "100 900",
+  preload: false,
+  fallback: [],
+  adjustFontFallback: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FF",
+    },
+  ],
+});
+
+// The font of the non-Latin script of a language, if its letters are not in Geist and Jakarta.
+const SCRIPT_FONT_CLASS: Record<string, string> = {
+  ar: notoArabic.variable,
+  hi: notoDevanagari.variable,
+};
 
 export const metadata: Metadata = {
   title: "SemGen Studio",
@@ -75,7 +99,7 @@ export default async function RootLayout({ children, params }: LayoutProps) {
       dir={dir}
       suppressHydrationWarning
       data-palette="cobalt"
-      className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} ${dir === "rtl" ? notoArabic.variable : ""} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} ${SCRIPT_FONT_CLASS[locale] ?? ""} h-full antialiased`}
     >
       <head>
         {/* Sets the chosen palette before the first paint (no flash). Static, no user input. */}

@@ -5,10 +5,10 @@ import type { TranscriptWord } from "../transcription/types";
 // noun (FR, EN, ES, PT).
 
 const NBSP = " ";
-const SENTENCE_END = /[.!?…。！？؟]["»”’)]*$/;
+const SENTENCE_END = /[.!?…。！？؟।॥]["»”’)]*$/;
 const CLAUSE_END = /[,;:—–،؛]["»”’)]*$/;
 // A token that is only punctuation ("!" when the speaker said "demain !"): glued to the word before.
-const CLOSING_PUNCTUATION = /^[!?:;.,…»”’)%،؛؟]+$/;
+const CLOSING_PUNCTUATION = /^[!?:;.,…»”’)%،؛؟।॥]+$/;
 // An opening mark alone ("«"): glued to the word after.
 const OPENING_PUNCTUATION = /^[«“‘(¿¡]+$/;
 

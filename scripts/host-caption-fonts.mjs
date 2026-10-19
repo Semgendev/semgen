@@ -26,6 +26,13 @@ const FONTS = [
   ["anybody", "Anybody", { normal: ["700", "800"] }],
   // Arabic letters of every style (variable font: one file for all the weights)
   ["cairo", "Cairo", { normal: ["500", "600", "700", "800", "900"] }, ["arabic"]],
+  // Devanagari letters (Hindi, Marathi, Nepali) of every style
+  [
+    "noto-devanagari",
+    "NotoSansDevanagari",
+    { normal: ["500", "600", "700", "800", "900"] },
+    ["devanagari"],
+  ],
 ];
 
 const outDir = new URL("../public/fonts/captions/", import.meta.url);

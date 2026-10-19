@@ -13,6 +13,7 @@
 | Polices de sous-titres : Instrument Serif, Inter Tight, Pinyon Script, Manrope, Bricolage Grotesque, Fraunces, Syne, Sora, DM Serif Display, Outfit, Anybody | hébergées sur notre site (`public/fonts/captions/`, script `scripts/host-caption-fonts.mjs`, source `@remotion/google-fonts`) | SIL OFL 1.1 | https://fonts.google.com | 2026-10-19 | `src/features/captions/fonts.ts` |
 | Noto Sans Arabic (interface en arabe, lettres arabes seulement) | fichier variable v33 hébergé chez nous (`src/app/fonts/noto-sans-arabic.woff2`, 166 Ko, chargé seulement quand une page affiche de l'arabe) | SIL OFL 1.1 (The Noto Project Authors) | https://github.com/notofonts/arabic | 2026-10-19 | `src/app/[locale]/layout.tsx` |
 | Cairo (lettres arabes de tous les styles de sous-titres) | fichier variable v31 hébergé chez nous (`public/fonts/captions/`, 31 Ko, chargé seulement si le texte est en arabe) | SIL OFL 1.1 (The Cairo Project Authors) | https://github.com/Gue3bara/Cairo | 2026-10-19 | `src/features/captions/fonts.ts` |
+| Noto Sans Devanagari (interface en hindi + lettres devanagari des sous-titres) | fichiers variables v30 hébergés chez nous (`src/app/fonts/noto-sans-devanagari.woff2` 121 Ko et `public/fonts/captions/`, chargés seulement sur les pages / textes en hindi) | SIL OFL 1.1 (The Noto Project Authors) | https://github.com/notofonts/devanagari | 2026-10-19 | `src/app/[locale]/layout.tsx`, `src/features/captions/fonts.ts` |
 
 ## Rappels
 - MIT / ISC : conserver la mention de copyright et le texte de la licence dans le code copié.
