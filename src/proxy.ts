@@ -1,12 +1,14 @@
 import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { defaultLocale, locales } from "@/i18n/config";
+import { LOCALE_PATTERN, defaultLocale, locales } from "@/i18n/config";
 import { refreshSession } from "@/lib/supabase/proxy";
 
+// Picks the language: the one chosen before (NEXT_LOCALE cookie), else the device's
+// (Accept-Language), else English.
 const intlMiddleware = createMiddleware({ locales, defaultLocale });
 
-const PROTECTED_PATH = /^\/(en|fr)\/(account|projects)(\/|$)/;
+const PROTECTED_PATH = new RegExp(`^/(${LOCALE_PATTERN})/(account|projects)(/|$)`);
 
 export default async function proxy(request: NextRequest) {
   const response = intlMiddleware(request);
@@ -25,5 +27,6 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/(en|fr)/:path*", "/((?!_next|_vercel|monitoring|.*\..*).*)"],
+  // every page except Next internals, monitoring and files (the matcher must stay static)
+  matcher: ["/((?!api|_next|_vercel|monitoring|.*\\..*).*)"],
 };

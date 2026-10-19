@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { locales, type Locale } from "@/i18n/config";
 import { useRouter, usePathname } from "@/i18n/routing";
 
 import { Button } from "@/components/ui/button";
@@ -11,18 +12,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function nativeName(locale: string): string | undefined {
+  try {
+    const name = new Intl.DisplayNames([locale], { type: "language" }).of(locale);
+    return name ? name.charAt(0).toLocaleUpperCase(locale) + name.slice(1) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useTranslations("language");
   const router = useRouter();
   const pathname = usePathname();
 
-  const languages = [
-    { value: "en", label: t("en") },
-    { value: "fr", label: t("fr") },
-  ] as const;
+  // every language in its own name (Español, Deutsch…), whatever the current one
+  const languages = locales.map((value) => ({
+    value,
+    label: nativeName(value) ?? t(value as "en" | "fr"),
+  }));
 
-  const handleChangeLanguage = (newLocale: "en" | "fr") => {
+  const handleChangeLanguage = (newLocale: Locale) => {
     router.replace(pathname, { locale: newLocale });
   };
 
