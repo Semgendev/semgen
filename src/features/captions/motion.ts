@@ -12,9 +12,60 @@ export type WordMotion = {
   blurEm: number;
   // share of the word that is visible, from the left (typewriter) or from the bottom (mask)
   reveal: number;
+  // extra space pushed between the letters (track), in em
+  spreadEm: number;
+  // distance of the coloured copies from the word (split), in em
+  splitEm: number;
+  // strength of the light (neon flicker): 1 = normal
+  light: number;
 };
 
-export const RESTING: WordMotion = { opacity: 1, translateYEm: 0, scale: 1, blurEm: 0, reveal: 1 };
+export const RESTING: WordMotion = {
+  opacity: 1,
+  translateYEm: 0,
+  scale: 1,
+  blurEm: 0,
+  reveal: 1,
+  spreadEm: 0,
+  splitEm: 0,
+  light: 1,
+};
+
+type SpringConfig = { stiffness: number; damping: number; mass: number };
+// Starting points from motion design practice, tuned by eye (docs/features/captions-animations.md §2.3).
+export const SPRINGS = {
+  pop: { stiffness: 220, damping: 14, mass: 0.6 },
+  soft: { stiffness: 120, damping: 18, mass: 1 },
+  snap: { stiffness: 300, damping: 12, mass: 0.5 },
+} satisfies Record<string, SpringConfig>;
+
+export type MotionOptions = { spring?: SpringConfig; seed?: number; index?: number };
+
+// Deterministic "random" number in [0, 1) from a seed and an index (same input → same output, so
+// the preview and the export always match).
+export function seeded(seed: number, index: number): number {
+  let x = (seed * 374761393 + index * 668265263) | 0;
+  x = Math.imul(x ^ (x >>> 13), 1274126177);
+  x ^= x >>> 16;
+  return (x >>> 0) / 4294967296;
+}
+
+// Neon tube sputtering on: two short dips of light at seeded moments during the entrance, then
+// steady. Two dips in under a second stay below the 3 flashes per second safety limit (WCAG 2.3.1).
+export function flickerAt(t: number, durationMs: number, seed: number): number {
+  if (t <= 0) return 0;
+  if (t >= durationMs) return 1;
+  const base = interpolate(t, [0, durationMs * 0.25], [0, 1], clamp);
+  let light = base;
+  for (let dip = 0; dip < 2; dip++) {
+    const at = durationMs * (0.3 + 0.4 * seeded(seed, dip * 2) + dip * 0.05);
+    const depth = 0.45 + 0.35 * seeded(seed, dip * 2 + 1);
+    const width = 45;
+    const distance = Math.abs(t - at);
+    if (distance < width) light *= 1 - depth * (1 - distance / width);
+  }
+  return light;
+}
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const easeOutExpo = Easing.out(Easing.exp);
@@ -38,7 +89,12 @@ function quickOpacity(t: number, durationMs: number): number {
 }
 
 // `t` = time since the word started to appear, in ms.
-export function motionIn(kind: AnimationIn, t: number, durationMs: number): WordMotion {
+export function motionIn(
+  kind: AnimationIn,
+  t: number,
+  durationMs: number,
+  options: MotionOptions = {},
+): WordMotion {
   if (kind === "none" || durationMs <= 0) return t < 0 ? { ...RESTING, opacity: 0 } : RESTING;
   if (t < 0) return { ...RESTING, opacity: 0, reveal: 0 };
   const p = interpolate(t, [0, durationMs], [0, 1], clamp);
@@ -47,7 +103,7 @@ export function motionIn(kind: AnimationIn, t: number, durationMs: number): Word
       return { ...RESTING, opacity: Easing.out(Easing.quad)(p) };
     case "pop": {
       // grows past its size (~8 %) then settles, on a spring
-      const s = springAt(t, durationMs, { stiffness: 220, damping: 14, mass: 0.6 });
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.pop);
       return { ...RESTING, opacity: quickOpacity(t, durationMs), scale: 0.6 + 0.4 * s };
     }
     case "rise": {
@@ -65,6 +121,31 @@ export function motionIn(kind: AnimationIn, t: number, durationMs: number): Word
     }
     case "typewriter":
       return { ...RESTING, reveal: p };
+    case "track": {
+      // letters start far apart and slightly blurred, then close in softly (cinema titles)
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.soft);
+      return {
+        ...RESTING,
+        opacity: interpolate(t, [0, durationMs * 0.6], [0, 1], clamp),
+        spreadEm: (1 - s) * 0.14,
+        blurEm: (1 - s) * 0.06,
+      };
+    }
+    case "flicker": {
+      // same seed for the whole caption: its words sputter together (one flicker, not many)
+      const light = flickerAt(t, durationMs, options.seed ?? 1);
+      return { ...RESTING, opacity: light, light };
+    }
+    case "split": {
+      // three coloured copies snap together on a spring, with a small punch of scale
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.snap);
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        splitEm: (1 - s) * 0.18,
+        scale: 1.06 - 0.06 * s,
+      };
+    }
     case "mask": {
       const eased = Easing.out(Easing.exp)(p);
       return { ...RESTING, reveal: eased, translateYEm: (1 - eased) * 0.35 };
@@ -95,6 +176,9 @@ export function combine(a: WordMotion, b: WordMotion): WordMotion {
     scale: a.scale * b.scale,
     blurEm: a.blurEm + b.blurEm,
     reveal: Math.min(a.reveal, b.reveal),
+    spreadEm: a.spreadEm + b.spreadEm,
+    splitEm: a.splitEm + b.splitEm,
+    light: a.light * b.light,
   };
 }
 
@@ -117,8 +201,13 @@ export function exitMs(style: Pick<CaptionStyle, "animation">): number {
   return style.animation.out === "none" ? 0 : style.animation.outMs;
 }
 
+// Most of the exit happens just before the next caption shows up (never before the last word is
+// said), so the two only overlap for a few frames and never read as a jumble of letters.
+const EXIT_LEAD_SHARE = 0.6;
+
 function leaveWindow(page: CaptionPage, outMs: number): { at: number; duration: number } {
-  return { at: page.end, duration: outMs };
+  const at = Math.max(page.speechEnd, page.end - outMs * EXIT_LEAD_SHARE);
+  return { at, duration: Math.max(0, page.end + outMs * (1 - EXIT_LEAD_SHARE) - at) };
 }
 
 // Full motion of one word at `timeMs`.
@@ -126,12 +215,13 @@ export function wordMotionAt(
   page: CaptionPage,
   wordIndex: number,
   timeMs: number,
-  style: Pick<CaptionStyle, "reveal" | "animation">,
+  style: Pick<CaptionStyle, "reveal" | "animation" | "seed">,
 ): WordMotion {
   const appear = motionIn(
     style.animation.in,
     timeMs - wordAppearAt(page, wordIndex, style),
     style.animation.inMs,
+    { spring: style.animation.spring, seed: (style.seed ?? 1) + page.start, index: wordIndex },
   );
   const leave = leaveWindow(page, exitMs(style));
   return combine(appear, motionOut(style.animation.out, timeMs - leave.at, leave.duration));
@@ -167,6 +257,44 @@ export function activeWindow(page: CaptionPage, wordIndex: number): { start: num
   const end =
     next && next.start - word.end <= ACTIVE_BRIDGE_MS ? next.start - ACTIVE_LEAD_MS : word.end;
   return { start: word.start - ACTIVE_LEAD_MS, end };
+}
+
+// Karaoke fill: share of the word already said (0 → 1), following its exact duration.
+export function fillProgress(page: CaptionPage, wordIndex: number, timeMs: number): number {
+  const word = page.words[wordIndex];
+  if (!word) return 0;
+  return interpolate(
+    timeMs,
+    [word.start - ACTIVE_LEAD_MS, word.end - ACTIVE_LEAD_MS],
+    [0, 1],
+    clamp,
+  );
+}
+
+// Motion blur: where the word was half a frame earlier (180° shutter). When it moved enough, the
+// renderer draws faint copies along the way, like a film camera does on fast motion.
+export const BLUR_SAMPLES = [0.33, 0.66];
+
+export function blurSamples(
+  page: CaptionPage,
+  wordIndex: number,
+  timeMs: number,
+  fps: number,
+  style: Pick<CaptionStyle, "reveal" | "animation" | "seed">,
+): WordMotion[] {
+  if (!style.animation.motionBlur) return [];
+  const shutter = 1000 / fps / 2;
+  const now = wordMotionAt(page, wordIndex, timeMs, style);
+  const before = wordMotionAt(page, wordIndex, timeMs - shutter, style);
+  const moved =
+    Math.abs(now.scale - before.scale) +
+    Math.abs(now.translateYEm - before.translateYEm) +
+    Math.abs(now.spreadEm - before.spreadEm) +
+    Math.abs(now.splitEm - before.splitEm);
+  if (moved < 0.012) return [];
+  return BLUR_SAMPLES.map((share) =>
+    wordMotionAt(page, wordIndex, timeMs - shutter * share, style),
+  );
 }
 
 export function isActiveWord(page: CaptionPage, wordIndex: number, timeMs: number): boolean {

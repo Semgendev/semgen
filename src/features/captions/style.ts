@@ -34,6 +34,28 @@ const boxSchema = z.object({
   paddingYEm: z.number().min(0).max(1),
 });
 
+// "Deep glow": a wide, soft halo of light behind the text, with an optional colour fringe
+// (chromatic aberration) like a camera lens.
+const deepGlowSchema = z.object({
+  color: colorSchema,
+  radiusEm: z.number().min(0).max(2),
+  // 0 = off, 1 = normal, 2 = very bright
+  intensity: z.number().min(0).max(2),
+  chromatic: z
+    .object({ left: colorSchema, right: colorSchema, offsetEm: z.number().min(0).max(0.2) })
+    .nullable(),
+});
+
+// "Light sweep": a band of light crossing the letters, like a reflection on metal or glass.
+const sweepSchema = z.object({
+  color: colorSchema,
+  angle: z.number().min(0).max(360),
+  // width of the band, in % of the word
+  widthPct: z.number().min(5).max(80),
+  // one pass every periodMs
+  periodMs: z.number().int().min(600).max(10000),
+});
+
 export const textLookSchema = z.object({
   font: z.enum(FONT_IDS),
   weight: z.union([
@@ -53,10 +75,25 @@ export const textLookSchema = z.object({
   shadow: shadowSchema.nullable(),
   glow: z.object({ color: colorSchema, blurEm: z.number().min(0).max(1) }).nullable(),
   box: boxSchema.nullable(),
+  deepGlow: deepGlowSchema.nullable().optional(),
+  sweep: sweepSchema.nullable().optional(),
 });
 export type TextLook = z.infer<typeof textLookSchema>;
 
-export const ANIMATIONS_IN = ["none", "fade", "pop", "rise", "blur", "typewriter", "mask"] as const;
+// track = letters close in (spacing that opens then settles), flicker = neon that sputters on,
+// split = red / green / blue copies that come together (chromatic split).
+export const ANIMATIONS_IN = [
+  "none",
+  "fade",
+  "pop",
+  "rise",
+  "blur",
+  "typewriter",
+  "mask",
+  "track",
+  "flicker",
+  "split",
+] as const;
 export const ANIMATIONS_OUT = ["none", "fade", "sink", "blur"] as const;
 export type AnimationIn = (typeof ANIMATIONS_IN)[number];
 export type AnimationOut = (typeof ANIMATIONS_OUT)[number];
@@ -89,6 +126,8 @@ export const captionStyleSchema = z.object({
       fill: fillSchema.nullable(),
       box: boxSchema.nullable(),
       scale: z.number().min(1).max(1.5),
+      // switch = the word lights up; fill = the colour fills it from left to right as it is said
+      mode: z.enum(["switch", "fill"]).optional(),
     })
     .nullable(),
   animation: z.object({
@@ -98,6 +137,20 @@ export const captionStyleSchema = z.object({
     staggerMs: z.number().int().min(0).max(400),
     out: z.enum(ANIMATIONS_OUT),
     outMs: z.number().int().min(0).max(1000),
+    // spring of the entrance (pop / track / split); defaults per animation when absent
+    spring: z
+      .object({
+        stiffness: z.number().min(10).max(1000),
+        damping: z.number().min(1).max(100),
+        mass: z.number().min(0.1).max(5),
+      })
+      .optional(),
+    // motion blur on fast movements (180° shutter, like a film camera)
+    motionBlur: z.boolean().optional(),
+    // colours of the two outer copies of the "split" entrance
+    splitColors: z.tuple([colorSchema, colorSchema]).optional(),
   }),
+  // makes every "random" detail (neon flicker...) identical in the preview and the export
+  seed: z.number().int().optional(),
 });
 export type CaptionStyle = z.infer<typeof captionStyleSchema>;

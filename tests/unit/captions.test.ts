@@ -165,11 +165,14 @@ describe("motion", () => {
     expect(motionIn("rise", 170, 500).translateYEm).toBeGreaterThan(0);
   });
 
-  it("starts the exit only once the caption is over, and finishes it smoothly", () => {
+  it("leaves once the last word is said, mostly before the next caption shows up", () => {
     const style = CAPTION_PRESETS.cinema;
     const page = paginate([word("Fin.", 0, 500)], style)[0]!;
-    expect(wordMotionAt(page, 0, page.end - 1, style).opacity).toBeCloseTo(1);
-    expect(wordMotionAt(page, 0, page.end + exitMs(style) - 1, style).opacity).toBeLessThan(0.1);
+    expect(wordMotionAt(page, 0, page.speechEnd - 1, style).opacity).toBeCloseTo(1);
+    expect(wordMotionAt(page, 0, page.end, style).opacity).toBeLessThan(0.7);
+    expect(wordMotionAt(page, 0, page.end + exitMs(style) * 0.4 - 1, style).opacity).toBeLessThan(
+      0.1,
+    );
   });
 
   it("cross-fades two captions instead of swapping them from one frame to the next", () => {

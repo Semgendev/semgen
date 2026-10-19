@@ -3,17 +3,17 @@
 > Claude : mets ce fichier à jour à CHAQUE fin de tâche. Garde-le court (journal : 10 entrées max, les anciennes sont regroupées).
 
 ## État actuel (2026-10-19 — Opus)
-- **Phase :** 4 commencée. T0.7, T2.5, T3.2 faits. **T4.1 étapes 1-2 faites** (moteur Remotion + 6 styles + choix enregistré) ; **en attente des captures d’Ashanti** avant l’étape 3.
+- **Phase :** 4. **T4.1 étape 3 en cours** : moteur v2 + 5 prototypes faits, visibles sur `/dev/animations` ; **en attente de l’avis d’Ashanti** sur le ressenti avant de produire les 20 styles.
 - **En ligne (dev ET prod) :** connexion lien magique + captcha, crédits (10 offerts), upload vidéo (50 Mo), liste des projets, page projet, renommer, supprimer.
 - **Code testé en DEV seulement (pas en prod) :** transcription complète ; aperçu vidéo H.264 ; thèmes v2 ; refonte visuelle + aperçu instantané ; éditeur de transcription (correction au toucher, supprimer, nouvelle ligne, fusion, recherche, panneau flottant « Remplacer un mot », annuler/rétablir, **sauvegarde automatique**, **retour au texte d’origine**) ; **sous-titres animés Remotion** sur la page projet (styles Cinéma, Élégance, Viral, Karaoké, Néon, Minimal).
 - **GitHub :** poussé jusqu’à `04eef45`. **Commit local non poussé : `ed7e559`** (T4.1). Pousser seulement quand Ashanti dit « push ».
 - **Migrations :** 4 sur dev + prod ; sur DEV seulement : `jobs`, `video_preview`, `transcript_original` et `project_caption_style`. `supabase/.temp/project-ref` doit rester sur DEV (lbigqadoaciuvvhdhitr) ; prod = dxrsgnuyehewkooszonk (relier, pousser, REVENIR sur dev).
-- **Tests :** 121 unitaires verts ; intégration (base dev) 34 verts ; E2E pas relancés (arrêter `npm run dev` avant).
+- **Tests :** 132 unitaires verts ; intégration (base dev) 34 verts ; E2E pas relancés (arrêter `npm run dev` avant).
 
 ## Pour reprendre (ordre)
 1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).
-2. **Revoir la synchro sur la vidéo** (corrigée le 2026-10-19 : texte en avance de 120 ms, plus de clignotement entre les pages, pas de page d'un seul mot). Puis **captures des styles** (page projet avec transcription → « Style des sous-titres » → lancer la vidéo) : Cinéma, Élégance, Viral au minimum. Retoucher tailles/espacements/couleurs jusqu’à un rendu vraiment pro.
-3. **T4.1 étape 3 (Opus), plan validé par Ashanti** : moteur v2 (ressorts, flou de mouvement, mot fort avec lueur avancée, reflet, dégradés, entrée/emphase/sortie) + 5 prototypes (Pop à ressort, Remplissage karaoké, Espacement qui s'ouvre, Néon qui vacille, Séparation RVB) sur une page `/dev/animations` (ralenti, image par image, réglages), sans nouvelle dépendance. Cahier des charges : `docs/features/captions-animations.md`. Ensuite galerie vivante (aperçu animé de chaque style sur la vidéo de l’utilisateur), puis commit.
+2. **Ashanti ouvre http://localhost:3000/fr/dev/animations** : 5 prototypes (A1 Pop à ressort, B5 Remplissage karaoké, C9 Espacement qui s’ouvre, D13 Néon qui vacille, E16 Séparation RVB), ralenti ×0,1 à ×1, image par image, réglages (ressort, lueur, flou de mouvement), formats 9:16/1:1/16:9, sa vidéo en fond. Il dit lesquels garder / changer.
+3. **Ensuite (Sonnet)** : transformer les prototypes validés en vrais styles du sélecteur, puis les 20 styles V1 (cahier : `docs/features/captions-animations.md`), puis galerie vivante. Reste à faire dans le moteur : boîte glissante, sorties variées, test lisibilité, test alphabets (arabe/hindi).
 4. **T4.2 (Sonnet)** : 14 autres styles + personnalisation (police, couleurs, contour, position). **T4.4** : export Remotion Lambda (compte AWS à créer).
 5. **Déploiement en prod** quand T4.1 est validé : les 4 migrations DEV sur PROD (accord d’Ashanti), `npx trigger.dev deploy`, clés Netlify, `ASSEMBLYAI_API_KEY` dans Trigger.dev.
 6. Règle convenue : ne plus peaufiner l’éditeur de texte tant que les sous-titres animés ne sont pas validés (noter les retouches dans une liste).
@@ -59,8 +59,11 @@
 | 2026-10-18 | T4.1 étapes 1-2 : Remotion installé, moteur de styles (schéma Zod, découpage, mot fort, animations), composition unique aperçu = export, 6 styles (Cinéma, Élégance, Viral, Karaoké, Néon, Minimal), choix du style enregistré (migration `project_caption_style`, DEV) | 🟡 115 tests verts ; à valider à l’œil (captures) ; galerie vivante = étape suivante |
 
 | 2026-10-19 | Synchro des sous-titres (retour d'Ashanti) : texte 120 ms avant la voix, pages reliées si silence < 1,5 s, 0,9 s minimum, sortie après le dernier mot, plus de page d'un seul mot, mot actif sans coupure, lecteur en pause pendant le chargement. Doublons de `capture/` supprimés | 🟡 121 tests verts ; à revoir à l'œil sur la vidéo |
+| 2026-10-19 | Fluidité : aperçu à 60 i/s, vrais ressorts, opacité rapide, pages qui se croisent en douceur, mot actif qui glisse d’un mot à l’autre (boîte de taille fixe) | 🟡 à revoir à l’œil |
+| 2026-10-19 | T4.1 étape 3 : moteur v2 (ressorts réglables, flou de mouvement par sous-échantillonnage, lueur profonde + aberration, reflet de lumière, remplissage karaoké, lettres qui s’ouvrent depuis le centre de la ligne, néon à graine ≤ 3 flashs/s, séparation RVB, alphabets liés animés par mot) + 5 prototypes + labo `/dev/animations` ; vérifié image par image en captures | 🟡 132 tests verts ; avis d’Ashanti attendu |
 
 ## Problèmes ouverts
+- Tests unitaires parfois lents quand `npm run dev` tourne (un test de l’éditeur a dépassé 5 s une fois, vert seul).
 - Polices des sous-titres chargées depuis Google Fonts dans le navigateur : à auto-héberger plus tard (vie privée, fiabilité).
 - Éditeur : l’original est gardé côté serveur (colonnes `original_words`, `original_segments`, `is_edited`) ; bouton « Revenir au texte d’origine » avec confirmation. Pas de rate limiting sur l’enregistrement (Upstash pas encore en place).
 - Correction automatique des fautes (Claude Haiku) : demandée par Ashanti, à spécifier ; compte Anthropic API à créer.

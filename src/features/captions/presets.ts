@@ -228,3 +228,236 @@ export const CAPTION_PRESETS: Record<PresetId, CaptionStyle> = {
 };
 
 export const DEFAULT_PRESET: PresetId = "cinema";
+
+// Prototypes of the next generation of styles (T4.1 step 3), one per family of
+// docs/features/captions-animations.md. Shown on /dev/animations only, until Ashanti validates them.
+export const PROTOTYPE_IDS = ["spring", "fill", "tracking", "flicker", "prism"] as const;
+export type PrototypeId = (typeof PROTOTYPE_IDS)[number];
+
+export const PROTOTYPE_PRESETS: Record<PrototypeId, CaptionStyle> = {
+  // A1 — words pop on a spring as they are said; the key word is gold, with a deep glow and a
+  // light sweep running across it.
+  spring: {
+    version: 1,
+    layout: "line",
+    maxWordsPerPage: 4,
+    maxCharsPerLine: 12,
+    textCase: "upper",
+    position: { x: 50, y: 68 },
+    maxWidthPct: 88,
+    lineGapEm: -0.05,
+    lineBox: null,
+    base: {
+      ...plain,
+      font: "montserrat",
+      weight: 900,
+      sizePct: 5.8,
+      letterSpacingEm: -0.01,
+      fill: { type: "solid", color: "#FFFFFF" },
+      shadow: { color: "#000000B3", blurEm: 0.18, offsetYEm: 0.05 },
+    },
+    emphasis: {
+      ...plain,
+      font: "montserrat",
+      weight: 900,
+      sizePct: 8.2,
+      letterSpacingEm: -0.02,
+      fill: { type: "gradient", from: "#FFF1A8", to: "#FFB020", angle: 180 },
+      shadow: { color: "#00000099", blurEm: 0.14, offsetYEm: 0.04 },
+      deepGlow: { color: "#FF9A1F", radiusEm: 0.22, intensity: 1.1, chromatic: null },
+      sweep: { color: "#FFFFFFCC", angle: 110, widthPct: 22, periodMs: 2600 },
+    },
+    reveal: "word",
+    upcomingOpacity: 1,
+    active: null,
+    animation: {
+      in: "pop",
+      inMs: 420,
+      staggerMs: 0,
+      out: "blur",
+      outMs: 140,
+      spring: { stiffness: 220, damping: 14, mass: 0.6 },
+      motionBlur: true,
+    },
+    seed: 11,
+  },
+
+  // B5 — the whole sentence is there, dimmed; the colour fills each word from left to right,
+  // following exactly how long it is said.
+  fill: {
+    version: 1,
+    layout: "line",
+    maxWordsPerPage: 6,
+    maxCharsPerLine: 15,
+    textCase: "upper",
+    position: { x: 50, y: 70 },
+    maxWidthPct: 88,
+    lineGapEm: 0,
+    lineBox: null,
+    base: {
+      ...plain,
+      font: "poppins",
+      weight: 800,
+      sizePct: 5,
+      fill: { type: "solid", color: "#FFFFFF8C" },
+      stroke: { color: "#00000080", widthEm: 0.03 },
+      shadow: { color: "#000000A6", blurEm: 0.2, offsetYEm: 0.05 },
+    },
+    emphasis: {
+      ...plain,
+      font: "poppins",
+      weight: 900,
+      sizePct: 5.6,
+      fill: { type: "solid", color: "#FFFFFF8C" },
+      stroke: { color: "#00000080", widthEm: 0.03 },
+      shadow: { color: "#000000A6", blurEm: 0.2, offsetYEm: 0.05 },
+    },
+    reveal: "page",
+    upcomingOpacity: 1,
+    active: {
+      fill: { type: "solid", color: "#FFD84D" },
+      box: null,
+      scale: 1.04,
+      mode: "fill",
+    },
+    animation: { in: "rise", inMs: 360, staggerMs: 35, out: "blur", outMs: 160 },
+    seed: 5,
+  },
+
+  // C9 — cinema title: elegant serif, the letters close in from wide spacing, slightly out of
+  // focus, and settle softly.
+  tracking: {
+    version: 1,
+    layout: "line",
+    maxWordsPerPage: 5,
+    maxCharsPerLine: 16,
+    textCase: "lower",
+    position: { x: 50, y: 72 },
+    maxWidthPct: 86,
+    lineGapEm: 0.05,
+    lineBox: null,
+    base: {
+      ...plain,
+      font: "playfair",
+      weight: 700,
+      sizePct: 4.8,
+      letterSpacingEm: 0.02,
+      fill: { type: "solid", color: "#F7F1E3" },
+      shadow: { color: "#000000B3", blurEm: 0.35, offsetYEm: 0.04 },
+    },
+    emphasis: {
+      ...plain,
+      font: "playfair",
+      weight: 700,
+      italic: true,
+      sizePct: 6.4,
+      fill: { type: "gradient", from: "#FFF8E6", to: "#D9B979", angle: 180 },
+      shadow: { color: "#000000B3", blurEm: 0.35, offsetYEm: 0.04 },
+      deepGlow: { color: "#E8C987", radiusEm: 0.35, intensity: 0.35, chromatic: null },
+    },
+    reveal: "page",
+    upcomingOpacity: 1,
+    active: null,
+    animation: {
+      in: "track",
+      inMs: 950,
+      staggerMs: 90,
+      out: "blur",
+      outMs: 240,
+      spring: { stiffness: 120, damping: 18, mass: 1 },
+    },
+    seed: 3,
+  },
+
+  // D13 — neon tubes: a white-hot core inside a coloured halo, sputtering on once per caption
+  // (2 short dips, under the 3 flashes per second safety limit).
+  flicker: {
+    version: 1,
+    layout: "line",
+    maxWordsPerPage: 4,
+    maxCharsPerLine: 12,
+    textCase: "upper",
+    position: { x: 50, y: 68 },
+    maxWidthPct: 86,
+    lineGapEm: 0.05,
+    lineBox: null,
+    base: {
+      ...plain,
+      font: "montserrat",
+      weight: 700,
+      sizePct: 5.4,
+      letterSpacingEm: 0.04,
+      fill: { type: "solid", color: "#FFF0FB" },
+      deepGlow: { color: "#FF2BD6", radiusEm: 0.16, intensity: 1.4, chromatic: null },
+    },
+    emphasis: {
+      ...plain,
+      font: "montserrat",
+      weight: 800,
+      sizePct: 6.8,
+      letterSpacingEm: 0.04,
+      fill: { type: "solid", color: "#EFFFFF" },
+      deepGlow: { color: "#20E3FF", radiusEm: 0.2, intensity: 1.6, chromatic: null },
+    },
+    reveal: "page",
+    upcomingOpacity: 1,
+    active: null,
+    animation: { in: "flicker", inMs: 650, staggerMs: 0, out: "blur", outMs: 200 },
+    seed: 7,
+  },
+
+  // E16 — red and cyan copies of each word snap together on a spring with a small punch, with
+  // motion blur on the impact.
+  prism: {
+    version: 1,
+    layout: "line",
+    maxWordsPerPage: 3,
+    maxCharsPerLine: 11,
+    textCase: "upper",
+    position: { x: 50, y: 68 },
+    maxWidthPct: 88,
+    lineGapEm: -0.08,
+    lineBox: null,
+    base: {
+      ...plain,
+      font: "anton",
+      weight: 400,
+      sizePct: 6.8,
+      letterSpacingEm: 0.01,
+      fill: { type: "solid", color: "#FFFFFF" },
+      shadow: { color: "#000000B3", blurEm: 0.16, offsetYEm: 0.04 },
+    },
+    emphasis: {
+      ...plain,
+      font: "anton",
+      weight: 400,
+      sizePct: 9,
+      letterSpacingEm: 0.01,
+      fill: { type: "solid", color: "#FFFFFF" },
+      shadow: { color: "#000000B3", blurEm: 0.16, offsetYEm: 0.04 },
+      deepGlow: {
+        color: "#FFFFFF",
+        radiusEm: 0.12,
+        intensity: 0.5,
+        chromatic: { left: "#FF2D55", right: "#00E5FF", offsetEm: 0.025 },
+      },
+    },
+    reveal: "word",
+    upcomingOpacity: 1,
+    active: null,
+    animation: {
+      in: "split",
+      inMs: 380,
+      staggerMs: 0,
+      out: "blur",
+      outMs: 130,
+      spring: { stiffness: 300, damping: 12, mass: 0.5 },
+      motionBlur: true,
+      splitColors: ["#FF2D55", "#00E5FF"],
+    },
+    seed: 13,
+  },
+};
+
+// Neutral backdrop of the animation lab when no video is loaded (video content, like the styles).
+export const LAB_BACKDROP = "linear-gradient(160deg, #23262E 0%, #101216 55%, #1B1420 100%)";
