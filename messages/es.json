@@ -227,7 +227,6 @@
     "tabStyles": "Estilo",
     "tabTranscription": "Transcripción",
     "moreTabs": "Más opciones",
-    "moreSettingsSoon": "La fuente, la animación, la posición y el contorno llegarán pronto.",
     "saveFailed": "No se ha podido guardar el estilo. Inténtalo de nuevo.",
     "colorsTitle": "Colores",
     "textColor": "Texto",
@@ -248,6 +247,48 @@
       "gold": "Oro líquido",
       "glass": "Cristal",
       "liquid": "Relleno líquido"
+    },
+    "personalize": "Personalizar",
+    "colorsHelp": "Cambia el color del texto y el de la palabra clave.",
+    "noWords": "Tus subtítulos aparecerán en el vídeo cuando el texto esté generado.",
+    "goTranscription": "Ir a la transcripción",
+    "guide": {
+      "title": "Para empezar",
+      "step1": "Elige un estilo",
+      "step2": "Revisa el texto",
+      "step3": "Personalízalo",
+      "close": "Cerrar la guía"
+    },
+    "tweaks": {
+      "original": "Original",
+      "fontTitle": "Fuente",
+      "fontHelp": "La forma de las letras. Cada nombre está escrito con su propia fuente.",
+      "animationTitle": "Animación",
+      "animationHelp": "Cómo aparece cada palabra. Pasa el ratón por la vista previa de arriba para verla.",
+      "positionTitle": "Posición",
+      "positionHelp": "Dónde se colocan los subtítulos en el vídeo.",
+      "outlineTitle": "Contorno",
+      "outlineHelp": "Una línea alrededor de las letras, para leerlas sobre cualquier fondo.",
+      "outlineColor": "Color del contorno",
+      "resetAll": "Restablecer todos los ajustes",
+      "animations": {
+        "none": "Ninguna",
+        "fade": "Fundido",
+        "pop": "Resorte",
+        "rise": "Subida",
+        "blur": "Desenfoque",
+        "typewriter": "Máquina de escribir"
+      },
+      "positions": {
+        "top": "Arriba",
+        "middle": "Centro",
+        "bottom": "Abajo"
+      },
+      "outlineSizes": {
+        "none": "Sin contorno",
+        "thin": "Fino",
+        "thick": "Grueso"
+      }
     }
   }
 }

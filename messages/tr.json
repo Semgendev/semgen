@@ -227,7 +227,6 @@
     "tabStyles": "Stil",
     "tabTranscription": "Transkripsiyon",
     "moreTabs": "Daha fazla seçenek",
-    "moreSettingsSoon": "Yazı tipi, animasyon, konum ve kontur yakında geliyor.",
     "saveFailed": "Stil kaydedilemedi. Lütfen tekrar dene.",
     "colorsTitle": "Renkler",
     "textColor": "Metin",
@@ -248,6 +247,48 @@
       "gold": "Sıvı altın",
       "glass": "Cam",
       "liquid": "Sıvı dolgu"
+    },
+    "personalize": "Özelleştir",
+    "colorsHelp": "Metnin ve anahtar kelimenin rengini değiştir.",
+    "noWords": "Metin oluşturulunca altyazıların videoda görünecek.",
+    "goTranscription": "Metne git",
+    "guide": {
+      "title": "Hızlı başlangıç",
+      "step1": "Bir stil seç",
+      "step2": "Metni kontrol et",
+      "step3": "Özelleştir",
+      "close": "Rehberi kapat"
+    },
+    "tweaks": {
+      "original": "Orijinal",
+      "fontTitle": "Yazı tipi",
+      "fontHelp": "Harflerin biçimi. Her ad kendi yazı tipiyle yazılmıştır.",
+      "animationTitle": "Animasyon",
+      "animationHelp": "Her kelimenin nasıl belirdiği. Görmek için yukarıdaki önizlemenin üzerine gel.",
+      "positionTitle": "Konum",
+      "positionHelp": "Altyazıların videoda nerede durduğu.",
+      "outlineTitle": "Kenarlık",
+      "outlineHelp": "Harflerin etrafında bir çizgi, her arka planda okunsun diye.",
+      "outlineColor": "Kenarlık rengi",
+      "resetAll": "Tüm ayarları sıfırla",
+      "animations": {
+        "none": "Yok",
+        "fade": "Solma",
+        "pop": "Yay",
+        "rise": "Yükselme",
+        "blur": "Bulanıklık",
+        "typewriter": "Daktilo"
+      },
+      "positions": {
+        "top": "Üst",
+        "middle": "Orta",
+        "bottom": "Alt"
+      },
+      "outlineSizes": {
+        "none": "Kenarlık yok",
+        "thin": "İnce",
+        "thick": "Kalın"
+      }
     }
   }
 }

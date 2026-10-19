@@ -227,7 +227,6 @@
     "tabStyles": "Estilo",
     "tabTranscription": "Transcrição",
     "moreTabs": "Mais opções",
-    "moreSettingsSoon": "Fonte, animação, posição e contorno chegam em breve.",
     "saveFailed": "Não foi possível salvar o estilo. Tente novamente.",
     "colorsTitle": "Cores",
     "textColor": "Texto",
@@ -248,6 +247,48 @@
       "gold": "Ouro líquido",
       "glass": "Vidro",
       "liquid": "Preenchimento líquido"
+    },
+    "personalize": "Personalizar",
+    "colorsHelp": "Mude a cor do texto e a da palavra-chave.",
+    "noWords": "Suas legendas vão aparecer no vídeo quando o texto for gerado.",
+    "goTranscription": "Ir para a transcrição",
+    "guide": {
+      "title": "Para começar",
+      "step1": "Escolha um estilo",
+      "step2": "Confira o texto",
+      "step3": "Personalize",
+      "close": "Fechar o guia"
+    },
+    "tweaks": {
+      "original": "Original",
+      "fontTitle": "Fonte",
+      "fontHelp": "O formato das letras. Cada nome está escrito na própria fonte.",
+      "animationTitle": "Animação",
+      "animationHelp": "Como cada palavra aparece. Passe o mouse na prévia acima para ver.",
+      "positionTitle": "Posição",
+      "positionHelp": "Onde as legendas ficam no vídeo.",
+      "outlineTitle": "Contorno",
+      "outlineHelp": "Uma linha em volta das letras, para ler em qualquer fundo.",
+      "outlineColor": "Cor do contorno",
+      "resetAll": "Redefinir todos os ajustes",
+      "animations": {
+        "none": "Nenhuma",
+        "fade": "Fade",
+        "pop": "Mola",
+        "rise": "Subida",
+        "blur": "Desfoque",
+        "typewriter": "Máquina de escrever"
+      },
+      "positions": {
+        "top": "Topo",
+        "middle": "Meio",
+        "bottom": "Base"
+      },
+      "outlineSizes": {
+        "none": "Sem contorno",
+        "thin": "Fino",
+        "thick": "Grosso"
+      }
     }
   }
 }

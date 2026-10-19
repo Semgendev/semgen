@@ -227,7 +227,6 @@
     "tabStyles": "Style",
     "tabTranscription": "Transcription",
     "moreTabs": "More options",
-    "moreSettingsSoon": "Font, animation, position and outline are coming soon.",
     "saveFailed": "The style could not be saved. Please try again.",
     "colorsTitle": "Colours",
     "textColor": "Text",
@@ -248,6 +247,48 @@
       "gold": "Liquid gold",
       "glass": "Glass",
       "liquid": "Liquid fill"
+    },
+    "personalize": "Customize",
+    "colorsHelp": "Change the colour of the text and of the key word.",
+    "noWords": "Your captions will appear on the video once the text is generated.",
+    "goTranscription": "Go to transcription",
+    "guide": {
+      "title": "Quick start",
+      "step1": "Pick a style",
+      "step2": "Check the text",
+      "step3": "Make it yours",
+      "close": "Close the guide"
+    },
+    "tweaks": {
+      "original": "As designed",
+      "fontTitle": "Font",
+      "fontHelp": "The shape of the letters. Each name is written in its own font.",
+      "animationTitle": "Animation",
+      "animationHelp": "How each word appears. Hover the preview above to see it.",
+      "positionTitle": "Position",
+      "positionHelp": "Where the captions sit on the video.",
+      "outlineTitle": "Outline",
+      "outlineHelp": "A line around the letters, to read them on any background.",
+      "outlineColor": "Outline colour",
+      "resetAll": "Reset all settings",
+      "animations": {
+        "none": "None",
+        "fade": "Fade",
+        "pop": "Spring",
+        "rise": "Rise",
+        "blur": "Blur",
+        "typewriter": "Typewriter"
+      },
+      "positions": {
+        "top": "Top",
+        "middle": "Middle",
+        "bottom": "Bottom"
+      },
+      "outlineSizes": {
+        "none": "No outline",
+        "thin": "Thin",
+        "thick": "Thick"
+      }
     }
   }
 }

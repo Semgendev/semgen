@@ -227,7 +227,6 @@
     "tabStyles": "Mtindo",
     "tabTranscription": "Unukuzi",
     "moreTabs": "Chaguo zaidi",
-    "moreSettingsSoon": "Fonti, uhuishaji, nafasi na mstari wa nje zinakuja hivi karibuni.",
     "saveFailed": "Mtindo haukuweza kuhifadhiwa. Tafadhali jaribu tena.",
     "colorsTitle": "Rangi",
     "textColor": "Maandishi",
@@ -248,6 +247,48 @@
       "gold": "Dhahabu ya kimiminika",
       "glass": "Kioo",
       "liquid": "Kujaza kimiminika"
+    },
+    "personalize": "Badilisha",
+    "colorsHelp": "Badilisha rangi ya maandishi na ya neno kuu.",
+    "noWords": "Manukuu yako yataonekana kwenye video maandishi yakishatengenezwa.",
+    "goTranscription": "Nenda kwenye unukuzi",
+    "guide": {
+      "title": "Kuanza haraka",
+      "step1": "Chagua mtindo",
+      "step2": "Kagua maandishi",
+      "step3": "Fanya iwe yako",
+      "close": "Funga mwongozo"
+    },
+    "tweaks": {
+      "original": "Kama ilivyo",
+      "fontTitle": "Fonti",
+      "fontHelp": "Umbo la herufi. Kila jina limeandikwa kwa fonti yake.",
+      "animationTitle": "Uhuishaji",
+      "animationHelp": "Jinsi kila neno linavyoonekana. Weka kipanya juu ya onyesho la awali hapo juu kuona.",
+      "positionTitle": "Mahali",
+      "positionHelp": "Mahali manukuu yanapokaa kwenye video.",
+      "outlineTitle": "Mstari wa nje",
+      "outlineHelp": "Mstari kuzunguka herufi, ili zisomeke kwenye mandhari yoyote.",
+      "outlineColor": "Rangi ya mstari wa nje",
+      "resetAll": "Rudisha mipangilio yote",
+      "animations": {
+        "none": "Hakuna",
+        "fade": "Kufifia",
+        "pop": "Chemchemi",
+        "rise": "Kupanda",
+        "blur": "Ukungu",
+        "typewriter": "Taipureta"
+      },
+      "positions": {
+        "top": "Juu",
+        "middle": "Katikati",
+        "bottom": "Chini"
+      },
+      "outlineSizes": {
+        "none": "Bila mstari",
+        "thin": "Mwembamba",
+        "thick": "Mnene"
+      }
     }
   }
 }

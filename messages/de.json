@@ -227,7 +227,6 @@
     "tabStyles": "Stil",
     "tabTranscription": "Transkription",
     "moreTabs": "Weitere Optionen",
-    "moreSettingsSoon": "Schrift, Animation, Position und Umriss folgen bald.",
     "saveFailed": "Der Stil konnte nicht gespeichert werden. Bitte versuche es erneut.",
     "colorsTitle": "Farben",
     "textColor": "Text",
@@ -248,6 +247,48 @@
       "gold": "Flüssiges Gold",
       "glass": "Glas",
       "liquid": "Flüssige Füllung"
+    },
+    "personalize": "Anpassen",
+    "colorsHelp": "Ändere die Farbe des Textes und die des Schlüsselworts.",
+    "noWords": "Deine Untertitel erscheinen im Video, sobald der Text erstellt ist.",
+    "goTranscription": "Zur Transkription",
+    "guide": {
+      "title": "Schnellstart",
+      "step1": "Stil wählen",
+      "step2": "Text prüfen",
+      "step3": "Anpassen",
+      "close": "Anleitung schließen"
+    },
+    "tweaks": {
+      "original": "Wie entworfen",
+      "fontTitle": "Schrift",
+      "fontHelp": "Die Form der Buchstaben. Jeder Name ist in seiner eigenen Schrift geschrieben.",
+      "animationTitle": "Animation",
+      "animationHelp": "Wie jedes Wort erscheint. Fahre mit der Maus über die Vorschau oben.",
+      "positionTitle": "Position",
+      "positionHelp": "Wo die Untertitel im Video stehen.",
+      "outlineTitle": "Kontur",
+      "outlineHelp": "Eine Linie um die Buchstaben, damit sie auf jedem Hintergrund lesbar sind.",
+      "outlineColor": "Konturfarbe",
+      "resetAll": "Alle Einstellungen zurücksetzen",
+      "animations": {
+        "none": "Keine",
+        "fade": "Einblenden",
+        "pop": "Feder",
+        "rise": "Aufsteigen",
+        "blur": "Unschärfe",
+        "typewriter": "Schreibmaschine"
+      },
+      "positions": {
+        "top": "Oben",
+        "middle": "Mitte",
+        "bottom": "Unten"
+      },
+      "outlineSizes": {
+        "none": "Keine Kontur",
+        "thin": "Dünn",
+        "thick": "Dick"
+      }
     }
   }
 }

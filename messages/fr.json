@@ -227,7 +227,6 @@
     "tabStyles": "Style",
     "tabTranscription": "Transcription",
     "moreTabs": "Plus d’options",
-    "moreSettingsSoon": "Police, animation, position et contour arrivent bientôt.",
     "saveFailed": "Le style n’a pas pu être enregistré. Réessaie.",
     "colorsTitle": "Couleurs",
     "textColor": "Texte",
@@ -248,6 +247,48 @@
       "gold": "Or liquide",
       "glass": "Verre",
       "liquid": "Remplissage"
+    },
+    "personalize": "Personnaliser",
+    "colorsHelp": "Change la couleur du texte et celle du mot fort.",
+    "noWords": "Tes sous-titres apparaîtront sur la vidéo quand le texte sera généré.",
+    "goTranscription": "Aller à la transcription",
+    "guide": {
+      "title": "Pour bien démarrer",
+      "step1": "Choisis un style",
+      "step2": "Vérifie le texte",
+      "step3": "Personnalise",
+      "close": "Fermer le guide"
+    },
+    "tweaks": {
+      "original": "D’origine",
+      "fontTitle": "Police",
+      "fontHelp": "La forme des lettres. Chaque nom est écrit dans sa propre police.",
+      "animationTitle": "Animation",
+      "animationHelp": "La façon dont chaque mot apparaît. Passe la souris sur l’aperçu au-dessus pour la voir.",
+      "positionTitle": "Position",
+      "positionHelp": "L’endroit où les sous-titres se placent sur la vidéo.",
+      "outlineTitle": "Contour",
+      "outlineHelp": "Un trait autour des lettres, pour les lire sur n’importe quel fond.",
+      "outlineColor": "Couleur du contour",
+      "resetAll": "Tout remettre comme au départ",
+      "animations": {
+        "none": "Aucune",
+        "fade": "Fondu",
+        "pop": "Ressort",
+        "rise": "Montée",
+        "blur": "Flou",
+        "typewriter": "Machine à écrire"
+      },
+      "positions": {
+        "top": "Haut",
+        "middle": "Milieu",
+        "bottom": "Bas"
+      },
+      "outlineSizes": {
+        "none": "Sans contour",
+        "thin": "Fin",
+        "thick": "Épais"
+      }
     }
   }
 }

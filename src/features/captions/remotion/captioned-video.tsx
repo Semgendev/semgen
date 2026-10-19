@@ -168,6 +168,11 @@ function Glyphs({
   );
 }
 
+// Fully transparent plain fill: the letters are only drawn by their outline.
+function isHollow(fill: CaptionFill): boolean {
+  return fill.type === "solid" && fill.color.length === 9 && fill.color.endsWith("00");
+}
+
 const PAINT_KEYS = ["color", "backgroundImage", "WebkitBackgroundClip", "backgroundClip"] as const;
 
 // Splits a style into what paints the letters (moved onto each letter when they spread) and the rest.
@@ -325,6 +330,9 @@ function Word({
       </span>
     );
   };
+  // A gradient is painted as a background clipped to the letters, and an outline drawn on the same
+  // element would eat into them: its outline is a copy of the word drawn behind instead.
+  const outlineBehind = Boolean(look.stroke) && fill.type === "gradient";
   const [mainStyle, mainPaint] = splitPaint(fillStyle(fill), motion.spreadEm >= 0.001 || rising);
   const liquid = look.liquid;
   const level = liquid ? liquidLevel(word, timeMs, liquid.minMs) : 0;
@@ -391,6 +399,12 @@ function Word({
             : null}
         </>
       ) : null}
+      {outlineBehind && look.stroke
+        ? layer("outline", {
+            color: look.stroke.color,
+            WebkitTextStroke: `${look.stroke.widthEm}em ${look.stroke.color}`,
+          })
+        : null}
       {trail.map((ghost, index) =>
         layer(
           `trail-${index}`,
@@ -409,13 +423,15 @@ function Word({
           clipPath: clip ?? riseClip,
           // The Arabic and Devanagari fonts have overlapping outlines: an outline alone would show
           // them as boxes, so hollow letters of these scripts are drawn translucent instead.
-          ...(look.stroke && (rtl || DEVANAGARI_TEXT.test(word.text))
-            ? { color: `${look.stroke.color.slice(0, 7)}59` }
-            : {
-                WebkitTextStroke: look.stroke
-                  ? `${look.stroke.widthEm}em ${look.stroke.color}`
-                  : undefined,
-              }),
+          ...(outlineBehind
+            ? {}
+            : look.stroke && isHollow(look.fill) && (rtl || DEVANAGARI_TEXT.test(word.text))
+              ? { color: `${look.stroke.color.slice(0, 7)}59` }
+              : {
+                  WebkitTextStroke: look.stroke
+                    ? `${look.stroke.widthEm}em ${look.stroke.color}`
+                    : undefined,
+                }),
           paintOrder: "stroke fill",
         }}
       >

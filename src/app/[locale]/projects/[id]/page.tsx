@@ -70,6 +70,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
             src={videoUrl}
             initialPreset={resolveCaptionStyle(project.caption_style).presetId}
             initialColors={resolveCaptionStyle(project.caption_style).colors}
+            initialTweaks={resolveCaptionStyle(project.caption_style).tweaks}
             titleSlot={title}
             transcriptionSlot={transcription}
           />

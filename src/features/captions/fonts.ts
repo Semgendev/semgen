@@ -101,3 +101,35 @@ export function useFontsVersion(): number {
     () => 0,
   );
 }
+
+// For the font picker (outside any video): fetches the latin letters of one bold-ish face so the
+// font's name can be written in the font itself. No Remotion wait: it just shows when it is there.
+const previewed = new Set<FontId>();
+export function loadPreviewFont(id: FontId): void {
+  if (previewed.has(id) || typeof document === "undefined" || typeof FontFace === "undefined")
+    return;
+  previewed.add(id);
+  const faces = FONT_FACES.filter(
+    (face) => face.id === id && face.style === "normal" && face.unicodeRange.startsWith("U+0000"),
+  );
+  const face = faces.sort(
+    (a, b) => Math.abs(Number(a.weight) - 700) - Math.abs(Number(b.weight) - 700),
+  )[0];
+  if (!face) return;
+  const source = new FontFace(face.family, `url(${staticFile(`fonts/captions/${face.file}`)})`, {
+    style: "normal",
+    weight: face.weight,
+    unicodeRange: face.unicodeRange,
+    display: "swap",
+  });
+  source.load().then(
+    (loadedFace) => document.fonts.add(loadedFace),
+    () => previewed.delete(id),
+  );
+}
+
+// CSS family of a font for the picker (the weight asked is the one loaded above, or the nearest).
+export function previewFamily(id: FontId): string {
+  const family = FONT_FACES.find((face) => face.id === id)?.family ?? id;
+  return `"${family}", sans-serif`;
+}

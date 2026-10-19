@@ -7,12 +7,14 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { captionColorsSchema } from "./colors";
 import { PRESET_IDS } from "./presets";
+import { captionTweaksSchema } from "./tweaks";
 import type { ProjectCaptionStyle } from "./project-style";
 
 const inputSchema = z.object({
   projectId: z.uuid(),
   preset: z.enum(PRESET_IDS),
   colors: captionColorsSchema.optional(),
+  tweaks: captionTweaksSchema.optional(),
 });
 
 export type SetCaptionStyleResult =
@@ -23,8 +25,9 @@ export async function setCaptionStyle(
   projectId: string,
   preset: string,
   colors?: unknown,
+  tweaks?: unknown,
 ): Promise<SetCaptionStyleResult> {
-  const parsed = inputSchema.safeParse({ projectId, preset, colors });
+  const parsed = inputSchema.safeParse({ projectId, preset, colors, tweaks });
   if (!parsed.success) return { ok: false, code: "invalid" };
 
   const supabase = await createSupabaseServerClient();
@@ -40,7 +43,11 @@ export async function setCaptionStyle(
   if (readError) return { ok: false, code: "unknown" };
   if (!owned) return { ok: false, code: "not_found" };
 
-  const value: ProjectCaptionStyle = { preset: parsed.data.preset, colors: parsed.data.colors };
+  const value: ProjectCaptionStyle = {
+    preset: parsed.data.preset,
+    colors: parsed.data.colors,
+    tweaks: parsed.data.tweaks,
+  };
   const { error } = await createSupabaseAdminClient()
     .from("projects")
     .update({ caption_style: value })

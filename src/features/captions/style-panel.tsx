@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Eye, EyeOff, RotateCcw } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ export type StylePanelText = {
   back: string;
   openSettings: string;
   livePreview: string;
+  // the button next to "reset" that opens the settings of the chosen style
+  personalize: string;
 };
 
 // The left panel: the gallery of styles, or (after the settings button) the settings of the chosen
@@ -125,15 +127,25 @@ export function StylePanel({
             </h2>
             <span className="text-text-3 text-xs font-medium tabular-nums">{text.count}</span>
           </div>
-          <button
-            type="button"
-            onClick={onReset}
-            disabled={resetDisabled}
-            className="border-border text-text-2 hover:text-text hover:border-brand-border focus-visible:ring-focus flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50"
-          >
-            <RotateCcw className="size-3.5" aria-hidden="true" />
-            {text.reset}
-          </button>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => onSettingsOpenChange(true)}
+              className="border-brand bg-brand/10 text-text hover:bg-brand/15 focus-visible:ring-focus flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors outline-none focus-visible:ring-2"
+            >
+              <SlidersHorizontal className="size-4" aria-hidden="true" />
+              {text.personalize}
+            </button>
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={resetDisabled}
+              className="border-border text-text-2 hover:text-text hover:border-brand-border focus-visible:ring-focus flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50"
+            >
+              <RotateCcw className="size-3.5" aria-hidden="true" />
+              {text.reset}
+            </button>
+          </div>
           <div
             role="radiogroup"
             aria-labelledby="caption-styles-title"

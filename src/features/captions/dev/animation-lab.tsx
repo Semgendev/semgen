@@ -152,6 +152,7 @@ export function AnimationLab() {
               back: "Retour aux styles",
               openSettings: "Réglages de ce style",
               livePreview: "Aperçu en direct",
+              personalize: "Personnaliser",
             }}
             selected={styleId}
             labelOf={(id) => LABELS[id]}

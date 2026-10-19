@@ -570,6 +570,8 @@ export const DEFAULT_PRESET: PresetId = "cinema";
 
 // Colours offered for the text and the key word (video content, like the styles).
 export const TEXT_SWATCHES = ["#FFFFFF", "#F6EBD9", "#FFE8A3", "#DCEBFF", "#FFD6E0", "#111111"];
+export const DEFAULT_OUTLINE_COLOR = "#000000";
+export const OUTLINE_SWATCHES = ["#000000", "#FFFFFF", "#FFD43B", "#FF3B30", "#2F6BFF"];
 export const ACCENT_SWATCHES = [
   "#F5C452",
   "#FF3B30",
