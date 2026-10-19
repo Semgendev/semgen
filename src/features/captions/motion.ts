@@ -1,5 +1,6 @@
 import { Easing, interpolate, spring } from "remotion";
 
+import { bestCut } from "./breaks";
 import type { AnimationIn, AnimationOut, CaptionStyle } from "./style";
 import { TEXT_LEAD_MS, type CaptionPage, type CaptionWord } from "./paginate";
 
@@ -18,6 +19,10 @@ export type WordMotion = {
   splitEm: number;
   // strength of the light (neon flicker): 1 = normal
   light: number;
+  // share of the word written so far from the left, with a soft edge (ink)
+  wipe: number;
+  // progress of the letters rising one by one from behind a mask (1 = all in place)
+  letters: number;
 };
 
 export const RESTING: WordMotion = {
@@ -29,6 +34,8 @@ export const RESTING: WordMotion = {
   spreadEm: 0,
   splitEm: 0,
   light: 1,
+  wipe: 1,
+  letters: 1,
 };
 
 type SpringConfig = { stiffness: number; damping: number; mass: number };
@@ -69,6 +76,8 @@ export function flickerAt(t: number, durationMs: number, seed: number): number {
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const easeOutExpo = Easing.out(Easing.exp);
+// fast start, very long soft landing: the curve motion designers use for premium titles
+const easeSilk = Easing.bezier(0.2, 0.75, 0.15, 1);
 
 // A real spring (mass, stiffness, damping) that settles exactly at `durationMs`. Time is passed in
 // ms with fps = 1000, so the curve does not depend on the frame rate of the video.
@@ -88,6 +97,9 @@ function quickOpacity(t: number, durationMs: number): number {
   return interpolate(t, [0, Math.min(160, durationMs * 0.5)], [0, 1], clamp);
 }
 
+// How far apart (em, between two letters) a converging word starts.
+export const CONVERGE_SPREAD_EM = 0.28;
+
 // `t` = time since the word started to appear, in ms.
 export function motionIn(
   kind: AnimationIn,
@@ -96,7 +108,7 @@ export function motionIn(
   options: MotionOptions = {},
 ): WordMotion {
   if (kind === "none" || durationMs <= 0) return t < 0 ? { ...RESTING, opacity: 0 } : RESTING;
-  if (t < 0) return { ...RESTING, opacity: 0, reveal: 0 };
+  if (t < 0) return { ...RESTING, opacity: 0, reveal: 0, wipe: 0, letters: 0 };
   const p = interpolate(t, [0, durationMs], [0, 1], clamp);
   switch (kind) {
     case "fade":
@@ -150,7 +162,60 @@ export function motionIn(
       const eased = Easing.out(Easing.exp)(p);
       return { ...RESTING, reveal: eased, translateYEm: (1 - eased) * 0.35 };
     }
+    case "blurRise": {
+      // comes into focus while rising a little: the word "lands" on the frame
+      const eased = easeSilk(p);
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        translateYEm: (1 - eased) * 0.3,
+        blurEm: (1 - eased) * 0.14,
+      };
+    }
+    case "ink":
+      // written with a pen: the visible part grows from the left, slowing down at the end
+      return {
+        ...RESTING,
+        wipe: Easing.inOut(Easing.cubic)(p),
+        opacity: interpolate(t, [0, durationMs * 0.3], [0.2, 1], clamp),
+      };
+    case "converge": {
+      // letters far apart and out of focus gather towards the centre of the line
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.soft);
+      return {
+        ...RESTING,
+        opacity: interpolate(t, [0, durationMs * 0.45], [0, 1], clamp),
+        // wide enough to read as "gathering"; the safe-zone fit makes room for it (fitPage)
+        spreadEm: (1 - s) * CONVERGE_SPREAD_EM,
+        blurEm: (1 - s) * 0.1,
+      };
+    }
+    case "breathe": {
+      // the letters close up gently while the word fades in
+      const eased = Easing.out(Easing.cubic)(p);
+      return {
+        ...RESTING,
+        opacity: interpolate(t, [0, durationMs * 0.7], [0, 1], { ...clamp, easing: easeSilk }),
+        spreadEm: (1 - eased) * 0.1,
+        blurEm: (1 - eased) * 0.04,
+      };
+    }
+    case "riseLetters":
+      // the letters are hidden under the baseline and rise one after the other (letterRiseEm)
+      return { ...RESTING, letters: p };
   }
+}
+
+// Each letter of a "riseLetters" word takes 45 % of the entrance; their starts are spread over the
+// rest, so the word builds up from left to right like a title in a film opening.
+const LETTER_SHARE = 0.45;
+
+// How far below its place a letter still is (in em) at `progress` of the word's entrance.
+export function letterRiseEm(progress: number, index: number, count: number): number {
+  if (progress >= 1) return 0;
+  const start = count > 1 ? (index / (count - 1)) * (1 - LETTER_SHARE) : 0;
+  const local = Math.min(1, Math.max(0, (progress - start) / LETTER_SHARE));
+  return (1 - easeSilk(local)) * 1.1;
 }
 
 // `t` = time since the caption started to leave, in ms.
@@ -179,6 +244,8 @@ export function combine(a: WordMotion, b: WordMotion): WordMotion {
     spreadEm: a.spreadEm + b.spreadEm,
     splitEm: a.splitEm + b.splitEm,
     light: a.light * b.light,
+    wipe: Math.min(a.wipe, b.wipe),
+    letters: Math.min(a.letters, b.letters),
   };
 }
 
@@ -217,10 +284,12 @@ export function wordMotionAt(
   timeMs: number,
   style: Pick<CaptionStyle, "reveal" | "animation" | "seed">,
 ): WordMotion {
+  // the key word may have its own entrance
+  const own = page.words[wordIndex]?.emphasis ? style.animation.emphasis : undefined;
   const appear = motionIn(
-    style.animation.in,
-    timeMs - wordAppearAt(page, wordIndex, style),
-    style.animation.inMs,
+    own?.in ?? style.animation.in,
+    timeMs - wordAppearAt(page, wordIndex, style) - (own?.delayMs ?? 0),
+    own?.inMs ?? style.animation.inMs,
     { spring: style.animation.spring, seed: (style.seed ?? 1) + page.start, index: wordIndex },
   );
   const leave = leaveWindow(page, exitMs(style));
@@ -257,6 +326,21 @@ export function activeWindow(page: CaptionPage, wordIndex: number): { start: num
   const end =
     next && next.start - word.end <= ACTIVE_BRIDGE_MS ? next.start - ACTIVE_LEAD_MS : word.end;
   return { start: word.start - ACTIVE_LEAD_MS, end };
+}
+
+// Liquid fill: how full the word is (0 → 1). It follows the voice but never rushes: a short word
+// still takes `minMs` to fill, so the liquid can be seen rising.
+export function liquidLevel(
+  word: Pick<CaptionWord, "start" | "end">,
+  timeMs: number,
+  minMs: number,
+): number {
+  const start = word.start - ACTIVE_LEAD_MS;
+  const duration = Math.max(minMs, word.end - word.start);
+  return interpolate(timeMs, [start, start + duration], [0, 1], {
+    ...clamp,
+    easing: Easing.inOut(Easing.cubic),
+  });
 }
 
 // Karaoke fill: share of the word already said (0 → 1), following its exact duration.
@@ -315,26 +399,29 @@ export function layoutLines(
   style: Pick<CaptionStyle, "layout" | "maxCharsPerLine">,
 ): number[][] {
   const indices = words.map((_, index) => index);
-  if (style.layout === "stack") {
-    const key = words.findIndex((word) => word.emphasis);
-    if (key < 0) return [indices];
-    return [indices.slice(0, key), [key], indices.slice(key + 1)].filter((line) => line.length > 0);
-  }
   const length = (line: number[]) =>
     line.reduce(
       (sum, index, position) => sum + (words[index]?.text.length ?? 0) + (position ? 1 : 0),
       0,
     );
-  if (length(indices) <= style.maxCharsPerLine) return [indices];
-  // two lines, cut where they are the most balanced
-  let bestCut = 1;
-  let bestDiff = Infinity;
-  for (let cut = 1; cut < indices.length; cut++) {
-    const diff = Math.abs(length(indices.slice(0, cut)) - length(indices.slice(cut)));
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestCut = cut;
-    }
+  // one line when it fits, else two lines of close length, cut where the sentence allows it
+  // ("Salut, je viendrai" / "chez toi demain !", never "chez" / "toi")
+  const split = (line: number[]): number[][] => {
+    if (line.length < 2 || length(line) <= style.maxCharsPerLine) return [line];
+    const cut = bestCut(
+      line.map((index) => words[index]?.text ?? ""),
+      { balance: 12 },
+    );
+    return [line.slice(0, cut), line.slice(cut)];
+  };
+  if (style.layout === "stack") {
+    // the small words around the key word get the same care: a long lead-in is set on two lines
+    // instead of one tiny line
+    const key = words.findIndex((word) => word.emphasis);
+    if (key < 0) return split(indices);
+    return [...split(indices.slice(0, key)), [key], ...split(indices.slice(key + 1))].filter(
+      (line) => line.length > 0,
+    );
   }
-  return [indices.slice(0, bestCut), indices.slice(bestCut)];
+  return split(indices);
 }

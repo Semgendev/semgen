@@ -180,6 +180,7 @@
     "deleteBody": "“{title}” and its video will be permanently deleted. This cannot be undone.",
     "deleteConfirm": "Delete permanently",
     "backToList": "Back to my projects",
+    "menu": "Project options",
     "myProjects": "My projects",
     "noVideo": "No video is available for this project yet.",
     "noVideoSupport": "Your browser cannot play this video.",
@@ -218,15 +219,37 @@
     "back": "Back to my account"
   },
   "captions": {
-    "stylesTitle": "Caption style",
+    "stylesTitle": "Caption styles",
+    "stylesCount": "{count, plural, one {# style} other {# styles}}",
+    "resetStyle": "Reset style",
+    "backToStyles": "Back to styles",
+    "settingsTitle": "Settings",
+    "openSettings": "Settings for this style",
+    "livePreview": "Live preview",
+    "tabStyles": "Style",
+    "tabTranscription": "Transcription",
+    "moreTabs": "More options",
+    "moreSettingsSoon": "Font, animation, position and outline are coming soon.",
     "saveFailed": "The style could not be saved. Please try again.",
+    "colorsTitle": "Colours",
+    "textColor": "Text",
+    "accentColor": "Key word",
+    "customColor": "Pick another colour",
+    "colorSwatch": "Colour {color}",
+    "resetColors": "Original colours",
     "styles": {
       "cinema": "Cinema",
       "elegance": "Elegance",
-      "viral": "Viral",
-      "karaoke": "Karaoke",
-      "neon": "Neon",
-      "minimal": "Minimal"
+      "editorial": "Editorial",
+      "signature": "Signature",
+      "minimal": "Minimal",
+      "pop": "Spring pop",
+      "highlighter": "Highlighter",
+      "converge": "Converge",
+      "impact": "Red impact",
+      "gold": "Liquid gold",
+      "glass": "Glass",
+      "liquid": "Liquid fill"
     }
   }
 }

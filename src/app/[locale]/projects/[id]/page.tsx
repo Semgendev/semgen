@@ -1,18 +1,18 @@
 import { ArrowLeft } from "lucide-react";
-import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCreditBalance } from "@/features/credits/queries";
+import { CaptionFontPreload } from "@/features/captions/font-preload";
 import { CaptionStudio } from "@/features/captions/caption-studio";
 import { CaptionWordsProvider } from "@/features/captions/caption-words";
 import { resolveCaptionStyle } from "@/features/captions/project-style";
 import { PlayerProvider } from "@/features/projects/player";
 import { PreviewStatusPanel } from "@/features/projects/preview-status";
-import { ProjectActions } from "@/features/projects/project-actions";
-import { ProjectStatusBadge } from "@/features/projects/project-status-badge";
+import { ProjectTitle } from "@/features/projects/project-title";
 import { getProject, getVideoUrls } from "@/features/projects/service";
 import { getLatestTranscriptionJob, getTranscript } from "@/features/transcription/queries";
 import { TranscriptionSection } from "@/features/transcription/transcription-section";
@@ -25,7 +25,6 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("projects");
-  const format = await getFormatter();
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect(`/${locale}/login?next=/${locale}/projects`);
@@ -40,61 +39,51 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   ]);
   const videoUrl = urls[project.id];
 
+  const title = <ProjectTitle projectId={project.id} title={project.title} />;
+  const transcription = project.source_video_key ? (
+    <TranscriptionSection
+      projectId={project.id}
+      title={project.title}
+      durationSeconds={project.duration_s}
+      balance={balance}
+      initialJob={job}
+      transcript={transcript}
+    />
+  ) : null;
+
   return (
     <PlayerProvider>
+      <CaptionFontPreload />
       {/* Remounts when the transcript arrives, so the captions start from its words. */}
       <CaptionWordsProvider key={transcript?.id ?? "none"} initialWords={transcript?.words ?? []}>
-        <div className="flex flex-col gap-2">
-          <Link
-            href="/projects"
-            className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors"
-          >
-            <ArrowLeft className="size-4" aria-hidden />
-            {t("backToList")}
-          </Link>
-          <h1 className="text-2xl font-bold break-words sm:text-3xl">{project.title}</h1>
-          <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
-            <ProjectStatusBadge status={project.status} />
-            <time dateTime={project.created_at}>
-              {format.dateTime(new Date(project.created_at), {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </time>
-            {project.source_size_bytes ? (
-              <span>{(project.source_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-            ) : null}
-          </div>
-        </div>
+        <Link
+          href="/projects"
+          className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {t("backToList")}
+        </Link>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
-          <div className="flex flex-col gap-6 lg:sticky lg:top-20">
-            {videoUrl ? (
-              <CaptionStudio
-                projectId={project.id}
-                src={videoUrl}
-                initialPreset={resolveCaptionStyle(project.caption_style).presetId}
-              />
-            ) : project.source_video_key && project.preview_status !== "ready" ? (
+        {videoUrl ? (
+          <CaptionStudio
+            projectId={project.id}
+            src={videoUrl}
+            initialPreset={resolveCaptionStyle(project.caption_style).presetId}
+            initialColors={resolveCaptionStyle(project.caption_style).colors}
+            titleSlot={title}
+            transcriptionSlot={transcription}
+          />
+        ) : (
+          <div className="flex flex-col gap-6">
+            {title}
+            {project.source_video_key && project.preview_status !== "ready" ? (
               <PreviewStatusPanel projectId={project.id} status={project.preview_status} />
             ) : (
               <p className="text-muted-foreground">{t("noVideo")}</p>
             )}
-
-            <ProjectActions projectId={project.id} title={project.title} />
+            {transcription}
           </div>
-
-          {project.source_video_key ? (
-            <TranscriptionSection
-              projectId={project.id}
-              title={project.title}
-              durationSeconds={project.duration_s}
-              balance={balance}
-              initialJob={job}
-              transcript={transcript}
-            />
-          ) : null}
-        </div>
+        )}
       </CaptionWordsProvider>
     </PlayerProvider>
   );

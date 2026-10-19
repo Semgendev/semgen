@@ -180,6 +180,7 @@
     "deleteBody": "« {title} » et sa vidéo seront supprimés définitivement. Cette action est irréversible.",
     "deleteConfirm": "Supprimer définitivement",
     "backToList": "Retour à mes projets",
+    "menu": "Options du projet",
     "myProjects": "Mes projets",
     "noVideo": "Aucune vidéo n’est disponible pour ce projet pour le moment.",
     "noVideoSupport": "Ton navigateur ne peut pas lire cette vidéo.",
@@ -218,15 +219,37 @@
     "back": "Retour à mon espace"
   },
   "captions": {
-    "stylesTitle": "Style des sous-titres",
+    "stylesTitle": "Styles de sous-titres",
+    "stylesCount": "{count, plural, one {# style} other {# styles}}",
+    "resetStyle": "Réinitialiser le style",
+    "backToStyles": "Retour aux styles",
+    "settingsTitle": "Réglages",
+    "openSettings": "Réglages de ce style",
+    "livePreview": "Aperçu en direct",
+    "tabStyles": "Style",
+    "tabTranscription": "Transcription",
+    "moreTabs": "Plus d’options",
+    "moreSettingsSoon": "Police, animation, position et contour arrivent bientôt.",
     "saveFailed": "Le style n’a pas pu être enregistré. Réessaie.",
+    "colorsTitle": "Couleurs",
+    "textColor": "Texte",
+    "accentColor": "Mot fort",
+    "customColor": "Choisir une autre couleur",
+    "colorSwatch": "Couleur {color}",
+    "resetColors": "Couleurs d’origine",
     "styles": {
       "cinema": "Cinéma",
       "elegance": "Élégance",
-      "viral": "Viral",
-      "karaoke": "Karaoké",
-      "neon": "Néon",
-      "minimal": "Minimal"
+      "editorial": "Éditorial",
+      "signature": "Signature",
+      "minimal": "Minimal",
+      "pop": "Pop à ressort",
+      "highlighter": "Surligneur",
+      "converge": "Convergence",
+      "impact": "Impact rouge",
+      "gold": "Or liquide",
+      "glass": "Verre",
+      "liquid": "Remplissage"
     }
   }
 }

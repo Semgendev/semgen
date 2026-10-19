@@ -2,7 +2,6 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +31,9 @@ export function LanguageSwitcher() {
       <DropdownMenuTrigger
         render={<Button variant="outline" size="icon" aria-label={t("label")} />}
       >
-        <Globe className="size-4" />
+        <span className="text-xs font-semibold tracking-wide" aria-hidden="true">
+          {locale.toUpperCase()}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {languages.map(({ value, label }) => (

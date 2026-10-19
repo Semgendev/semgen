@@ -1,5 +1,6 @@
 import type { TranscriptWord } from "../transcription/types";
 
+import { bestCut, gluePunctuation } from "./breaks";
 import type { CaptionStyle } from "./style";
 
 // Times are in milliseconds, like the transcript.
@@ -107,33 +108,38 @@ export function paginate(
   words: TranscriptWord[],
   style: Pick<CaptionStyle, "maxWordsPerPage" | "maxCharsPerLine" | "layout">,
 ): CaptionPage[] {
-  const kept = words.filter((word) => !FILLER.test(word.text.trim()));
+  const kept = gluePunctuation(words.filter((word) => !FILLER.test(word.text.trim())));
   // "line" captions may use two lines; "stack" captions keep one short line around the key word.
   const maxChars = style.layout === "line" ? style.maxCharsPerLine * 2 : style.maxCharsPerLine * 3;
   const groups: TranscriptWord[][] = [];
   let current: TranscriptWord[] = [];
-  let chars = 0;
 
   kept.forEach((word, index) => {
-    const nextChars = chars + (current.length > 0 ? 1 : 0) + word.text.length;
-    if (current.length > 0 && nextChars > maxChars) {
-      groups.push(current);
-      current = [];
-    }
     current.push(word);
-    chars = current.reduce((sum, item, position) => sum + item.text.length + (position ? 1 : 0), 0);
+    // Too long: cut where the sentence allows it (after a comma, before "et"...), never between
+    // "chez" and "toi"; the words after the cut start the next caption.
+    while (
+      current.length > 1 &&
+      (current.length > style.maxWordsPerPage || charCount(current) > maxChars)
+    ) {
+      // the last word of a sentence would be left alone after the cut: cut a bit earlier instead
+      const cut = bestCut(
+        current.map((item) => item.text),
+        { balance: -1.5, lonelyLast: SENTENCE_END.test(word.text) },
+      );
+      groups.push(current.slice(0, cut));
+      current = current.slice(cut);
+    }
 
     const next = kept[index + 1];
     const shouldBreak =
       !next ||
-      current.length >= style.maxWordsPerPage ||
       SENTENCE_END.test(word.text) ||
       next.speaker !== word.speaker ||
       next.start - word.end > MAX_PAUSE_MS;
     if (shouldBreak) {
       groups.push(current);
       current = [];
-      chars = 0;
     }
   });
 

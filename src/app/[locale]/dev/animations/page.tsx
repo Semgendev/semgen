@@ -2,6 +2,9 @@ import { setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { CaptionFontPreload } from "@/features/captions/font-preload";
 import { AnimationLab } from "@/features/captions/dev/animation-lab";
 
 // Internal animation lab (not translated on purpose, like /dev/themes).
@@ -17,11 +20,18 @@ export default async function DevAnimationsPage({
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-8">
-      <div>
-        <h1 className="text-2xl font-bold">Labo des animations — /dev/animations</h1>
-        <p className="text-text-2 text-sm">
-          Les 5 prototypes du nouveau moteur. Ralenti, image par image et réglages en direct.
-        </p>
+      <CaptionFontPreload />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Labo des animations — /dev/animations</h1>
+          <p className="text-text-2 text-sm">
+            Tous les styles sur le même texte, avec réglages en direct.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
       {/* the player reads the clock: render it on each visit, not at build time */}
       <Suspense fallback={null}>

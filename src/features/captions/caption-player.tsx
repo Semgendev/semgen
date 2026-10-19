@@ -88,7 +88,7 @@ export function CaptionPlayer({ src, style }: { src: string; style: CaptionStyle
   if (!meta) return <Skeleton className="mx-auto aspect-[9/16] max-h-[75vh] w-full max-w-sm" />;
 
   return (
-    <div className="flex justify-center">
+    <div className="flex w-full justify-center">
       <Player
         ref={player}
         component={CaptionedVideo}
@@ -107,7 +107,7 @@ export function CaptionPlayer({ src, style }: { src: string; style: CaptionStyle
         className="overflow-hidden rounded-xl"
         style={{
           width: "100%",
-          maxWidth: `calc(75vh * ${meta.width / meta.height})`,
+          maxWidth: `calc((100dvh - 12rem) * ${meta.width / meta.height})`,
           aspectRatio: `${meta.width} / ${meta.height}`,
         }}
       />

@@ -3,7 +3,24 @@ import { z } from "zod";
 // Caption styles are video content: their colours are fixed values that never follow the app palette
 // (docs/DESIGN.md §3). Every size is relative to the video so a style looks the same in every format.
 
-export const FONT_IDS = ["anton", "bebas", "montserrat", "playfair", "poppins"] as const;
+export const FONT_IDS = [
+  "anton",
+  "bebas",
+  "montserrat",
+  "playfair",
+  "poppins",
+  "instrument",
+  "inter-tight",
+  "pinyon",
+  "manrope",
+  "bricolage",
+  "fraunces",
+  "syne",
+  "sora",
+  "dm-serif",
+  "outfit",
+  "anybody",
+] as const;
 export type FontId = (typeof FONT_IDS)[number];
 
 const colorSchema = z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, "6 or 8 digit hex");
@@ -13,9 +30,17 @@ const fillSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("gradient"),
     from: colorSchema,
+    // optional middle colour: a bright band in the middle makes the gradient look lit
+    via: colorSchema.optional(),
     to: colorSchema,
     // degrees, CSS convention (180 = top to bottom)
     angle: z.number().min(0).max(360),
+    // polished metal needs more tones: when set, these stops replace from / via / to
+    stops: z
+      .array(z.object({ color: colorSchema, atPct: z.number().min(0).max(100) }))
+      .min(2)
+      .max(8)
+      .optional(),
   }),
 ]);
 export type CaptionFill = z.infer<typeof fillSchema>;
@@ -32,6 +57,14 @@ const boxSchema = z.object({
   radiusEm: z.number().min(0).max(1),
   paddingXEm: z.number().min(0).max(1),
   paddingYEm: z.number().min(0).max(1),
+  // highlighter: the box is drawn from left to right in drawMs when the word is said (0 = always
+  // there), slanted by skewDeg like a marker stroke
+  drawMs: z.number().int().min(0).max(1500).optional(),
+  skewDeg: z.number().min(-20).max(20).optional(),
+  // left = a marker stroke, centre = a pill that opens from its middle
+  drawFrom: z.enum(["left", "center"]).optional(),
+  // frosted glass: blurs the video behind it, with a light edge and a soft sheen
+  glass: z.boolean().optional(),
 });
 
 // "Deep glow": a wide, soft halo of light behind the text, with an optional colour fringe
@@ -77,11 +110,18 @@ export const textLookSchema = z.object({
   box: boxSchema.nullable(),
   deepGlow: deepGlowSchema.nullable().optional(),
   sweep: sweepSchema.nullable().optional(),
+  // a glowing liquid rises inside the word, from bottom to top, while it is said
+  liquid: z
+    .object({ fill: fillSchema, glow: colorSchema, minMs: z.number().int().min(100).max(3000) })
+    .nullable()
+    .optional(),
 });
 export type TextLook = z.infer<typeof textLookSchema>;
 
 // track = letters close in (spacing that opens then settles), flicker = neon that sputters on,
-// split = red / green / blue copies that come together (chromatic split).
+// split = red / green / blue copies that come together (chromatic split), blurRise = comes out of
+// focus while rising a little, ink = written from left to right with a soft edge, converge = letters
+// far apart and blurred that gather from the centre, breathe = letters that gently close up.
 export const ANIMATIONS_IN = [
   "none",
   "fade",
@@ -93,6 +133,11 @@ export const ANIMATIONS_IN = [
   "track",
   "flicker",
   "split",
+  "blurRise",
+  "ink",
+  "converge",
+  "breathe",
+  "riseLetters",
 ] as const;
 export const ANIMATIONS_OUT = ["none", "fade", "sink", "blur"] as const;
 export type AnimationIn = (typeof ANIMATIONS_IN)[number];
@@ -149,6 +194,15 @@ export const captionStyleSchema = z.object({
     motionBlur: z.boolean().optional(),
     // colours of the two outer copies of the "split" entrance
     splitColors: z.tuple([colorSchema, colorSchema]).optional(),
+    // the key word may have its own entrance (letters that converge while the rest fades in...)
+    emphasis: z
+      .object({
+        in: z.enum(ANIMATIONS_IN),
+        inMs: z.number().int().min(0).max(1500),
+        // waits a little (e.g. for its glass pill to open)
+        delayMs: z.number().int().min(0).max(1000).optional(),
+      })
+      .optional(),
   }),
   // makes every "random" detail (neon flicker...) identical in the preview and the export
   seed: z.number().int().optional(),

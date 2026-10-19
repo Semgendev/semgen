@@ -6,6 +6,8 @@ import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProjectMenu } from "@/features/projects/project-actions";
+import { shortTitle } from "@/features/projects/short-title";
 import { ProjectStatusBadge } from "@/features/projects/project-status-badge";
 import { getVideoUrls, listProjects } from "@/features/projects/service";
 import { Link } from "@/i18n/routing";
@@ -36,14 +38,17 @@ async function ProjectsContent({ locale }: { locale: string }) {
   }
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {projects.map((project) => (
-        <li key={project.id}>
+        <li
+          key={project.id}
+          className="bg-surface border-border hover:border-brand-border relative flex flex-col overflow-hidden rounded-xl border transition-colors"
+        >
           <Link
             href={`/projects/${project.id}`}
-            className="bg-surface border-border hover:border-brand-border focus-visible:ring-ring flex h-full flex-col overflow-hidden rounded-xl border transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            className="focus-visible:ring-ring relative block aspect-square focus-visible:ring-2 focus-visible:outline-none"
           >
-            <div className="bg-surface-2 aspect-video w-full">
+            <div className="bg-surface-2 absolute inset-0">
               {urls[project.id] ? (
                 <video
                   src={`${urls[project.id]}#t=0.1`}
@@ -55,9 +60,11 @@ async function ProjectsContent({ locale }: { locale: string }) {
                 />
               ) : null}
             </div>
-            <div className="flex flex-col gap-2 p-4">
-              <span className="truncate font-medium">{project.title}</span>
-              <div className="flex items-center justify-between gap-2">
+            <div className="from-background/95 via-background/70 absolute inset-x-0 bottom-0 flex flex-col gap-0.5 bg-gradient-to-t to-transparent p-2 pe-9 pt-6">
+              <span className="truncate text-sm font-medium" title={project.title}>
+                {shortTitle(project.title)}
+              </span>
+              <div className="flex items-center gap-2">
                 <ProjectStatusBadge status={project.status} />
                 <time dateTime={project.created_at} className="text-muted-foreground text-xs">
                   {format.dateTime(new Date(project.created_at), { dateStyle: "medium" })}
@@ -65,6 +72,12 @@ async function ProjectsContent({ locale }: { locale: string }) {
               </div>
             </div>
           </Link>
+          <ProjectMenu
+            projectId={project.id}
+            title={project.title}
+            afterDelete="refresh"
+            className="absolute right-1 bottom-1"
+          />
         </li>
       ))}
     </ul>
@@ -77,7 +90,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   const t = await getTranslations("projects");
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 sm:p-6">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 sm:p-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold sm:text-3xl">{t("listTitle")}</h1>
         <Link href="/projects/new" className={buttonVariants()}>

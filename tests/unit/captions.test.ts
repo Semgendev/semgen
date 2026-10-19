@@ -46,7 +46,9 @@ describe("presets", () => {
   it("falls back to the default style for missing or broken saved data", () => {
     expect(resolveCaptionStyle(null).presetId).toBe("cinema");
     expect(resolveCaptionStyle({ preset: "nope" }).presetId).toBe("cinema");
-    expect(resolveCaptionStyle({ preset: "neon" }).presetId).toBe("neon");
+    expect(resolveCaptionStyle({ preset: "impact" }).presetId).toBe("impact");
+    // styles removed on 2026-10-19: projects saved with them come back to the default one
+    expect(resolveCaptionStyle({ preset: "neon" }).presetId).toBe("cinema");
   });
 });
 
@@ -206,14 +208,14 @@ describe("motion", () => {
   });
 
   it("is deterministic: same time, same picture (preview = export)", () => {
-    const style = CAPTION_PRESETS.viral;
+    const style = CAPTION_PRESETS.pop;
     const page = paginate([word("Encore", 0, 400), word("plus", 400, 800)], style)[0]!;
     expect(wordMotionAt(page, 1, 450, style)).toEqual(wordMotionAt(page, 1, 450, style));
   });
 
   it("shows words when spoken (word reveal) or one after the other (page reveal)", () => {
     const page = paginate([word("Un", 1000, 1200), word("deux", 1500, 1800)], line)[0]!;
-    const byWord = { reveal: "word" as const, animation: CAPTION_PRESETS.viral.animation };
+    const byWord = { reveal: "word" as const, animation: CAPTION_PRESETS.pop.animation };
     expect(wordAppearAt(page, 1, byWord)).toBeLessThanOrEqual(1500);
     expect(wordAppearAt(page, 1, byWord)).toBeGreaterThan(1000);
     const byPage = { reveal: "page" as const, animation: CAPTION_PRESETS.cinema.animation };

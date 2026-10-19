@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import {
   AbsoluteFill,
+  Easing,
   interpolate,
   interpolateColors,
   OffthreadVideo,
@@ -8,15 +9,20 @@ import {
   useVideoConfig,
 } from "remotion";
 
+import { fitScale, MAX_BLOCK_HEIGHT_PCT, measureText, safeCenterY } from "../fit";
 import { fontFamily } from "../fonts";
 import {
+  ACTIVE_LEAD_MS,
   activeAmount,
   activeWindow,
   applyCase,
+  CONVERGE_SPREAD_EM,
   blurSamples,
   exitMs,
   fillProgress,
   layoutLines,
+  letterRiseEm,
+  liquidLevel,
   wordMotionAt,
   type WordMotion,
 } from "../motion";
@@ -34,9 +40,14 @@ export type CaptionedVideoProps = {
 
 function fillStyle(fill: CaptionFill): CSSProperties {
   if (fill.type === "solid") return { color: fill.color };
+  const stops = fill.stops
+    ? fill.stops.map((stop) => `${stop.color} ${stop.atPct}%`).join(", ")
+    : fill.via
+      ? `${fill.from}, ${fill.via}, ${fill.to}`
+      : `${fill.from}, ${fill.to}`;
   return {
     color: "transparent",
-    backgroundImage: `linear-gradient(${fill.angle}deg, ${fill.from}, ${fill.to})`,
+    backgroundImage: `linear-gradient(${fill.angle}deg, ${stops})`,
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
   };
@@ -106,15 +117,18 @@ const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 function Glyphs({
   text,
   spreadEm,
+  rise,
   place,
   paint,
 }: {
   text: string;
   spreadEm: number;
+  // letters rising from behind a mask (1 = all in place)
+  rise: number;
   place: LinePlace;
   paint?: CSSProperties;
 }) {
-  if (spreadEm < 0.001) return <>{text}</>;
+  if (spreadEm < 0.001 && rise >= 1) return <>{text}</>;
   const letters = Array.from(graphemes.segment(text), (part) => part.segment);
   if (JOINED_SCRIPTS.test(text)) {
     const shift = (place.before + letters.length / 2 - place.middle) * spreadEm;
@@ -122,7 +136,7 @@ function Glyphs({
       <span
         style={{
           display: "inline-block",
-          transform: `translate3d(${shift}em, 0, 0) scaleX(${1 + spreadEm})`,
+          transform: `translate3d(${shift}em, ${letterRiseEm(rise, 0, 1)}em, 0) scaleX(${1 + spreadEm})`,
           ...paint,
         }}
       >
@@ -137,7 +151,7 @@ function Glyphs({
           key={index}
           style={{
             display: "inline-block",
-            transform: `translate3d(${(place.before + index - place.middle) * spreadEm}em, 0, 0)`,
+            transform: `translate3d(${(place.before + index - place.middle) * spreadEm}em, ${letterRiseEm(rise, index, letters.length)}em, 0)`,
             ...paint,
           }}
         >
@@ -164,6 +178,49 @@ function splitPaint(style: CSSProperties, spreading: boolean): [CSSProperties, C
 
 const clampOpts = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
+// Surface of the liquid rising in a word: a gentle wave that calms down once the word is full.
+function liquidClip(level: number, timeMs: number): string | undefined {
+  if (level >= 0.999) return undefined;
+  const surface = (1 - level) * 100;
+  const amplitude = 7 * Math.sin(Math.PI * level);
+  const phase = timeMs / 160;
+  const points: string[] = [];
+  for (let x = 0; x <= 100; x += 10) {
+    const y = surface + amplitude * Math.sin((x / 100) * Math.PI * 3 + phase);
+    points.push(`${x}% ${y.toFixed(2)}%`);
+  }
+  return `polygon(${points.join(", ")}, 100% 110%, 0% 110%)`;
+}
+
+// A box drawn behind a word when it is said: a marker stroke from the left, or a pill (plain or
+// frosted glass) that opens from its middle.
+function DrawnBox({ box, drawn }: { box: NonNullable<TextLook["box"]>; drawn: number }) {
+  const fromCenter = box.drawFrom === "center";
+  const tint = box.color.slice(0, 7);
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute",
+        inset: fromCenter ? 0 : "0.1em 0 0.02em",
+        borderRadius: `${box.radiusEm}em`,
+        transformOrigin: fromCenter ? "50% 50%" : "0 50%",
+        transform: `skewX(${box.skewDeg ?? 0}deg) scaleX(${fromCenter ? 0.15 + 0.85 * drawn : drawn})`,
+        opacity: fromCenter ? drawn : 1,
+        ...(box.glass
+          ? {
+              backgroundImage: `linear-gradient(180deg, ${box.color}, ${tint}14)`,
+              backdropFilter: "blur(0.22em) saturate(1.3)",
+              WebkitBackdropFilter: "blur(0.22em) saturate(1.3)",
+              border: `0.025em solid ${tint}80`,
+              boxShadow: `inset 0 0.05em 0 ${tint}99`,
+            }
+          : { backgroundColor: box.color }),
+      }}
+    />
+  );
+}
+
 function Word({
   word,
   look,
@@ -181,14 +238,39 @@ function Word({
   const fillMode = highlight?.mode === "fill";
   // The highlight box keeps the same size whether it is lit or not, so the text never moves.
   const box = highlight?.box ?? look.box;
+  // Highlighter: the box is drawn like a marker stroke when the word is said, and the text takes
+  // its "on the marker" colour as the stroke passes under it.
+  const drawMs = !highlight?.box ? (look.box?.drawMs ?? 0) : 0;
+  const drawn =
+    drawMs > 0
+      ? interpolate(
+          timeMs,
+          [word.start - ACTIVE_LEAD_MS, word.start - ACTIVE_LEAD_MS + drawMs],
+          [0, 1],
+          {
+            ...clampOpts,
+            easing: Easing.inOut(Easing.cubic),
+          },
+        )
+      : 1;
   const boxColor = highlight?.box
     ? interpolateColors(
         active,
         [0, 1],
         [look.box?.color ?? transparent(highlight.box.color), highlight.box.color],
       )
-    : look.box?.color;
-  const fill = fillMode ? look.fill : mixFill(look.fill, highlight?.fill ?? null, active);
+    : drawMs > 0
+      ? undefined
+      : look.box?.color;
+  const fill = fillMode
+    ? look.fill
+    : drawMs > 0
+      ? mixFill(style.base.fill, look.fill, interpolate(drawn, [0.25, 0.75], [0, 1], clampOpts))
+      : mixFill(look.fill, highlight?.fill ?? null, active);
+  const wipeMask =
+    motion.wipe < 0.999
+      ? `linear-gradient(90deg, black ${motion.wipe * 125 - 25}%, transparent ${motion.wipe * 125}%)`
+      : undefined;
   const scale = motion.scale * (1 + ((highlight?.scale ?? 1) - 1) * active);
   const upcoming =
     style.reveal === "page" ? interpolate(said, [0, 1], [style.upcomingOpacity, 1]) : 1;
@@ -201,20 +283,32 @@ function Word({
         : `inset(${hidden * 100}% -10% -50% -10%)`;
   const text = applyCase(word.text, style.textCase);
   const padding = box ? `${box.paddingYEm}em ${box.paddingXEm}em` : undefined;
+  // Letters rising from under the baseline stay hidden below it until they reach their place.
+  const rising = motion.letters < 1;
+  const riseClip = rising ? "inset(-0.6em -0.3em 0 -0.3em)" : undefined;
   // A copy of the word drawn exactly over it (same padding, same letters): glow, sweep, fill...
   const layer = (key: string, extra: CSSProperties, spreadEm = motion.spreadEm) => {
-    const [rest, paint] = splitPaint(extra, spreadEm >= 0.001);
+    const [rest, paint] = splitPaint(extra, spreadEm >= 0.001 || rising);
     return (
       <span
         key={key}
         aria-hidden
-        style={{ position: "absolute", inset: 0, padding, pointerEvents: "none", ...rest }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          padding,
+          pointerEvents: "none",
+          clipPath: riseClip,
+          ...rest,
+        }}
       >
-        <Glyphs text={text} spreadEm={spreadEm} place={place} paint={paint} />
+        <Glyphs text={text} spreadEm={spreadEm} rise={motion.letters} place={place} paint={paint} />
       </span>
     );
   };
-  const [mainStyle, mainPaint] = splitPaint(fillStyle(fill), motion.spreadEm >= 0.001);
+  const [mainStyle, mainPaint] = splitPaint(fillStyle(fill), motion.spreadEm >= 0.001 || rising);
+  const liquid = look.liquid;
+  const level = liquid ? liquidLevel(word, timeMs, liquid.minMs) : 0;
   const glow = look.deepGlow;
   const sweep = look.sweep;
   const sweepAt = sweep ? ((timeMs % sweep.periodMs) / sweep.periodMs) * 160 - 30 : 0;
@@ -240,8 +334,11 @@ function Word({
         padding,
         margin: box ? `0 -${box.paddingXEm * 0.5}em` : undefined,
         whiteSpace: "pre",
+        maskImage: wipeMask,
+        WebkitMaskImage: wipeMask,
       }}
     >
+      {drawMs > 0 && look.box && drawn > 0 ? <DrawnBox box={look.box} drawn={drawn} /> : null}
       {glow && glow.intensity > 0 ? (
         <>
           {layer("glow-wide", {
@@ -287,15 +384,28 @@ function Word({
         style={{
           position: "relative",
           ...mainStyle,
-          clipPath: clip,
+          clipPath: clip ?? riseClip,
           WebkitTextStroke: look.stroke
             ? `${look.stroke.widthEm}em ${look.stroke.color}`
             : undefined,
           paintOrder: "stroke fill",
         }}
       >
-        <Glyphs text={text} spreadEm={motion.spreadEm} place={place} paint={mainPaint} />
+        <Glyphs
+          text={text}
+          spreadEm={motion.spreadEm}
+          rise={motion.letters}
+          place={place}
+          paint={mainPaint}
+        />
       </span>
+      {liquid && level > 0
+        ? layer("liquid", {
+            ...fillStyle(liquid.fill),
+            clipPath: liquidClip(level, timeMs),
+            filter: `drop-shadow(0 0 0.12em ${liquid.glow})`,
+          })
+        : null}
       {splitColors && motion.splitEm > 0.001
         ? splitColors.map((color, index) => {
             const side = index === 0 ? -1 : 1;
@@ -327,28 +437,82 @@ function Word({
   );
 }
 
+const LINE_HEIGHT = 1.08;
+const WORD_GAP_EM = 0.28;
+
+// Size of the caption at full size, measured with its real fonts, then the scale and the position
+// that keep it inside the safe zone.
+function fitPage(
+  page: CaptionPage,
+  lines: number[][],
+  style: CaptionStyle,
+  width: number,
+  height: number,
+): { scale: number; centerY: number } {
+  const baseFontPx = (style.base.sizePct / 100) * height;
+  const linePad = style.lineBox ? style.lineBox.paddingXEm * baseFontPx * 2 : 0;
+  let blockWidth = 0;
+  let blockHeight = 0;
+  lines.forEach((line, lineIndex) => {
+    let lineWidth = linePad + baseFontPx * WORD_GAP_EM * (line.length - 1);
+    let lineHeight = 0;
+    for (const wordIndex of line) {
+      const word = page.words[wordIndex];
+      if (!word) continue;
+      const look = word.emphasis ? style.emphasis : style.base;
+      const fontPx = (look.sizePct / 100) * height;
+      const font = `${look.italic ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look.font)}`;
+      const box = style.active?.box ?? look.box;
+      // a converging word starts wider than it ends: it must fit in the zone from its first frame
+      const entrance = word.emphasis
+        ? (style.animation.emphasis?.in ?? style.animation.in)
+        : style.animation.in;
+      if (entrance === "converge") {
+        lineWidth += (Array.from(word.text).length - 1) * CONVERGE_SPREAD_EM * fontPx;
+      }
+      lineWidth +=
+        measureText(applyCase(word.text, style.textCase), font, look.letterSpacingEm * fontPx) +
+        (box ? box.paddingXEm * fontPx : 0);
+      lineHeight = Math.max(lineHeight, fontPx * LINE_HEIGHT);
+    }
+    blockWidth = Math.max(blockWidth, lineWidth);
+    blockHeight += lineHeight + (lineIndex > 0 ? style.lineGapEm * baseFontPx : 0);
+  });
+  const scale = fitScale(
+    { width: blockWidth, height: blockHeight },
+    { width: (style.maxWidthPct / 100) * width, height: (MAX_BLOCK_HEIGHT_PCT / 100) * height },
+  );
+  return {
+    scale,
+    centerY: safeCenterY((style.position.y / 100) * height, blockHeight * scale, height),
+  };
+}
+
 function PageBlock({
   page,
   style,
   timeMs,
+  width,
   height,
   fps,
 }: {
   page: CaptionPage;
   style: CaptionStyle;
   timeMs: number;
+  width: number;
   height: number;
   fps: number;
 }) {
   const lines = layoutLines(page.words, style);
-  const baseFontPx = (style.base.sizePct / 100) * height;
+  const fit = fitPage(page, lines, style, width, height);
+  const baseFontPx = (style.base.sizePct / 100) * height * fit.scale;
 
   return (
     <div
       style={{
         position: "absolute",
         left: `${style.position.x}%`,
-        top: `${style.position.y}%`,
+        top: fit.centerY,
         transform: "translate(-50%, -50%)",
         width: `${style.maxWidthPct}%`,
         display: "flex",
@@ -374,7 +538,8 @@ function PageBlock({
             key={lineIndex}
             style={{
               display: "flex",
-              flexWrap: "wrap",
+              // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
+              flexWrap: "nowrap",
               justifyContent: "center",
               alignItems: "baseline",
               columnGap: `${baseFontPx * 0.28}px`,
@@ -404,7 +569,7 @@ function PageBlock({
                     extrapolateLeft: "clamp",
                     extrapolateRight: "clamp",
                   })}
-                  fontPx={(look.sizePct / 100) * height}
+                  fontPx={(look.sizePct / 100) * height * fit.scale}
                   place={places[position] ?? { before: 0, middle: 0 }}
                 />
               );
@@ -419,7 +584,7 @@ function PageBlock({
 // The current caption, plus the previous one while it is leaving: they cross over smoothly.
 export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoSrc">) {
   const frame = useCurrentFrame();
-  const { fps, height } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const timeMs = (frame / fps) * 1000;
   return (
     <>
@@ -431,6 +596,7 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
             page={page}
             style={style}
             timeMs={timeMs}
+            width={width}
             height={height}
             fps={fps}
           />
