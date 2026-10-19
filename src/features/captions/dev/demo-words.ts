@@ -14,6 +14,9 @@ const PREVIEW_SCRIPTS: Record<string, string> = {
   es: "¡Hola, mañana voy a tu casa! La calidad, de un solo golpe.",
 };
 
+// Languages that have a demo text (checked against the interface languages by a test).
+export const PREVIEW_LOCALES = Object.keys(PREVIEW_SCRIPTS);
+
 export function previewWords(locale: string): TranscriptWord[] {
   return timed(PREVIEW_SCRIPTS[locale] ?? PREVIEW_SCRIPTS.en ?? "", 100);
 }

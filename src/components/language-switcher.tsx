@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
   // every language in its own name (Español, Deutsch…), whatever the current one
   const languages = locales.map((value) => ({
     value,
-    label: nativeName(value) ?? t(value as "en" | "fr"),
+    label: nativeName(value) ?? value.toUpperCase(),
   }));
 
   const handleChangeLanguage = (newLocale: Locale) => {

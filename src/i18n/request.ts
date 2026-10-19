@@ -1,22 +1,12 @@
 import { getRequestConfig } from "next-intl/server";
 
-import enMessages from "../../messages/en.json";
-import frMessages from "../../messages/fr.json";
+import { defaultLocale, isLocale } from "./config";
 
-const messages = {
-  en: enMessages,
-  fr: frMessages,
-} as const;
-
-type Locale = keyof typeof messages;
-
-function isLocale(value: string | undefined): value is Locale {
-  return value !== undefined && value in messages;
-}
-
+// One language file is loaded per request (not all of them in every bundle).
 export default getRequestConfig(async ({ requestLocale }) => {
   const requested = await requestLocale;
-  const locale: Locale = isLocale(requested) ? requested : "en";
+  const locale = requested && isLocale(requested) ? requested : defaultLocale;
+  const messages = (await import(`../../messages/${locale}.json`)) as { default: object };
 
-  return { locale, messages: messages[locale] };
+  return { locale, messages: messages.default };
 });
