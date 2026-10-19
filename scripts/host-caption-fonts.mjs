@@ -6,7 +6,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 
 const SUBSETS = ["latin", "latin-ext"];
-// [font id, @remotion/google-fonts module, { style: weights }]
+// [font id, @remotion/google-fonts module, { style: weights }, subsets?]
 const FONTS = [
   ["anton", "Anton", { normal: ["400"] }],
   ["bebas", "BebasNeue", { normal: ["400"] }],
@@ -24,6 +24,8 @@ const FONTS = [
   ["dm-serif", "DMSerifDisplay", { italic: ["400"], normal: ["400"] }],
   ["outfit", "Outfit", { normal: ["500", "600", "700"] }],
   ["anybody", "Anybody", { normal: ["700", "800"] }],
+  // Arabic letters of every style (variable font: one file for all the weights)
+  ["cairo", "Cairo", { normal: ["500", "600", "700", "800", "900"] }, ["arabic"]],
 ];
 
 const outDir = new URL("../public/fonts/captions/", import.meta.url);
@@ -42,11 +44,11 @@ async function fetchFile(url) {
 }
 
 const faces = [];
-for (const [id, moduleName, styles] of FONTS) {
+for (const [id, moduleName, styles, subsets = SUBSETS] of FONTS) {
   const info = (await import(`@remotion/google-fonts/${moduleName}`)).getInfo();
   for (const [style, weights] of Object.entries(styles)) {
     for (const weight of weights) {
-      for (const subset of SUBSETS) {
+      for (const subset of subsets) {
         const url = info.fonts[style]?.[weight]?.[subset];
         if (!url) continue;
         faces.push({

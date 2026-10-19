@@ -2,7 +2,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { locales } from "@/i18n/config";
+import { createTranslator } from "next-intl";
+
+import { localeDirection, locales } from "@/i18n/config";
+import { breakScore, endsSentence } from "@/features/captions/breaks";
 import { PREVIEW_LOCALES } from "@/features/captions/dev/demo-words";
 
 type Tree = { [key: string]: string | Tree };
@@ -62,4 +65,27 @@ describe("interface languages", () => {
       });
     });
   }
+});
+
+describe("right-to-left languages", () => {
+  it("writes Arabic from right to left and the others from left to right", () => {
+    expect(localeDirection("ar")).toBe("rtl");
+    for (const locale of locales.filter((value) => value !== "ar")) {
+      expect(localeDirection(locale), locale).toBe("ltr");
+    }
+  });
+
+  it("uses the Arabic plural forms (one, two, few, many)", () => {
+    const balance = flatten(load("ar"))["credits.balance"] ?? "";
+    const t = createTranslator({ locale: "ar", messages: { balance } });
+    expect(t("balance", { count: 1 })).toBe("رصيد واحد");
+    expect(t("balance", { count: 2 })).toBe("رصيدان");
+    expect(t("balance", { count: 3 })).toMatch(/أرصدة$/);
+    expect(t("balance", { count: 11 })).toMatch(/رصيدًا$/);
+  });
+
+  it("cuts captions after Arabic punctuation (، and ؟)", () => {
+    expect(endsSentence("غدًا؟")).toBe(true);
+    expect(breakScore("مرحبًا،", "سآتي")).toBeGreaterThan(breakScore("سآتي", "إليك"));
+  });
 });

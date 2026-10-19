@@ -15,7 +15,7 @@ Aujourd'hui : FR, EN. Le système est prêt pour en ajouter (un fichier `message
 
 Règles :
 - Traduction des fichiers `messages/*.json` avec Claude (Haiku), puis relecture humaine pour les langues principales (FR, EN, ES, PT, AR).
-- **Arabe = droite à gauche** : `dir="rtl"` sur `<html>`, mises en page en propriétés logiques (`ms-*`, `me-*`, `start`, `end`) — à prévoir dès maintenant dans les nouveaux composants.
+- **Arabe = droite à gauche** (fait le 2026-10-19) : `dir="rtl"` sur `<html>` via `localeDirection()` (`src/i18n/config.ts`, liste `RTL_LOCALES` pour l'hébreu, le persan, l'ourdou plus tard). **Règle pour tout nouveau composant : propriétés logiques** (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`), flèches « retour » avec `rtl:rotate-180`. Les lecteurs vidéo restent de gauche à droite. Sous-titres : ligne arabe posée de droite à gauche ; balayage, machine à écrire, karaoké et surligneur partent de la droite ; jamais d'italique ni de contour seul sur l'arabe (Cairo a des contours qui se chevauchent : lettres translucides à la place).
 - Polices : vérifier que l'interface couvre chaque alphabet (Geist = latin ; ajouter Noto Sans Arabic / Devanagari / JP / KR / SC si besoin, OFL).
 - Un test vérifie que chaque fichier de langue a **exactement les mêmes clés** que `en.json`.
 

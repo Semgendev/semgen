@@ -17,6 +17,7 @@ const PREVIEW_SCRIPTS: Record<string, string> = {
   it: "Ciao, domani vengo da te! La qualità, in un colpo solo.",
   tr: "Selam, yarın sana geliyorum! Kalite, tek hamlede.",
   sw: "Habari, kesho nitakuja kwako! Ubora, kwa mara moja.",
+  ar: "مرحبًا، سآتي إليك غدًا! الجودة، دفعة واحدة.",
 };
 
 // Languages that have a demo text (checked against the interface languages by a test).
@@ -38,8 +39,8 @@ function timed(script: string, startMs: number): TranscriptWord[] {
     const duration = 170 + text.replace(/[^\p{L}\p{N}]/gu, "").length * 38;
     words.push({ text, start: time, end: time + duration, confidence: 1, speaker: null });
     time += duration + 40;
-    if (/[,]$/.test(text)) time += 180;
-    if (/[.!?]$/.test(text)) time += 520;
+    if (/[,،]$/.test(text)) time += 180;
+    if (/[.!?؟]$/.test(text)) time += 520;
   }
   return words;
 }

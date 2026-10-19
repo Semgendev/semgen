@@ -113,7 +113,7 @@ export function ReplacePanel({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         title={t("replaceDrag")}
-        className="border-border flex cursor-grab touch-none items-center justify-between gap-2 border-b py-1 pr-1 pl-3 select-none active:cursor-grabbing"
+        className="border-border flex cursor-grab touch-none items-center justify-between gap-2 border-b py-1 ps-3 pe-1 select-none active:cursor-grabbing"
       >
         <h3
           id="replace-heading"

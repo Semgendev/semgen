@@ -60,7 +60,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
           href="/projects"
           className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors"
         >
-          <ArrowLeft className="size-4" aria-hidden />
+          <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden />
           {t("backToList")}
         </Link>
 

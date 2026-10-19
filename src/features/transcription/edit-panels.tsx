@@ -97,7 +97,7 @@ export function WordActions({
 
   return (
     // The padding under the pill bridges the gap to the word: it stays open while the mouse goes up to it.
-    <span className={cn("absolute bottom-full left-0 z-10 pb-2", className)}>
+    <span className={cn("absolute start-0 bottom-full z-10 pb-2", className)}>
       <span className="bg-surface border-border flex gap-0.5 rounded-lg border p-0.5 shadow-sm">
         <button
           type="button"
@@ -150,7 +150,7 @@ export function SearchBar({
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <div className="relative min-w-40 flex-1">
         <Search
-          className="text-text-3 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          className="text-text-3 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
           aria-hidden="true"
         />
         <Input
@@ -159,7 +159,7 @@ export function SearchBar({
           placeholder={t("searchPlaceholder")}
           aria-label={t("searchLabel")}
           autoComplete="off"
-          className="min-h-11 pr-24 pl-9"
+          className="min-h-11 ps-9 pe-24"
           onChange={(event) => onFind(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -172,7 +172,7 @@ export function SearchBar({
         />
         {find ? (
           <span
-            className="text-text-2 absolute top-1/2 right-9 -translate-y-1/2 text-xs"
+            className="text-text-2 absolute end-9 top-1/2 -translate-y-1/2 text-xs"
             aria-live="polite"
           >
             {t("matches", { count: matchCount })}
@@ -183,7 +183,7 @@ export function SearchBar({
             type="button"
             aria-label={t("clearSearch")}
             onClick={() => onFind("")}
-            className="text-text-2 hover:text-text absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+            className="text-text-2 hover:text-text absolute end-2 top-1/2 -translate-y-1/2 rounded p-1"
           >
             <X className="size-4" aria-hidden="true" />
           </button>

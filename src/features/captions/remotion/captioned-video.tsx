@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -10,7 +10,7 @@ import {
 } from "remotion";
 
 import { fitScale, MAX_BLOCK_HEIGHT_PCT, measureText, safeCenterY } from "../fit";
-import { fontFamily } from "../fonts";
+import { ARABIC_TEXT, fontFamily, loadScriptFonts, useFontsVersion } from "../fonts";
 import {
   ACTIVE_LEAD_MS,
   activeAmount,
@@ -194,7 +194,16 @@ function liquidClip(level: number, timeMs: number): string | undefined {
 
 // A box drawn behind a word when it is said: a marker stroke from the left, or a pill (plain or
 // frosted glass) that opens from its middle.
-function DrawnBox({ box, drawn }: { box: NonNullable<TextLook["box"]>; drawn: number }) {
+function DrawnBox({
+  box,
+  drawn,
+  rtl,
+}: {
+  box: NonNullable<TextLook["box"]>;
+  drawn: number;
+  // right-to-left word: the marker stroke starts on the right
+  rtl: boolean;
+}) {
   const fromCenter = box.drawFrom === "center";
   const tint = box.color.slice(0, 7);
   return (
@@ -204,7 +213,7 @@ function DrawnBox({ box, drawn }: { box: NonNullable<TextLook["box"]>; drawn: nu
         position: "absolute",
         inset: fromCenter ? 0 : "0.1em 0 0.02em",
         borderRadius: `${box.radiusEm}em`,
-        transformOrigin: fromCenter ? "50% 50%" : "0 50%",
+        transformOrigin: fromCenter ? "50% 50%" : rtl ? "100% 50%" : "0 50%",
         transform: `skewX(${box.skewDeg ?? 0}deg) scaleX(${fromCenter ? 0.15 + 0.85 * drawn : drawn})`,
         opacity: fromCenter ? drawn : 1,
         ...(box.glass
@@ -235,6 +244,8 @@ function Word({
   place,
 }: WordProps) {
   const highlight = style.active;
+  // Arabic is read from right to left: wipes, typewriter and karaoke fill start on the right
+  const rtl = ARABIC_TEXT.test(word.text);
   const fillMode = highlight?.mode === "fill";
   // The highlight box keeps the same size whether it is lit or not, so the text never moves.
   const box = highlight?.box ?? look.box;
@@ -269,7 +280,7 @@ function Word({
       : mixFill(look.fill, highlight?.fill ?? null, active);
   const wipeMask =
     motion.wipe < 0.999
-      ? `linear-gradient(90deg, black ${motion.wipe * 125 - 25}%, transparent ${motion.wipe * 125}%)`
+      ? `linear-gradient(${rtl ? 270 : 90}deg, black ${motion.wipe * 125 - 25}%, transparent ${motion.wipe * 125}%)`
       : undefined;
   const scale = motion.scale * (1 + ((highlight?.scale ?? 1) - 1) * active);
   const upcoming =
@@ -279,7 +290,9 @@ function Word({
     hidden <= 0.001
       ? undefined
       : style.animation.in === "typewriter"
-        ? `inset(-50% ${hidden * 100}% -50% -10%)`
+        ? rtl
+          ? `inset(-50% -10% -50% ${hidden * 100}%)`
+          : `inset(-50% ${hidden * 100}% -50% -10%)`
         : `inset(${hidden * 100}% -10% -50% -10%)`;
   const text = applyCase(word.text, style.textCase);
   const padding = box ? `${box.paddingYEm}em ${box.paddingXEm}em` : undefined;
@@ -321,7 +334,8 @@ function Word({
         display: "inline-block",
         fontFamily: fontFamily(look.font),
         fontWeight: look.weight,
-        fontStyle: look.italic ? "italic" : "normal",
+        // Arabic is never slanted: a fake italic of Cairo looks broken
+        fontStyle: look.italic && !rtl ? "italic" : "normal",
         fontSize: fontPx,
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
@@ -338,7 +352,9 @@ function Word({
         WebkitMaskImage: wipeMask,
       }}
     >
-      {drawMs > 0 && look.box && drawn > 0 ? <DrawnBox box={look.box} drawn={drawn} /> : null}
+      {drawMs > 0 && look.box && drawn > 0 ? (
+        <DrawnBox box={look.box} drawn={drawn} rtl={rtl} />
+      ) : null}
       {glow && glow.intensity > 0 ? (
         <>
           {layer("glow-wide", {
@@ -385,9 +401,15 @@ function Word({
           position: "relative",
           ...mainStyle,
           clipPath: clip ?? riseClip,
-          WebkitTextStroke: look.stroke
-            ? `${look.stroke.widthEm}em ${look.stroke.color}`
-            : undefined,
+          // The Arabic font has overlapping outlines: an outline alone would show them as boxes,
+          // so Arabic hollow letters are drawn translucent instead.
+          ...(look.stroke && rtl
+            ? { color: `${look.stroke.color.slice(0, 7)}59` }
+            : {
+                WebkitTextStroke: look.stroke
+                  ? `${look.stroke.widthEm}em ${look.stroke.color}`
+                  : undefined,
+              }),
           paintOrder: "stroke fill",
         }}
       >
@@ -420,7 +442,9 @@ function Word({
       {fillMode && highlight?.fill && progress > 0
         ? layer("fill", {
             ...fillStyle(highlight.fill),
-            clipPath: `inset(-20% ${(1 - progress) * 100}% -20% -5%)`,
+            clipPath: rtl
+              ? `inset(-20% -5% -20% ${(1 - progress) * 100}%)`
+              : `inset(-20% ${(1 - progress) * 100}% -20% -5%)`,
           })
         : null}
       {sweep
@@ -461,7 +485,7 @@ function fitPage(
       if (!word) continue;
       const look = word.emphasis ? style.emphasis : style.base;
       const fontPx = (look.sizePct / 100) * height;
-      const font = `${look.italic ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look.font)}`;
+      const font = `${look.italic && !ARABIC_TEXT.test(word.text) ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look.font)}`;
       const box = style.active?.box ?? look.box;
       // a converging word starts wider than it ends: it must fit in the zone from its first frame
       const entrance = word.emphasis
@@ -527,9 +551,12 @@ function PageBlock({
           (wordIndex) => applyCase(page.words[wordIndex]?.text ?? "", style.textCase).length,
         );
         const total = lengths.reduce((sum, length) => sum + length, 0) + line.length - 1;
+        // an Arabic line is laid out from right to left: the first word is on the right
+        const rtl = line.some((wordIndex) => ARABIC_TEXT.test(page.words[wordIndex]?.text ?? ""));
         let before = 0;
         const places = lengths.map((length) => {
-          const place = { before, middle: (total - 1) / 2 };
+          // place on screen, counted from the left
+          const place = { before: rtl ? total - before - length : before, middle: (total - 1) / 2 };
           before += length + 1;
           return place;
         });
@@ -540,6 +567,7 @@ function PageBlock({
               display: "flex",
               // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
               flexWrap: "nowrap",
+              direction: rtl ? "rtl" : "ltr",
               justifyContent: "center",
               alignItems: "baseline",
               columnGap: `${baseFontPx * 0.28}px`,
@@ -586,6 +614,13 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const timeMs = (frame / fps) * 1000;
+  const text = useMemo(
+    () => pages.flatMap((page) => page.words.map((word) => word.text)).join(" "),
+    [pages],
+  );
+  loadScriptFonts(text);
+  // re-render (and re-measure) once the fonts are really there
+  useFontsVersion();
   return (
     <>
       {visiblePageIndices(pages, timeMs, exitMs(style)).map((index) => {

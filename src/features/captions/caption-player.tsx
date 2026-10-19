@@ -106,6 +106,8 @@ export function CaptionPlayer({ src, style }: { src: string; style: CaptionStyle
         acknowledgeRemotionLicense
         className="overflow-hidden rounded-xl"
         style={{
+          // video controls and timeline stay left to right, also on Arabic pages
+          direction: "ltr",
           width: "100%",
           maxWidth: `calc((100dvh - 12rem) * ${meta.width / meta.height})`,
           aspectRatio: `${meta.width} / ${meta.height}`,

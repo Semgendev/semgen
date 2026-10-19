@@ -11,6 +11,8 @@
 | Remotion (`remotion`, `@remotion/player`, `@remotion/google-fonts`) | 4.0.536 | Licence Remotion : gratuite pour une personne, une entreprise ≤ 3 personnes ou une association ; licence entreprise payante au-delà (remotion.pro) — LICENSE.md lu le 2026-10-18 | https://github.com/remotion-dev/remotion | 2026-10-18 | `src/features/captions/` |
 | Polices de sous-titres : Anton, Bebas Neue, Montserrat, Playfair Display, Poppins | hébergées sur notre site (`public/fonts/captions/`) | SIL OFL 1.1 | https://fonts.google.com | 2026-10-18 | `src/features/captions/fonts.ts` |
 | Polices de sous-titres : Instrument Serif, Inter Tight, Pinyon Script, Manrope, Bricolage Grotesque, Fraunces, Syne, Sora, DM Serif Display, Outfit, Anybody | hébergées sur notre site (`public/fonts/captions/`, script `scripts/host-caption-fonts.mjs`, source `@remotion/google-fonts`) | SIL OFL 1.1 | https://fonts.google.com | 2026-10-19 | `src/features/captions/fonts.ts` |
+| Noto Sans Arabic (interface en arabe, lettres arabes seulement) | fichier variable v33 hébergé chez nous (`src/app/fonts/noto-sans-arabic.woff2`, 166 Ko, chargé seulement quand une page affiche de l'arabe) | SIL OFL 1.1 (The Noto Project Authors) | https://github.com/notofonts/arabic | 2026-10-19 | `src/app/[locale]/layout.tsx` |
+| Cairo (lettres arabes de tous les styles de sous-titres) | fichier variable v31 hébergé chez nous (`public/fonts/captions/`, 31 Ko, chargé seulement si le texte est en arabe) | SIL OFL 1.1 (The Cairo Project Authors) | https://github.com/Gue3bara/Cairo | 2026-10-19 | `src/features/captions/fonts.ts` |
 
 ## Rappels
 - MIT / ISC : conserver la mention de copyright et le texte de la licence dans le code copié.

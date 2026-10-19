@@ -76,7 +76,7 @@ async function ProjectsContent({ locale }: { locale: string }) {
             projectId={project.id}
             title={project.title}
             afterDelete="refresh"
-            className="absolute right-1 bottom-1"
+            className="absolute end-1 bottom-1"
           />
         </li>
       ))}

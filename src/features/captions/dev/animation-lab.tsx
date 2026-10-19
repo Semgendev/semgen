@@ -233,10 +233,11 @@ export function AnimationLab() {
             loop
             clickToPlay
             acknowledgeRemotionLicense
-            style={{ width: "100%", aspectRatio: `${width} / ${height}` }}
+            // video controls and timeline stay left to right, also on Arabic pages
+            style={{ width: "100%", aspectRatio: `${width} / ${height}`, direction: "ltr" }}
           />
         </div>
-        <div className="flex items-center justify-center gap-2">
+        <div dir="ltr" className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
             size="icon"

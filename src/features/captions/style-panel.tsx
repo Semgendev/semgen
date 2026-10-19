@@ -74,12 +74,12 @@ export function StylePanel({
                 title={text.back}
                 className="border-border text-text-2 hover:text-text hover:border-brand-border focus-visible:ring-focus flex size-8 shrink-0 items-center justify-center rounded-full border outline-none focus-visible:ring-2"
               >
-                <ArrowLeft className="size-4" aria-hidden="true" />
+                <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
               </button>
               <h2 id="caption-styles-title" className="truncate text-base font-semibold">
                 {labelOf(selected)}
               </h2>
-              <span className="text-text-3 ml-auto text-xs font-medium">{text.settings}</span>
+              <span className="text-text-3 ms-auto text-xs font-medium">{text.settings}</span>
               <button
                 type="button"
                 onClick={() => setLive((value) => !value)}

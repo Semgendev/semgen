@@ -16,7 +16,14 @@ function onArrows<T>(
   current: T,
   select: (v: T) => void,
 ) {
-  const delta = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+  // right to left (Arabic): the next item is on the left
+  const forward = getComputedStyle(event.currentTarget).direction === "rtl" ? -1 : 1;
+  const delta = {
+    ArrowRight: forward,
+    ArrowDown: 1,
+    ArrowLeft: -forward,
+    ArrowUp: -1,
+  }[event.key];
   if (!delta) return;
   event.preventDefault();
   const index = (values.indexOf(current) + delta + values.length) % values.length;
@@ -46,7 +53,7 @@ function PalettePreview({ palette }: { palette: Palette }) {
         <span className="bg-brand size-3.5 rounded-full" />
         <span className="bg-spark size-3.5 rounded-full" />
         <span className="bg-text size-3.5 rounded-full" />
-        <span className="bg-spark text-on-spark ml-auto rounded px-1.5 text-[10px] font-semibold">
+        <span className="bg-spark text-on-spark ms-auto rounded px-1.5 text-[10px] font-semibold">
           10
         </span>
       </div>
@@ -84,7 +91,7 @@ export function AppearanceSettings() {
                 onClick={() => setPalette(value)}
                 onKeyDown={(event) => onArrows(event, PALETTES, palette, setPalette)}
                 className={cn(
-                  "focus-visible:ring-focus bg-surface relative flex flex-col gap-3 rounded-xl border-2 p-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                  "focus-visible:ring-focus bg-surface relative flex flex-col gap-3 rounded-xl border-2 p-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                   selected ? "border-brand-border" : "border-border hover:border-border-strong",
                 )}
               >

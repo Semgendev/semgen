@@ -111,7 +111,7 @@ export function StyleStage({
             controls={false}
             clickToPlay={false}
             acknowledgeRemotionLicense
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "100%", height: "100%", direction: "ltr" }}
           />
         ) : null}
       </span>
@@ -164,7 +164,7 @@ export function StyleCard({
         role="radio"
         aria-checked={selected}
         onClick={onSelect}
-        className="focus-visible:ring-focus flex w-full flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-inset"
+        className="focus-visible:ring-focus flex w-full flex-col text-start outline-none focus-visible:ring-2 focus-visible:ring-inset"
       >
         {/* decorative preview: screen readers get the style name, not the moving demo text */}
         <StyleStage style={style} light={light} playing={active || selected} />
@@ -199,7 +199,7 @@ export function StyleCard({
           onClick={onOpenSettings}
           aria-label={settingsLabel}
           title={settingsLabel}
-          className="bg-brand text-on-brand focus-visible:ring-focus absolute top-2 right-2 z-10 flex size-8 items-center justify-center rounded-full shadow-md transition-transform outline-none hover:scale-110 focus-visible:ring-2"
+          className="bg-brand text-on-brand focus-visible:ring-focus absolute end-2 top-2 z-10 flex size-8 items-center justify-center rounded-full shadow-md transition-transform outline-none hover:scale-110 focus-visible:ring-2"
         >
           <Settings2 className="size-4" aria-hidden="true" />
         </button>

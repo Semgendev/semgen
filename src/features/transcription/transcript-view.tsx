@@ -571,7 +571,7 @@ export function TranscriptView({
             <button
               type="button"
               onClick={() => seek(segment.start)}
-              className="text-muted-foreground hover:text-foreground w-12 shrink-0 text-right text-xs tabular-nums"
+              className="text-muted-foreground hover:text-foreground w-12 shrink-0 text-end text-xs tabular-nums"
               aria-label={t("jumpTo", { time: formatTimestamp(segment.start) })}
             >
               {formatTimestamp(segment.start)}

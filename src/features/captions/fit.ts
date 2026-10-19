@@ -50,6 +50,6 @@ export function measureText(text: string, font: string, letterSpacingPx: number)
   ctx.font = font;
   const width = ctx.measureText(text).width;
   // cache only real measures: before the font is loaded, the fallback font is measured
-  if (typeof document !== "undefined" && document.fonts?.check(font)) cache.set(key, width);
+  if (typeof document !== "undefined" && document.fonts?.check(font, text)) cache.set(key, width);
   return width + letterSpacingPx * chars;
 }
