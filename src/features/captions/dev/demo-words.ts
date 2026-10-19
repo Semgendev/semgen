@@ -12,6 +12,11 @@ const PREVIEW_SCRIPTS: Record<string, string> = {
   fr: "Salut, je viendrai chez toi demain ! La qualité, d'un seul coup.",
   en: "Hey, I will come over tomorrow! Quality, in one go.",
   es: "¡Hola, mañana voy a tu casa! La calidad, de un solo golpe.",
+  pt: "Oi, amanhã eu vou à sua casa! A qualidade, de uma vez só.",
+  de: "Hallo, ich komme morgen vorbei! Qualität, in einem Zug.",
+  it: "Ciao, domani vengo da te! La qualità, in un colpo solo.",
+  tr: "Selam, yarın sana geliyorum! Kalite, tek hamlede.",
+  sw: "Habari, kesho nitakuja kwako! Ubora, kwa mara moja.",
 };
 
 // Languages that have a demo text (checked against the interface languages by a test).

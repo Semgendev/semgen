@@ -25,7 +25,7 @@ describe("safeNextPath", () => {
     expect(safeNextPath("/fr/account", "fr")).toBe("/fr/account");
   });
 
-  it.each(["//evil.com", "https://evil.com", "/\evil.com", "/de/account", "/fr/../x", null])(
+  it.each(["//evil.com", "https://evil.com", "/\evil.com", "/ja/account", "/fr/../x", null])(
     "rejects %s",
     (next) => {
       expect(safeNextPath(next, "en")).toBe("/en/account");
