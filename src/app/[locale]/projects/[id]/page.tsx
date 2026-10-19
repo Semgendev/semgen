@@ -58,7 +58,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
       <CaptionWordsProvider key={transcript?.id ?? "none"} initialWords={transcript?.words ?? []}>
         <Link
           href="/projects"
-          className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors"
+          className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors lg:-my-1 lg:min-h-8"
         >
           <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden />
           {t("backToList")}
@@ -96,7 +96,7 @@ export default function ProjectPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:px-6 sm:pt-3 sm:pb-4 lg:gap-3">
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <ProjectContent params={params} />
       </Suspense>

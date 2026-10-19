@@ -152,9 +152,10 @@ export function CaptionStudio({
   const current = styles[preset] ?? CAPTION_PRESETS[preset];
   const hasColors = Boolean(colors.text || colors.accent);
 
+  // --studio-offset: header (3.8rem) + back link + paddings, so the cards end right at the bottom of the window
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
-      <div className="order-2 lg:sticky lg:top-20 lg:order-1 lg:h-[calc(100dvh-6rem)]">
+    <div className="grid gap-5 [--studio-offset:8.25rem] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+      <div className="order-2 lg:sticky lg:top-[4.75rem] lg:order-1 lg:h-[calc(100dvh-var(--studio-offset))]">
         <div className={PANEL_CARD}>
           <StudioTabs
             tabs={[
@@ -232,7 +233,7 @@ export function CaptionStudio({
       </div>
 
       {/* right: the video in a card as tall as the left panel; it never moves while the panel scrolls */}
-      <div className="bg-surface border-border order-1 flex flex-col items-center justify-center gap-2 rounded-2xl border p-3 lg:sticky lg:top-20 lg:order-2 lg:h-[calc(100dvh-6rem)]">
+      <div className="bg-surface border-border order-1 flex flex-col items-center justify-center gap-2 rounded-2xl border p-3 lg:sticky lg:top-[4.75rem] lg:order-2 lg:h-[calc(100dvh-var(--studio-offset))]">
         <div className="w-full shrink-0">{titleSlot}</div>
         <CaptionPlayer src={src} style={current} />
         {failed ? (

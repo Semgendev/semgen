@@ -118,7 +118,7 @@ export function StylePanel({
           </div>
         </>
       ) : (
-        <div className="flex min-h-0 flex-col gap-3 p-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 p-3">
           <div className="flex items-baseline justify-between gap-2 px-1 pt-1">
             <h2 id="caption-styles-title" className="text-base font-semibold">
               {text.title}
