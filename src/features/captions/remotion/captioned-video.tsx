@@ -1,4 +1,11 @@
-import { useMemo, type CSSProperties } from "react";
+import {
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -32,17 +39,61 @@ import {
   wordMotionAt,
   type WordMotion,
 } from "../motion";
+import {
+  blockKey,
+  ELEMENT_IDS,
+  layerIndex,
+  lineElements,
+  placementOf,
+  type ElementId,
+  type Placement,
+  type StyleMoves,
+} from "../moves";
 import { visiblePageIndices, type CaptionPage, type CaptionWord } from "../paginate";
 import type { CaptionFill, CaptionStyle, TextLook } from "../style";
 
 // The one composition used both by the in-app preview (@remotion/player) and by the final export
 // (Remotion Lambda, T4.4): same code, same frames, same result.
 
+// Moving texts by hand, in the preview only (the export never gets it): touching a text picks it,
+// dragging it moves it. Offsets are in % of the frame.
+export type CaptionEditor = {
+  selected: { key: string; element: ElementId } | null;
+  onPick: (key: string, element: ElementId) => void;
+  // dx / dy since the start of the drag; done = the finger / mouse was released
+  onDrag: (key: string, element: ElementId, dx: number, dy: number, done: boolean) => void;
+};
+
 export type CaptionedVideoProps = {
   videoSrc: string | null;
   pages: CaptionPage[];
   style: CaptionStyle;
+  // texts moved by hand for this style
+  moves?: StyleMoves;
+  editor?: CaptionEditor;
 };
+
+// Look of a text the user can touch (the picked one is framed).
+function pickable(
+  editor: CaptionEditor | undefined,
+  key: string,
+  element: ElementId | null,
+): CSSProperties {
+  if (!editor || !element) return {};
+  const selected = editor.selected?.key === key && editor.selected.element === element;
+  return {
+    pointerEvents: "auto",
+    cursor: selected ? "grab" : "pointer",
+    touchAction: "none",
+    outline: selected ? "0.12em dashed var(--color-brand)" : undefined,
+    outlineOffset: selected ? "0.12em" : undefined,
+  };
+}
+
+function shiftOf(place: Placement, width: number, height: number): string | undefined {
+  if (place.x === 0 && place.y === 0) return undefined;
+  return `translate(${(place.x / 100) * width}px, ${(place.y / 100) * height}px)`;
+}
 
 function fillStyle(fill: CaptionFill): CSSProperties {
   if (fill.type === "solid") return { color: fill.color };
@@ -107,6 +158,10 @@ type WordProps = {
   fontPx: number;
   // where the word sits in its line, in characters (letters spread from the middle of the line)
   place: LinePlace;
+  // moved by hand (key word of a one-line style), its stacking order, and how it can be picked
+  shift?: string;
+  zIndex?: number;
+  pick?: { id: string; style: CSSProperties };
 };
 
 export type LinePlace = { before: number; middle: number };
@@ -253,6 +308,9 @@ function Word({
   timeMs,
   fontPx,
   place,
+  shift,
+  zIndex,
+  pick,
 }: WordProps) {
   const highlight = style.active;
   // Arabic is read from right to left: wipes, typewriter and karaoke fill start on the right
@@ -343,8 +401,13 @@ function Word({
 
   return (
     <span
+      data-caption-element={pick?.id}
+      tabIndex={pick ? 0 : undefined}
+      role={pick ? "button" : undefined}
       style={{
+        ...pick?.style,
         position: "relative",
+        zIndex,
         display: "inline-block",
         fontFamily: fontFamily(look),
         fontWeight: look.weight,
@@ -354,7 +417,7 @@ function Word({
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
         opacity: motion.opacity * upcoming,
-        transform: `translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
+        transform: `${shift ?? ""} translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
         willChange: "transform, opacity",
         filter: filterFor(look, motion),
         backgroundColor: boxColor,
@@ -541,6 +604,8 @@ function PageBlock({
   width,
   height,
   fps,
+  moves,
+  editor,
 }: {
   page: CaptionPage;
   style: CaptionStyle;
@@ -548,10 +613,16 @@ function PageBlock({
   width: number;
   height: number;
   fps: number;
+  moves: StyleMoves | undefined;
+  editor: CaptionEditor | undefined;
 }) {
   const lines = layoutLines(page.words, style);
   const fit = fitPage(page, lines, style, width, height);
   const baseFontPx = (style.base.sizePct / 100) * height * fit.scale;
+  const key = blockKey(page);
+  const elements = lineElements(lines, page.words, style.layout === "stack");
+  // the key word inside a line (one-line styles) moves on its own, on top of its line
+  const keyWord = placementOf(moves, key, "emphasis");
 
   return (
     <div
@@ -582,10 +653,29 @@ function PageBlock({
           before += length + 1;
           return place;
         });
+        const element = elements[lineIndex] ?? null;
+        const place = element ? placementOf(moves, key, element) : null;
+        const holdsKeyWord =
+          element !== "emphasis" &&
+          line.some((wordIndex) => page.words[wordIndex]?.emphasis === true);
+        // a key word put in front / behind takes its line along (lines stack as a whole), unless
+        // the line itself was given a layer
+        const lineLayer =
+          holdsKeyWord && keyWord.layer && !place?.layer
+            ? layerIndex(keyWord.layer)
+            : layerIndex(place?.layer);
         return (
           <div
             key={lineIndex}
+            data-caption-element={editor && element ? `${key}|${element}` : undefined}
+            // reachable with the keyboard too (Enter picks it)
+            tabIndex={editor && element ? 0 : undefined}
+            role={editor && element ? "button" : undefined}
             style={{
+              ...pickable(editor, key, element),
+              position: "relative",
+              zIndex: lineLayer,
+              transform: place ? shiftOf(place, width, height) : undefined,
               display: "flex",
               // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
               flexWrap: "nowrap",
@@ -604,9 +694,17 @@ function PageBlock({
               const word = page.words[wordIndex];
               if (!word) return null;
               const look = word.emphasis ? style.emphasis : style.base;
+              const ownKeyWord = word.emphasis && element !== "emphasis";
               return (
                 <Word
                   key={wordIndex}
+                  shift={ownKeyWord ? shiftOf(keyWord, width, height) : undefined}
+                  zIndex={ownKeyWord ? layerIndex(keyWord.layer) : 1}
+                  pick={
+                    ownKeyWord && editor
+                      ? { id: `${key}|emphasis`, style: pickable(editor, key, "emphasis") }
+                      : undefined
+                  }
                   word={word}
                   look={look}
                   style={style}
@@ -631,8 +729,40 @@ function PageBlock({
   );
 }
 
+// What is being dragged: the text, where the pointer started (px on screen), how far it went (%
+// of the frame) and the redraw waiting for the next screen refresh.
+type Drag = {
+  key: string;
+  element: ElementId;
+  x: number;
+  y: number;
+  moved: boolean;
+  dx: number;
+  dy: number;
+  frame: number | null;
+};
+
+function elementOf(target: HTMLElement | null): { key: string; element: ElementId } | null {
+  const [key, element] = target?.dataset.captionElement?.split("|") ?? [];
+  const known = ELEMENT_IDS.find((id) => id === element);
+  return key && known ? { key, element: known } : null;
+}
+// below this many screen pixels, a touch is a tap (pick), not a drag
+const DRAG_THRESHOLD_PX = 4;
+
+function targetOf(event: PointerEvent | MouseEvent | KeyboardEvent): HTMLElement | null {
+  return event.target instanceof Element
+    ? event.target.closest<HTMLElement>("[data-caption-element]")
+    : null;
+}
+
 // The current caption, plus the previous one while it is leaving: they cross over smoothly.
-export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoSrc">) {
+export function CaptionLayer({
+  pages,
+  style,
+  moves,
+  editor,
+}: Omit<CaptionedVideoProps, "videoSrc">) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const timeMs = (frame / fps) * 1000;
@@ -643,33 +773,116 @@ export function CaptionLayer({ pages, style }: Omit<CaptionedVideoProps, "videoS
   loadScriptFonts(text);
   // re-render (and re-measure) once the fonts are really there
   useFontsVersion();
+  const root = useRef<HTMLDivElement>(null);
+  const drag = useRef<Drag | null>(null);
+
+  const blocks = visiblePageIndices(pages, timeMs, exitMs(style)).map((index) => {
+    const page = pages[index];
+    return page ? (
+      <PageBlock
+        key={index}
+        page={page}
+        style={style}
+        timeMs={timeMs}
+        width={width}
+        height={height}
+        fps={fps}
+        moves={moves}
+        editor={editor}
+      />
+    ) : null;
+  });
+  if (!editor) return <>{blocks}</>;
+
+  // in % of the frame as it is shown on screen
+  const delta = (event: PointerEvent, start: Drag) => {
+    const rect = root.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return { dx: 0, dy: 0 };
+    return {
+      dx: ((event.clientX - start.x) / rect.width) * 100,
+      dy: ((event.clientY - start.y) / rect.height) * 100,
+    };
+  };
+
   return (
-    <>
-      {visiblePageIndices(pages, timeMs, exitMs(style)).map((index) => {
-        const page = pages[index];
-        return page ? (
-          <PageBlock
-            key={index}
-            page={page}
-            style={style}
-            timeMs={timeMs}
-            width={width}
-            height={height}
-            fps={fps}
-          />
-        ) : null;
-      })}
-    </>
+    <AbsoluteFill
+      ref={root}
+      // the frame itself lets clicks through to the player: only the texts can be touched
+      style={{ pointerEvents: "none" }}
+      onPointerDown={(event) => {
+        const target = targetOf(event);
+        const picked = elementOf(target);
+        if (!target || !picked) return;
+        event.stopPropagation();
+        event.preventDefault();
+        target.setPointerCapture(event.pointerId);
+        drag.current = {
+          ...picked,
+          x: event.clientX,
+          y: event.clientY,
+          moved: false,
+          dx: 0,
+          dy: 0,
+          frame: null,
+        };
+        editor.onPick(picked.key, picked.element);
+      }}
+      onPointerMove={(event) => {
+        const current = drag.current;
+        if (!current) return;
+        const far =
+          Math.hypot(event.clientX - current.x, event.clientY - current.y) >= DRAG_THRESHOLD_PX;
+        if (!current.moved && !far) return;
+        current.moved = true;
+        Object.assign(current, delta(event, current));
+        // at most one redraw per screen refresh, however fast the pointer reports
+        if (current.frame !== null) return;
+        current.frame = requestAnimationFrame(() => {
+          current.frame = null;
+          editor.onDrag(current.key, current.element, current.dx, current.dy, false);
+        });
+      }}
+      onPointerUp={(event) => {
+        const current = drag.current;
+        drag.current = null;
+        if (!current?.moved) return;
+        if (current.frame !== null) cancelAnimationFrame(current.frame);
+        const { dx, dy } = delta(event, current);
+        editor.onDrag(current.key, current.element, dx, dy, true);
+      }}
+      onPointerCancel={() => {
+        const current = drag.current;
+        drag.current = null;
+        if (!current?.moved) return;
+        if (current.frame !== null) cancelAnimationFrame(current.frame);
+        // the text stays where it was last shown
+        editor.onDrag(current.key, current.element, current.dx, current.dy, true);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const picked = elementOf(targetOf(event));
+        if (!picked) return;
+        event.preventDefault();
+        event.stopPropagation();
+        editor.onPick(picked.key, picked.element);
+      }}
+      // a touch on a text never plays / pauses the video
+      onClick={(event) => {
+        if (targetOf(event)) event.stopPropagation();
+      }}
+    >
+      {blocks}
+    </AbsoluteFill>
   );
 }
 
-export function CaptionedVideo({ videoSrc, pages, style }: CaptionedVideoProps) {
+export function CaptionedVideo({ videoSrc, pages, style, moves, editor }: CaptionedVideoProps) {
   return (
     <AbsoluteFill>
       {/* In the preview, wait for the video when it buffers instead of letting the captions run
           ahead of the sound. Ignored at export, where every frame is rendered exactly. */}
       {videoSrc ? <OffthreadVideo src={videoSrc} pauseWhenBuffering /> : null}
-      <CaptionLayer pages={pages} style={style} />
+      <CaptionLayer pages={pages} style={style} moves={moves} editor={editor} />
     </AbsoluteFill>
   );
 }

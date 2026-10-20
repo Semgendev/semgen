@@ -305,6 +305,26 @@
       "code": "Farbcode",
       "invalid": "Ungültiger Code. Beispiel: #FF8800 oder FF8800",
       "validate": "Bestätigen"
+    },
+    "move": {
+      "hint": "Tippe auf einen Text im Video, um ihn zu verschieben.",
+      "title": "Text verschieben",
+      "titleKeyWord": "Schlüsselwort verschieben",
+      "pad": "Pfeile zum Verschieben",
+      "up": "Nach oben",
+      "down": "Nach unten",
+      "left": "Nach links",
+      "right": "Nach rechts",
+      "reset": "Zurück an seinen Platz",
+      "layer": "Ebene",
+      "front": "Nach vorne",
+      "back": "Nach hinten",
+      "everyBlock": "Auf alle Blöcke anwenden",
+      "everyBlockHint": "Dieser Text bewegt sich im ganzen Video gleich.",
+      "everyBlockApart": "Dieser Block ist ausgenommen: Er folgt den anderen nicht.",
+      "apart": "Diesen Block ausnehmen",
+      "apartHint": "Er folgt nicht den Verschiebungen für alle Blöcke.",
+      "done": "Fertig"
     }
   }
 }

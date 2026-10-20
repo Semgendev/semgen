@@ -305,6 +305,26 @@
       "code": "Renk kodu",
       "invalid": "Geçersiz kod. Örnek: #FF8800 veya FF8800",
       "validate": "Onayla"
+    },
+    "move": {
+      "hint": "Taşımak için videodaki bir metne dokun.",
+      "title": "Metni taşı",
+      "titleKeyWord": "Anahtar kelimeyi taşı",
+      "pad": "Taşıma okları",
+      "up": "Yukarı",
+      "down": "Aşağı",
+      "left": "Sola",
+      "right": "Sağa",
+      "reset": "Yerine geri koy",
+      "layer": "Katman",
+      "front": "Öne getir",
+      "back": "Arkaya gönder",
+      "everyBlock": "Tüm bloklara uygula",
+      "everyBlockHint": "Bu metin tüm videoda aynı şekilde taşınır.",
+      "everyBlockApart": "Bu blok ayrı tutuluyor: diğerlerini izlemez.",
+      "apart": "Bu bloğu ayrı tut",
+      "apartHint": "Tüm bloklara uygulanan taşımaları izlemez.",
+      "done": "Bitti"
     }
   }
 }

@@ -305,6 +305,26 @@
       "code": "Código da cor",
       "invalid": "Código inválido. Exemplo: #FF8800 ou FF8800",
       "validate": "Confirmar"
+    },
+    "move": {
+      "hint": "Toque num texto no vídeo para movê-lo.",
+      "title": "Mover o texto",
+      "titleKeyWord": "Mover a palavra-chave",
+      "pad": "Setas de movimento",
+      "up": "Subir",
+      "down": "Descer",
+      "left": "Para a esquerda",
+      "right": "Para a direita",
+      "reset": "Voltar ao lugar",
+      "layer": "Camada",
+      "front": "Trazer para a frente",
+      "back": "Enviar para trás",
+      "everyBlock": "Aplicar a todos os blocos",
+      "everyBlockHint": "Este texto se move igual no vídeo inteiro.",
+      "everyBlockApart": "Este bloco está à parte: não segue os outros.",
+      "apart": "Manter este bloco à parte",
+      "apartHint": "Ele não segue os movimentos aplicados a todos os blocos.",
+      "done": "Pronto"
     }
   }
 }

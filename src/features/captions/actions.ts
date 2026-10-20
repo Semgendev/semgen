@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSessionUserId } from "@/lib/supabase/session";
 
 import { captionColorsSchema } from "./colors";
+import { captionMovesSchema } from "./moves";
 import { PRESET_IDS } from "./presets";
 import { captionTweaksSchema } from "./tweaks";
 import type { ProjectCaptionStyle } from "./project-style";
@@ -16,6 +17,7 @@ const inputSchema = z.object({
   preset: z.enum(PRESET_IDS),
   colors: captionColorsSchema.optional(),
   tweaks: captionTweaksSchema.optional(),
+  moves: captionMovesSchema.optional(),
 });
 
 export type SetCaptionStyleResult =
@@ -27,8 +29,9 @@ export async function setCaptionStyle(
   preset: string,
   colors?: unknown,
   tweaks?: unknown,
+  moves?: unknown,
 ): Promise<SetCaptionStyleResult> {
-  const parsed = inputSchema.safeParse({ projectId, preset, colors, tweaks });
+  const parsed = inputSchema.safeParse({ projectId, preset, colors, tweaks, moves });
   if (!parsed.success) return { ok: false, code: "invalid" };
 
   const supabase = await createSupabaseServerClient();
@@ -39,6 +42,7 @@ export async function setCaptionStyle(
     preset: parsed.data.preset,
     colors: parsed.data.colors,
     tweaks: parsed.data.tweaks,
+    moves: parsed.data.moves,
   };
   // The `user_id` filter is the ownership check: another user's project matches no row.
   const { data, error } = await createSupabaseAdminClient()

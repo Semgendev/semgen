@@ -305,6 +305,26 @@
       "code": "Code couleur",
       "invalid": "Code non valide. Exemple : #FF8800 ou FF8800",
       "validate": "Valider"
+    },
+    "move": {
+      "hint": "Touche un texte sur la vidéo pour le déplacer.",
+      "title": "Déplacer le texte",
+      "titleKeyWord": "Déplacer le mot fort",
+      "pad": "Flèches de déplacement",
+      "up": "Monter",
+      "down": "Descendre",
+      "left": "Vers la gauche",
+      "right": "Vers la droite",
+      "reset": "Remettre à sa place",
+      "layer": "Superposition",
+      "front": "Mettre devant",
+      "back": "Mettre derrière",
+      "everyBlock": "Appliquer à tous les blocs",
+      "everyBlockHint": "Ce texte bouge pareil dans toute la vidéo.",
+      "everyBlockApart": "Ce bloc est gardé à part : il ne suit pas les autres.",
+      "apart": "Garder ce bloc à part",
+      "apartHint": "Il ne suit pas les déplacements appliqués à tous les blocs.",
+      "done": "Terminé"
     }
   }
 }

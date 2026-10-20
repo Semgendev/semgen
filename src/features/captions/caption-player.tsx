@@ -6,9 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { MIN_TIME_STEP_MS, usePlayerBridge, type PlayerController } from "../projects/player";
-import { useCaptionWords } from "./caption-words";
-import { paginate } from "./paginate";
-import { CaptionedVideo, type CaptionedVideoProps } from "./remotion/captioned-video";
+import type { StyleMoves } from "./moves";
+import type { CaptionPage } from "./paginate";
+import {
+  CaptionedVideo,
+  type CaptionedVideoProps,
+  type CaptionEditor,
+} from "./remotion/captioned-video";
 import type { CaptionStyle } from "./style";
 
 // 60 images per second in the preview: half the steps between two frames, so motion looks smooth.
@@ -47,20 +51,17 @@ function useVideoMeta(src: string): VideoMeta | null {
 export function CaptionPlayer({
   src,
   style,
-  presetId,
+  pages,
+  moves,
+  editor,
 }: {
   src: string;
   style: CaptionStyle;
-  // the cuts made by hand for this style apply
-  presetId: string;
+  pages: CaptionPage[];
+  // texts moved by hand, and touching / dragging them on the video
+  moves?: StyleMoves;
+  editor?: CaptionEditor;
 }) {
-  const words = useCaptionWords();
-  // only these settings change the cuts: moving a colour slider does not cut the text again
-  const { layout, grouping, maxWordsPerPage, maxCharsPerLine } = style;
-  const pages = useMemo(
-    () => paginate(words, { layout, grouping, maxWordsPerPage, maxCharsPerLine }, presetId),
-    [words, layout, grouping, maxWordsPerPage, maxCharsPerLine, presetId],
-  );
   const meta = useVideoMeta(src);
   const player = useRef<PlayerRef>(null);
   const lastMs = useRef(-1);
@@ -94,9 +95,21 @@ export function CaptionPlayer({
     return () => current.removeEventListener("frameupdate", onFrame);
   }, [meta, setTimeMs]);
 
+  // touching a text pauses the video: the text stays on screen while it is moved
+  const pausingEditor = useMemo<CaptionEditor | undefined>(
+    () =>
+      editor && {
+        ...editor,
+        onPick: (key, element) => {
+          player.current?.pause();
+          editor.onPick(key, element);
+        },
+      },
+    [editor],
+  );
   const inputProps = useMemo<CaptionedVideoProps>(
-    () => ({ videoSrc: src, pages, style }),
-    [src, pages, style],
+    () => ({ videoSrc: src, pages, style, moves, editor: pausingEditor }),
+    [src, pages, style, moves, pausingEditor],
   );
 
   if (!meta) return <Skeleton className="mx-auto aspect-[9/16] max-h-[75vh] w-full max-w-sm" />;
@@ -123,7 +136,8 @@ export function CaptionPlayer({
           // video controls and timeline stay left to right, also on Arabic pages
           direction: "ltr",
           width: "100%",
-          maxWidth: `calc((100dvh - 15rem) * ${meta.width / meta.height})`,
+          // --player-room: height kept for the rest of the page (more on a phone while a text is moved)
+          maxWidth: `calc((100dvh - var(--player-room, 15rem)) * ${meta.width / meta.height})`,
           aspectRatio: `${meta.width} / ${meta.height}`,
         }}
       />

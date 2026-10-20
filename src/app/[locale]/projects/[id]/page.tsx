@@ -78,6 +78,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
             initialPreset={resolveCaptionStyle(project.caption_style).presetId}
             initialColors={resolveCaptionStyle(project.caption_style).colors}
             initialTweaks={resolveCaptionStyle(project.caption_style).tweaks}
+            initialMoves={resolveCaptionStyle(project.caption_style).moves}
             initialCustomColors={customColors}
             titleSlot={title}
             transcriptionSlot={transcription}

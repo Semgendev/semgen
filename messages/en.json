@@ -305,6 +305,26 @@
       "code": "Colour code",
       "invalid": "Not a valid code. Example: #FF8800 or FF8800",
       "validate": "Confirm"
+    },
+    "move": {
+      "hint": "Tap a text on the video to move it.",
+      "title": "Move the text",
+      "titleKeyWord": "Move the key word",
+      "pad": "Move arrows",
+      "up": "Up",
+      "down": "Down",
+      "left": "Left",
+      "right": "Right",
+      "reset": "Put back in place",
+      "layer": "Layer",
+      "front": "Bring to front",
+      "back": "Send to back",
+      "everyBlock": "Apply to every block",
+      "everyBlockHint": "This text moves the same way in the whole video.",
+      "everyBlockApart": "This block is kept apart: it does not follow the others.",
+      "apart": "Keep this block apart",
+      "apartHint": "It does not follow the moves applied to every block.",
+      "done": "Done"
     }
   }
 }

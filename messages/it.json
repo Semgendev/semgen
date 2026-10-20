@@ -305,6 +305,26 @@
       "code": "Codice colore",
       "invalid": "Codice non valido. Esempio: #FF8800 o FF8800",
       "validate": "Conferma"
+    },
+    "move": {
+      "hint": "Tocca un testo nel video per spostarlo.",
+      "title": "Sposta il testo",
+      "titleKeyWord": "Sposta la parola chiave",
+      "pad": "Frecce di spostamento",
+      "up": "Su",
+      "down": "Giù",
+      "left": "A sinistra",
+      "right": "A destra",
+      "reset": "Rimetti al suo posto",
+      "layer": "Livello",
+      "front": "Porta in primo piano",
+      "back": "Porta dietro",
+      "everyBlock": "Applica a tutti i blocchi",
+      "everyBlockHint": "Questo testo si sposta allo stesso modo in tutto il video.",
+      "everyBlockApart": "Questo blocco è tenuto a parte: non segue gli altri.",
+      "apart": "Tieni questo blocco a parte",
+      "apartHint": "Non segue gli spostamenti applicati a tutti i blocchi.",
+      "done": "Fatto"
     }
   }
 }

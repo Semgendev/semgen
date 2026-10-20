@@ -305,6 +305,26 @@
       "code": "Msimbo wa rangi",
       "invalid": "Msimbo si sahihi. Mfano: #FF8800 au FF8800",
       "validate": "Thibitisha"
+    },
+    "move": {
+      "hint": "Gusa maandishi kwenye video ili kuyahamisha.",
+      "title": "Hamisha maandishi",
+      "titleKeyWord": "Hamisha neno kuu",
+      "pad": "Mishale ya kuhamisha",
+      "up": "Juu",
+      "down": "Chini",
+      "left": "Kushoto",
+      "right": "Kulia",
+      "reset": "Rudisha mahali pake",
+      "layer": "Tabaka",
+      "front": "Weka mbele",
+      "back": "Weka nyuma",
+      "everyBlock": "Tumia kwa vipande vyote",
+      "everyBlockHint": "Maandishi haya yanahamia vivyo hivyo kwenye video nzima.",
+      "everyBlockApart": "Kipande hiki kimewekwa kando: hakifuati vingine.",
+      "apart": "Weka kipande hiki kando",
+      "apartHint": "Hakifuati mihamisho iliyotumika kwa vipande vyote.",
+      "done": "Imekamilika"
     }
   }
 }
