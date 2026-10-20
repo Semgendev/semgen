@@ -1,8 +1,8 @@
 "use client";
 
-import { CornerDownLeft, ReplaceAll, Search, Trash2, X } from "lucide-react";
+import { CornerDownLeft, Search, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,81 +126,101 @@ export function WordActions({
   );
 }
 
-type SearchBarProps = {
+type SearchToolProps = {
   find: string;
   onFind: (value: string) => void;
   matchCount: number;
-
-  onToggleReplace: () => void;
   onNext: () => void;
 };
 
-// Search only finds a word and jumps to it. Replacing is a separate tool (the icon on the right).
-export function SearchBar({
-  find,
-  onFind,
-  matchCount,
-
-  onToggleReplace,
-  onNext,
-}: SearchBarProps) {
+// Search only finds a word and jumps to it. It is an icon: the field opens in front of the lines
+// (nothing around it moves) and closes with Escape or a tap elsewhere. Replacing is a separate tool.
+export function SearchTool({ find, onFind, matchCount, onNext }: SearchToolProps) {
   const t = useTranslations("transcription.edit");
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function away(event: PointerEvent) {
+      if (event.target instanceof Node && !wrap.current?.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [open]);
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2">
-      <div className="relative min-w-40 flex-1">
-        <Search
-          className="text-text-3 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
-          aria-hidden="true"
-        />
-        <Input
-          type="search"
-          value={find}
-          placeholder={t("searchPlaceholder")}
-          aria-label={t("searchLabel")}
-          autoComplete="off"
-          className="min-h-11 ps-9 pe-24"
-          onChange={(event) => onFind(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onNext();
-            } else if (event.key === "Escape") {
-              onFind("");
-            }
-          }}
-        />
-        {find ? (
-          <span
-            className="text-text-2 absolute end-9 top-1/2 -translate-y-1/2 text-xs"
-            aria-live="polite"
-          >
-            {t("matches", { count: matchCount })}
-          </span>
-        ) : null}
-        {find ? (
-          <button
-            type="button"
-            aria-label={t("clearSearch")}
-            onClick={() => onFind("")}
-            className="text-text-2 hover:text-text absolute end-2 top-1/2 -translate-y-1/2 rounded p-1"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
+    <div
+      ref={wrap}
+      className="relative"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          setOpen(false);
+          button.current?.focus();
+        }
+      }}
+    >
       <Button
+        ref={button}
         type="button"
-        variant="outline"
+        variant="ghost"
         size="icon"
-        className="size-11 shrink-0 rounded-lg"
-        aria-haspopup="dialog"
-        aria-label={t("replaceToggleHint")}
-        title={t("replaceToggleHint")}
-        onClick={onToggleReplace}
+        className={cn("size-11", (open || find) && "bg-surface-2 text-brand")}
+        aria-expanded={open}
+        aria-label={t("searchLabel")}
+        title={t("searchLabel")}
+        onClick={() => setOpen((value) => !value)}
       >
-        <ReplaceAll className="size-5" aria-hidden="true" />
+        <Search aria-hidden="true" />
       </Button>
+      {open ? (
+        <div
+          role="search"
+          className="bg-surface border-border absolute end-0 top-full z-30 mt-1 w-[min(18rem,calc(100vw-2rem))] rounded-xl border p-2 shadow-lg"
+        >
+          <div className="relative">
+            <Search
+              className="text-text-3 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              autoFocus
+              value={find}
+              placeholder={t("searchPlaceholder")}
+              aria-label={t("searchLabel")}
+              autoComplete="off"
+              className="min-h-10 ps-9 pe-20"
+              onChange={(event) => onFind(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  onNext();
+                }
+              }}
+            />
+            {find ? (
+              <span
+                className="text-text-2 absolute end-9 top-1/2 -translate-y-1/2 text-xs"
+                aria-live="polite"
+              >
+                {t("matches", { count: matchCount })}
+              </span>
+            ) : null}
+            {find ? (
+              <button
+                type="button"
+                aria-label={t("clearSearch")}
+                onClick={() => onFind("")}
+                className="text-text-2 hover:text-text absolute end-2 top-1/2 -translate-y-1/2 rounded p-1"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

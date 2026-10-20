@@ -7,6 +7,7 @@ import {
   Download,
   Loader2,
   Merge,
+  ReplaceAll,
   Redo2,
   RotateCcw,
   Scissors,
@@ -55,7 +56,7 @@ import {
   restoreCuts,
 } from "./cuts";
 import { deleteWord, editWord, findMatchIndices, replaceAll, type TranscriptDraft } from "./edit";
-import { InlineWordEditor, SearchBar, WordActions } from "./edit-panels";
+import { InlineWordEditor, SearchTool, WordActions } from "./edit-panels";
 import { ReplacePanel, type PanelPosition } from "./replace-panel";
 import type { Transcript } from "./queries";
 import type { TranscriptWord } from "./types";
@@ -420,15 +421,20 @@ export function TranscriptView({
     return result.count;
   }
 
-  // Opens the floating replace panel right where the text starts (below the save status).
+  // Opens the floating replace panel in the top right corner of the lines, every time (it can be
+  // dragged away, but it comes back there when opened again).
   function toggleReplace() {
     if (replaceOpen) {
       setReplaceOpen(false);
       return;
     }
     const rect = container.current?.getBoundingClientRect();
+    const width = Math.min(320, window.innerWidth - 16);
     setReplacePosition({
-      x: Math.max(8, Math.min((rect?.left ?? 16) + 16, window.innerWidth - 328)),
+      x: Math.max(
+        8,
+        Math.min((rect?.right ?? window.innerWidth) - width - 12, window.innerWidth - width - 8),
+      ),
       y: Math.max(8, Math.min((rect?.top ?? 120) + 8, window.innerHeight - 340)),
     });
     setReplaceOpen(true);
@@ -642,60 +648,9 @@ export function TranscriptView({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchBar
-          find={find}
-          onFind={changeFind}
-          matchCount={matchIndices.length}
-          onToggleReplace={toggleReplace}
-          onNext={nextMatch}
-        />
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-11"
-            aria-label={t("edit.undo")}
-            title={t("edit.undo")}
-            disabled={history.past.length === 0}
-            onClick={undo}
-          >
-            <Undo2 aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-11"
-            aria-label={t("edit.redo")}
-            title={t("edit.redo")}
-            disabled={history.future.length === 0}
-            onClick={redo}
-          >
-            <Redo2 aria-hidden="true" />
-          </Button>
-        </div>
-      </div>
-
-      {replaceOpen ? (
-        <ReplacePanel
-          initialPosition={replacePosition}
-          find={replaceFind}
-          onFind={setReplaceFind}
-          replacement={replaceWith}
-          onReplacement={setReplaceWith}
-          matchCount={replaceMatches.length}
-          onReplaceAll={replaceEverywhere}
-          onClose={() => setReplaceOpen(false)}
-        />
-      ) : null}
-
-      {/* One row under the search bar: the quick help (always there) and, beside it, the save status or
-          notice. It always keeps its height, so the text below never jumps. */}
-      <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="text-text-3 min-w-0 flex-1 basis-64 text-xs leading-5">{t("edit.hint")}</p>
-        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+      {/* The tools row: the save status at the start, the tools at the end (they never move). */}
+      <div className="flex min-h-11 items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
           {saveState === "error" ? (
             <p className="text-danger flex items-center gap-2 text-sm">
               <CircleAlert className="size-4" aria-hidden="true" />
@@ -722,6 +677,69 @@ export function TranscriptView({
             </p>
           ) : null}
         </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <SearchTool
+            find={find}
+            onFind={changeFind}
+            matchCount={matchIndices.length}
+            onNext={nextMatch}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-11"
+            aria-label={t("edit.undo")}
+            title={t("edit.undo")}
+            disabled={history.past.length === 0}
+            onClick={undo}
+          >
+            <Undo2 aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-11"
+            aria-label={t("edit.redo")}
+            title={t("edit.redo")}
+            disabled={history.future.length === 0}
+            onClick={redo}
+          >
+            <Redo2 aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn("size-11", replaceOpen && "bg-surface-2 text-brand")}
+            aria-haspopup="dialog"
+            aria-expanded={replaceOpen}
+            aria-label={t("edit.replaceToggleHint")}
+            title={t("edit.replaceToggleHint")}
+            onClick={toggleReplace}
+          >
+            <ReplaceAll aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+
+      {replaceOpen ? (
+        <ReplacePanel
+          initialPosition={replacePosition}
+          find={replaceFind}
+          onFind={setReplaceFind}
+          replacement={replaceWith}
+          onReplacement={setReplaceWith}
+          matchCount={replaceMatches.length}
+          onReplaceAll={replaceEverywhere}
+          onClose={() => setReplaceOpen(false)}
+        />
+      ) : null}
+
+      {/* The quick help (always there) and, at the end, the cuts and doubts tools. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-text-3 min-w-0 flex-1 basis-64 text-sm leading-5">{t("edit.hint")}</p>
         {hiddenCuts > 0 ? (
           <Button type="button" variant="outline" size="sm" onClick={bringBackCuts}>
             <Scissors aria-hidden="true" />

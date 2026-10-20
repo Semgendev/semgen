@@ -125,9 +125,15 @@ describe("TranscriptView", () => {
     expect(await screen.findByText("Saved", {}, { timeout: 3000 })).toBeInTheDocument();
   });
 
+  // The search is an icon: the field opens in front of the lines when it is tapped.
+  async function openSearch() {
+    await userEvent.click(screen.getByRole("button", { name: "Search for a word" }));
+    return screen.getByRole("searchbox", { name: "Search for a word" });
+  }
+
   it("highlights search results and shows the count", async () => {
     renderView();
-    await userEvent.type(screen.getByRole("searchbox", { name: "Search for a word" }), "all");
+    await userEvent.type(await openSearch(), "all");
     expect(screen.getByText("1 result")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Allez" }).className).toContain("bg-spark");
   });
@@ -159,13 +165,14 @@ describe("TranscriptView", () => {
 
   it("closes the replace panel with the cross and keeps the search bar independent", async () => {
     renderView();
-    await userEvent.type(screen.getByRole("searchbox", { name: "Search for a word" }), "allez");
+    await userEvent.type(await openSearch(), "allez");
     await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));
     // The replace panel starts empty: it does not reuse what is typed in the search bar.
     expect(screen.getByRole("textbox", { name: "Find a word" })).toHaveValue("");
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("textbox", { name: "Find a word" })).not.toBeInTheDocument();
-    expect(screen.getByRole("searchbox", { name: "Search for a word" })).toHaveValue("allez");
+    // the search field closed when the replace panel was used; its word is still there
+    expect(await openSearch()).toHaveValue("allez");
   });
 
   it("keeps the typed words when the panel is closed without replacing", async () => {
@@ -207,7 +214,7 @@ describe("TranscriptView", () => {
     expect(play).toHaveBeenCalledTimes(1);
 
     // Typing in the search field must not toggle the video.
-    await userEvent.click(screen.getByRole("searchbox", { name: "Search for a word" }));
+    await userEvent.click(await openSearch());
     await userEvent.keyboard("a b{Enter}");
     expect(play).toHaveBeenCalledTimes(1);
     expect(pause).not.toHaveBeenCalled();
