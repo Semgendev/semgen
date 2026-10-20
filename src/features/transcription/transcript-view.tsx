@@ -596,7 +596,7 @@ export function TranscriptView({
   const baseName = title.replace(/[^\p{L}\p{N}_-]+/gu, "_").slice(0, 60) || "transcript";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted-foreground text-sm">
           {t("detectedLanguage", { language: languageName ?? transcript.language })}
@@ -744,7 +744,7 @@ export function TranscriptView({
       <div
         ref={container}
         // Extra room on top and between lines: the icons above a word never hide the line above it.
-        className="bg-card relative flex max-h-[60vh] flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-xl border p-4 pt-9"
+        className="bg-card relative flex max-h-[60vh] min-h-0 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border p-4 pt-9 lg:max-h-none lg:flex-1"
       >
         {lineList}
       </div>

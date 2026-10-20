@@ -403,7 +403,7 @@ export function CaptionStudio({
           {transcriptionSlot ? (
             <div
               hidden={tab !== "transcription" || picked !== null}
-              className="min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 [&:not([hidden])]:flex"
+              className="min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 lg:overflow-hidden [&:not([hidden])]:flex"
             >
               {transcriptionSlot}
             </div>
