@@ -140,8 +140,8 @@ type SearchToolProps = {
 
 // Search only finds a word and jumps to it. It is an icon: tapping it makes the field grow out of
 // the icon towards the start of the row (the other tools stay where they are), tapping it again
-// folds the field back. The words typed stay while it is folded, but touching a word of the text
-// folds it and empties it (see the transcript view).
+// folds the field back, and so does touching anything else. The words typed stay while it is
+// folded, but touching a word of the text also empties them (see the transcript view).
 // Replacing is a separate tool.
 export function SearchTool({
   find,
@@ -156,9 +156,10 @@ export function SearchTool({
   const field = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLDivElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
 
-  // Open, the field spans from the start of the tools row (the same edge as the line of buttons
-  // above) to the icon. The width is set on the element itself (no render), and follows the row.
+  // Open, the field starts where the line of buttons above starts (the first of them) and ends at
+  // the icon. The width is set on the element itself (no render), and follows the row.
   useEffect(() => {
     const element = box.current;
     const row = element?.closest<HTMLElement>("[data-tools-row]");
@@ -169,13 +170,19 @@ export function SearchTool({
         element.style.width = "0px";
         return;
       }
+      const anchor = row.parentElement?.querySelector<HTMLElement>("[data-tools-anchor]");
       const edge = element.getBoundingClientRect();
       const bounds = row.getBoundingClientRect();
-      const rtl = getComputedStyle(row).direction === "rtl";
-      // minus the gap left of the tools and 3px of border and padding around the icon
+      const start = anchor?.getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-      const room = rtl ? bounds.right - edge.left : edge.right - bounds.left;
-      element.style.width = `${Math.max(0, Math.round(room - gap) - 3)}px`;
+      const rtl = getComputedStyle(row).direction === "rtl";
+      // never past the start of the row (the status keeps at least the gap)
+      const room = rtl
+        ? Math.min(start?.right ?? bounds.right, bounds.right - gap)
+        : Math.max(start?.left ?? bounds.left, bounds.left + gap);
+      const width = rtl ? room - edge.left : edge.right - room;
+      // minus 3px: the border and padding of the frame around the icon
+      element.style.width = `${Math.max(0, Math.round(width) - 3)}px`;
     }
     fit();
     if (!open || typeof ResizeObserver === "undefined") return;
@@ -184,6 +191,19 @@ export function SearchTool({
     return () => observer.disconnect();
   }, [open]);
 
+  // Touching anything else (the lines, the video, its bar, another tool) folds the field. The
+  // words typed stay: the results stay marked while the video plays.
+  useEffect(() => {
+    if (!open) return;
+    function away(event: PointerEvent) {
+      if (event.target instanceof Node && !wrap.current?.contains(event.target)) {
+        onOpenChange(false);
+      }
+    }
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [open, onOpenChange]);
+
   // the field takes the focus once it is no longer inert
   useEffect(() => {
     if (open) field.current?.focus({ preventScroll: true });
@@ -191,6 +211,7 @@ export function SearchTool({
 
   return (
     <div
+      ref={wrap}
       className="flex min-w-0 items-center"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {

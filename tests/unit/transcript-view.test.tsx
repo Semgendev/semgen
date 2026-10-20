@@ -178,6 +178,26 @@ describe("TranscriptView", () => {
     expect(screen.getByRole("searchbox", { name: "Search for a word" })).toHaveValue("");
   });
 
+  it("folds the search when anything else is touched, and keeps the typed word", async () => {
+    renderView();
+    await userEvent.type(await openSearch(), "all");
+    await userEvent.click(document.body);
+    expect(
+      screen.getByRole("button", { name: "Search for a word", expanded: false }),
+    ).toBeInTheDocument();
+    expect(await openSearch()).toHaveValue("all");
+  });
+
+  it("folds the search when the replace window opens", async () => {
+    renderView();
+    await openSearch();
+    await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));
+    expect(screen.getByRole("textbox", { name: "Find a word" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Search for a word", expanded: false }),
+    ).toBeInTheDocument();
+  });
+
   it("closes the replace panel with the cross and keeps the search bar independent", async () => {
     renderView();
     await userEvent.type(await openSearch(), "allez");

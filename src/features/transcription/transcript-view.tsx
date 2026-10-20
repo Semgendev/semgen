@@ -454,6 +454,7 @@ export function TranscriptView({
       setReplaceOpen(false);
       return;
     }
+    setSearchOpen(false);
     const rect = container.current?.getBoundingClientRect();
     const width = Math.min(320, window.innerWidth - 16);
     setReplacePosition({
@@ -636,7 +637,7 @@ export function TranscriptView({
             ? ` · ${Math.round(transcript.language_confidence * 100)} %`
             : ""}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div data-tools-anchor className="flex flex-wrap gap-2">
           {isEdited ? (
             <Button
               type="button"
