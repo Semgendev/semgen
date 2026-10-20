@@ -28,6 +28,8 @@ import { applyColors, type CaptionColors } from "./colors";
 import { MovePanel } from "./move-panel";
 import {
   blockKey,
+  dropBlocks,
+  lostBlockKeys,
   hasSharedMoves,
   isApart,
   lineElements,
@@ -268,6 +270,9 @@ export function CaptionStudio({
     [words, layout, grouping, maxWordsPerPage, maxCharsPerLine, preset],
   );
   const styleMoves = moves[preset];
+  // moves left behind by a change of the text (kept until the user has seen the notice: undo
+  // brings the block, and its move, back)
+  const lostKeys = useMemo(() => lostBlockKeys(styleMoves, pages), [styleMoves, pages]);
 
   // the latest moves of this style (arrows held down move faster than the screen is redrawn)
   function freshMoves(): StyleMoves | undefined {
@@ -451,6 +456,21 @@ export function CaptionStudio({
         <div className="w-full shrink-0">{titleSlot}</div>
         <CaptionPlayer src={src} style={current} pages={pages} moves={styleMoves} editor={editor} />
         {/* keeps its room while a text is moved: the video does not jump */}
+        {lostKeys.length > 0 ? (
+          <div
+            role="status"
+            className="bg-surface-2 text-text-2 flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-xs"
+          >
+            <p>{t("move.lost", { count: lostKeys.length })}</p>
+            <button
+              type="button"
+              onClick={() => updateMoves(dropBlocks(freshMoves(), lostKeys), 0)}
+              className="text-brand focus-visible:ring-brand min-h-11 shrink-0 rounded px-2 font-medium focus-visible:ring-2 focus-visible:outline-none"
+            >
+              {t("move.lostOk")}
+            </button>
+          </div>
+        ) : null}
         {words.length > 0 ? (
           <p
             aria-hidden={picked ? true : undefined}

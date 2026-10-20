@@ -214,6 +214,29 @@ export function hasMoves(moves: StyleMoves | undefined): boolean {
   return Boolean(moves && (moves.all || moves.blocks));
 }
 
+// The blocks that have a move of their own but are no longer on the video (a cut added or taken
+// away, or the first word of the block deleted, changes the key of a block).
+export function lostBlockKeys(
+  moves: StyleMoves | undefined,
+  pages: { words: { start: number }[] }[],
+): string[] {
+  const saved = Object.keys(moves?.blocks ?? {});
+  if (saved.length === 0) return saved;
+  const present = new Set(pages.map(blockKey));
+  return saved.filter((key) => !present.has(key));
+}
+
+// The moves without the given blocks (a "kept apart" choice on a lost block goes with it).
+export function dropBlocks(moves: StyleMoves | undefined, keys: string[]): StyleMoves {
+  const base = moves ?? {};
+  if (!base.blocks) return base;
+  const blocks = { ...base.blocks };
+  for (const key of keys) delete blocks[key];
+  const next: StyleMoves = { ...base, blocks };
+  if (Object.keys(blocks).length === 0) delete next.blocks;
+  return next;
+}
+
 // The moves of one style replaced in the moves of every style (an empty one is dropped).
 export function withStyleMoves(
   all: CaptionMoves,

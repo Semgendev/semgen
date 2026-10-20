@@ -323,6 +323,8 @@
       "everyBlockHint": "Dieser Text bewegt sich im ganzen Video gleich.",
       "everyBlockApart": "Dieser Block ist ausgenommen: Er folgt den anderen nicht.",
       "apart": "Diesen Block ausnehmen",
+      "lost": "{count, plural, one {Ein verschobener Text ist an seinen ursprünglichen Platz zurückgekehrt.} other {# verschobene Texte sind an ihren ursprünglichen Platz zurückgekehrt.}}",
+      "lostOk": "OK",
       "apartHint": "Er folgt nicht den Verschiebungen für alle Blöcke.",
       "done": "Fertig"
     }

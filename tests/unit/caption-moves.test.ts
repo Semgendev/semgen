@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   blockKey,
   captionMovesSchema,
+  dropBlocks,
   hasSharedMoves,
   isApart,
   layerIndex,
   lineElements,
+  lostBlockKeys,
   MOVE_LIMIT_PCT,
   placementOf,
   resetElement,
@@ -152,5 +154,32 @@ describe("safety", () => {
     const known = shiftElement(full, { key: "5", element: "line-0", everyBlock: false }, 1, 1);
     expect(placementOf(known, "5", "line-0")).toMatchObject({ x: 1, y: 1 });
     expect(captionMovesSchema.safeParse({ cinema: known }).success).toBe(true);
+  });
+});
+
+describe("moves left behind by a change of the text", () => {
+  const page = (start: number) => ({ words: [{ start }] });
+  const moved = shiftElement(
+    shiftElement(undefined, thisBlock, 3, 0),
+    { key: "5000", element: "line-0", everyBlock: false },
+    0,
+    2,
+  );
+
+  it("finds nothing while every moved block is still on the video", () => {
+    expect(lostBlockKeys(moved, [page(1200), page(5000)])).toEqual([]);
+    expect(lostBlockKeys(undefined, [page(1200)])).toEqual([]);
+  });
+
+  it("finds a moved block whose first word is gone, never a block that was not moved", () => {
+    expect(lostBlockKeys(moved, [page(1300), page(5000), page(7000)])).toEqual(["1200"]);
+  });
+
+  it("drops only the lost blocks, and the moves for every block stay", () => {
+    const withShared = shiftElement(moved, everyBlock, 0, 1);
+    const kept = dropBlocks(withShared, ["1200"]);
+    expect(placementOf(kept, "1200", "line-0")).toEqual({ x: 0, y: 1, layer: undefined });
+    expect(placementOf(kept, "5000", "line-0")).toEqual({ x: 0, y: 3, layer: undefined });
+    expect(Object.keys(dropBlocks(moved, ["1200", "5000"])).includes("blocks")).toBe(false);
   });
 });

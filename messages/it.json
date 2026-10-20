@@ -323,6 +323,8 @@
       "everyBlockHint": "Questo testo si sposta allo stesso modo in tutto il video.",
       "everyBlockApart": "Questo blocco è tenuto a parte: non segue gli altri.",
       "apart": "Tieni questo blocco a parte",
+      "lost": "{count, plural, one {Un testo spostato è tornato al suo posto originale.} other {# testi spostati sono tornati al loro posto originale.}}",
+      "lostOk": "OK",
       "apartHint": "Non segue gli spostamenti applicati a tutti i blocchi.",
       "done": "Fatto"
     }

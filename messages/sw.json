@@ -323,6 +323,8 @@
       "everyBlockHint": "Maandishi haya yanahamia vivyo hivyo kwenye video nzima.",
       "everyBlockApart": "Kipande hiki kimewekwa kando: hakifuati vingine.",
       "apart": "Weka kipande hiki kando",
+      "lost": "{count, plural, one {Maandishi moja yaliyohamishwa yamerudi mahali pake pa awali.} other {Maandishi # yaliyohamishwa yamerudi mahali pake pa awali.}}",
+      "lostOk": "Sawa",
       "apartHint": "Hakifuati mihamisho iliyotumika kwa vipande vyote.",
       "done": "Imekamilika"
     }

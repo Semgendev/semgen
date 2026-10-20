@@ -14,7 +14,7 @@
 - **Tests :** 265 unitaires verts (2026-10-20) ; intégration (base dev) 34 verts ; E2E pas relancés (arrêter `npm run dev` avant).
 
 ## Pour reprendre (ordre)
-0. **Lot B (déplacer les textes) NON COMMITÉ** : lancer `npm run lint && npm run typecheck && npx vitest run tests/unit`, puis commit `feat(captions): move texts by hand on the video` (pas de push sans accord).
+0. Lot B commité (`c6db7f9`) + avertissement « déplacement perdu » commité ; pas encore poussé sur GitHub (accord d’Ashanti).
 1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).
 2. **Ashanti regarde les 9 styles** sur http://localhost:3000/fr/dev/animations (sa vidéo en fond) et sur une vraie page projet ; il choisit parmi les 8 nouvelles propositions de la planche.
 3. **Ensuite (Opus pour la direction artistique, Sonnet pour la série)** : coder les propositions retenues (moteur à étendre : dégradé animé, lettres en cascade, pastille de verre, remplissage de bas en haut, relief, écho), puis galerie vivante. Reste : test alphabet hindi (arabe fait), correction des fautes par l’IA (Claude Haiku, compte Anthropic à créer).
@@ -94,7 +94,7 @@
 | 2026-10-19 | Vérifié moi-même en captures image par image (Playwright sur `/dev/animations`) : petites phrases des styles empilés sur 2 lignes, plus de mot de fin seul (« Salut, je viendrai » / « chez toi demain ! »), Convergence tenue dans la zone, carrousel aussi dans le labo, lueur + coche du style choisi corrigées, aperçu masqué aux lecteurs d’écran | ✅ 154 tests verts |
 
 ## Problèmes ouverts
-- **Déplacements** : rattachés au début du 1er mot du bloc → une coupe ajoutée/retirée ou la suppression de ce mot peut détacher le déplacement (le texte revient à sa place) ; décision d’Ashanti attendue (accepter / prévenir). Export T4.4 : passer aussi `moves`. Idées en attente : « Reprendre mes couleurs du style précédent », liste des blocs avec timecode, style propre à un bloc (phase 2).
+- **Déplacements** : rattachés au début du 1er mot du bloc → une coupe ajoutée/retirée ou la suppression de ce mot détache le déplacement. **Décision d’Ashanti (2026-10-20) : prévenir.** Fait : message sous la vidéo « Un texte déplacé est revenu à sa place d’origine » + bouton OK (efface les déplacements perdus ; annuler dans l’éditeur les ramène tant qu’on n’a pas cliqué OK). Pas encore vu à l’œil sur une vraie page. Export T4.4 : passer aussi `moves`. Idées en attente : « Reprendre mes couleurs du style précédent », liste des blocs avec timecode, style propre à un bloc (phase 2).
 - **Export Lambda (T4.4)** : appeler `paginate(words, style, presetId)` avec le style choisi, sinon l’export ignore les coupes à la main.
 - Onglet Transcription sur mobile : boutons Copier / SRT / TXT / Revenir… sous 44 px de haut et champ « Rechercher » trop étroit (≈ 4 lettres) — à reprendre (Sonnet).
 - Console en dev : `Date.now()` pendant le prérendu dans `UserNav`, avertissement d’hydratation, 2 ressources 404 — à vérifier en build de production.

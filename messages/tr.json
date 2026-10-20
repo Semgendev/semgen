@@ -323,6 +323,8 @@
       "everyBlockHint": "Bu metin tüm videoda aynı şekilde taşınır.",
       "everyBlockApart": "Bu blok ayrı tutuluyor: diğerlerini izlemez.",
       "apart": "Bu bloğu ayrı tut",
+      "lost": "{count, plural, one {Taşınan bir metin özgün yerine döndü.} other {Taşınan # metin özgün yerine döndü.}}",
+      "lostOk": "Tamam",
       "apartHint": "Tüm bloklara uygulanan taşımaları izlemez.",
       "done": "Bitti"
     }

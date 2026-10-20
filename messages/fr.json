@@ -323,6 +323,8 @@
       "everyBlockHint": "Ce texte bouge pareil dans toute la vidéo.",
       "everyBlockApart": "Ce bloc est gardé à part : il ne suit pas les autres.",
       "apart": "Garder ce bloc à part",
+      "lost": "{count, plural, one {Un texte déplacé est revenu à sa place d’origine.} other {# textes déplacés sont revenus à leur place d’origine.}}",
+      "lostOk": "OK",
       "apartHint": "Il ne suit pas les déplacements appliqués à tous les blocs.",
       "done": "Terminé"
     }
