@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyColors } from "@/features/captions/colors";
+import { applyColors, hexToRgb, parseHexInput } from "@/features/captions/colors";
 import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
 import { resolveCaptionStyle } from "@/features/captions/project-style";
 import { captionStyleSchema } from "@/features/captions/style";
@@ -127,5 +127,70 @@ describe("stored project style", () => {
   it("falls back to the default style on garbage", () => {
     expect(resolveCaptionStyle({ preset: "nope" }).tweaks).toEqual({});
     expect(resolveCaptionStyle(null).tweaks).toEqual({});
+  });
+});
+
+describe("two fonts and sizes", () => {
+  it("applies one font to the text and another to the key word", () => {
+    const style = applyTweaks(cinema, { fonts: { text: "anton", emphasis: "sora" } });
+    expect(style.base.font).toBe("anton");
+    expect(style.emphasis.font).toBe("sora");
+  });
+
+  it("changes only the look that was chosen", () => {
+    const style = applyTweaks(cinema, { fonts: { emphasis: "sora" } });
+    expect(style.base.font).toBe(cinema.base.font);
+    expect(style.emphasis.font).toBe("sora");
+  });
+
+  it("still reads the first version's single font for both looks", () => {
+    const style = applyTweaks(cinema, { font: "bebas" });
+    expect(style.base.font).toBe("bebas");
+    expect(style.emphasis.font).toBe("bebas");
+  });
+
+  it("scales the size of the text and of the key word separately, within the schema", () => {
+    const style = applyTweaks(cinema, { sizes: { text: 120, emphasis: 80 } });
+    expect(style.base.sizePct).toBeCloseTo(cinema.base.sizePct * 1.2);
+    expect(style.emphasis.sizePct).toBeCloseTo(cinema.emphasis.sizePct * 0.8);
+    const huge = applyTweaks(cinema, { sizes: { text: 160, emphasis: 160 } });
+    expect(captionStyleSchema.safeParse(huge).success).toBe(true);
+  });
+
+  it("rejects sizes out of range", () => {
+    expect(captionTweaksSchema.safeParse({ sizes: { text: 10 } }).success).toBe(false);
+    expect(captionTweaksSchema.safeParse({ sizes: { text: 300 } }).success).toBe(false);
+    expect(captionTweaksSchema.safeParse({ sizes: { text: 115 } }).success).toBe(true);
+  });
+
+  it("offers an extra thick outline", () => {
+    const heavy = applyTweaks(cinema, { outline: { size: "heavy", color: "#000000" } });
+    const thick = applyTweaks(cinema, { outline: { size: "thick", color: "#000000" } });
+    expect(heavy.base.stroke!.widthEm).toBeGreaterThan(thick.base.stroke!.widthEm);
+  });
+});
+
+describe("colour codes typed by a person", () => {
+  it("accepts 6 digits with or without #, in any case, with spaces", () => {
+    expect(parseHexInput("#ffffff")).toBe("#FFFFFF");
+    expect(parseHexInput("FFFFFF")).toBe("#FFFFFF");
+    expect(parseHexInput("  #00ff7f ")).toBe("#00FF7F");
+    expect(parseHexInput("00ff7f")).toBe("#00FF7F");
+  });
+
+  it("expands 3 digits", () => {
+    expect(parseHexInput("#fa0")).toBe("#FFAA00");
+    expect(parseHexInput("000")).toBe("#000000");
+  });
+
+  it("refuses anything else", () => {
+    for (const bad of ["", "#", "12", "1234", "12345", "GGGGGG", "#12345678", "red", "##FFFFFF"]) {
+      expect(parseHexInput(bad), bad).toBeNull();
+    }
+  });
+
+  it("gives the red, green and blue values", () => {
+    expect(hexToRgb("#FFFFFF")).toEqual([255, 255, 255]);
+    expect(hexToRgb("#FF8800")).toEqual([255, 136, 0]);
   });
 });

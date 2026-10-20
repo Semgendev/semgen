@@ -231,8 +231,6 @@
     "colorsTitle": "Farben",
     "textColor": "Text",
     "accentColor": "Schlüsselwort",
-    "customColor": "Andere Farbe wählen",
-    "colorSwatch": "Farbe {color}",
     "resetColors": "Originalfarben",
     "styles": {
       "cinema": "Kino",
@@ -248,7 +246,7 @@
       "glass": "Glas",
       "liquid": "Flüssige Füllung"
     },
-    "personalize": "Anpassen",
+    "personalize": "Stil anpassen",
     "colorsHelp": "Ändere die Farbe des Textes und die des Schlüsselworts.",
     "noWords": "Deine Untertitel erscheinen im Video, sobald der Text erstellt ist.",
     "goTranscription": "Zur Transkription",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "Wie entworfen",
       "fontTitle": "Schrift",
-      "fontHelp": "Die Form der Buchstaben. Jeder Name ist in seiner eigenen Schrift geschrieben.",
+      "fontHelp": "Eine Schrift für den Text und eine andere für das Schlüsselwort: wähle jede im eigenen Tab.",
       "animationTitle": "Animation",
       "animationHelp": "Wie jedes Wort erscheint. Fahre mit der Maus über die Vorschau oben.",
       "positionTitle": "Position",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Keine Kontur",
         "thin": "Dünn",
-        "thick": "Dick"
-      }
+        "thick": "Dick",
+        "heavy": "Extra dick"
+      },
+      "changed": "Angepasst",
+      "fontTabText": "Text",
+      "fontTabEmphasis": "Schlüsselwort",
+      "sizeTitle": "Größe",
+      "sizeHelp": "Mache den Text oder das Schlüsselwort größer oder kleiner. 100 % ist der ursprüngliche Stil.",
+      "sizeText": "Textgröße",
+      "sizeEmphasis": "Größe des Schlüsselworts"
+    },
+    "colors": {
+      "swatch": "Farbe {color}",
+      "remove": "Farbe {color} löschen",
+      "pick": "Farbe mit der Maus wählen",
+      "code": "Farbcode",
+      "invalid": "Ungültiger Code. Beispiel: #FF8800 oder FF8800",
+      "validate": "Bestätigen"
     }
   }
 }

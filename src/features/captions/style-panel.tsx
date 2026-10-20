@@ -41,6 +41,7 @@ export function StylePanel({
   onReset,
   resetDisabled,
   settings,
+  replay = null,
 }: {
   text: StylePanelText;
   selected: PresetId;
@@ -54,6 +55,8 @@ export function StylePanel({
   onReset: () => void;
   resetDisabled: boolean;
   settings: ReactNode;
+  // play the chosen animation once on the settings preview, then rest (id changes at each request)
+  replay?: { id: number; mode: "once" | "stop" } | null;
 }) {
   // in the settings the preview rests (it would hide what is being changed); it plays under the pointer
   const [previewHover, setPreviewHover] = useState(false);
@@ -110,6 +113,7 @@ export function StylePanel({
                 style={current}
                 light={lightOf(selected)}
                 playing={live || previewHover}
+                replay={replay}
                 resume
                 className="border-border mx-auto max-w-60 rounded-xl border"
               />

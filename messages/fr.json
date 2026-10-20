@@ -231,8 +231,6 @@
     "colorsTitle": "Couleurs",
     "textColor": "Texte",
     "accentColor": "Mot fort",
-    "customColor": "Choisir une autre couleur",
-    "colorSwatch": "Couleur {color}",
     "resetColors": "Couleurs d’origine",
     "styles": {
       "cinema": "Cinéma",
@@ -248,7 +246,7 @@
       "glass": "Verre",
       "liquid": "Remplissage"
     },
-    "personalize": "Personnaliser",
+    "personalize": "Personnaliser le style",
     "colorsHelp": "Change la couleur du texte et celle du mot fort.",
     "noWords": "Tes sous-titres apparaîtront sur la vidéo quand le texte sera généré.",
     "goTranscription": "Aller à la transcription",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "D’origine",
       "fontTitle": "Police",
-      "fontHelp": "La forme des lettres. Chaque nom est écrit dans sa propre police.",
+      "fontHelp": "Une police pour le texte et une autre pour le mot fort : choisis chacune dans son onglet.",
       "animationTitle": "Animation",
       "animationHelp": "La façon dont chaque mot apparaît. Passe la souris sur l’aperçu au-dessus pour la voir.",
       "positionTitle": "Position",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Sans contour",
         "thin": "Fin",
-        "thick": "Épais"
-      }
+        "thick": "Épais",
+        "heavy": "Très épais"
+      },
+      "changed": "Personnalisées",
+      "fontTabText": "Texte",
+      "fontTabEmphasis": "Mot fort",
+      "sizeTitle": "Taille",
+      "sizeHelp": "Agrandis ou réduis le texte ou le mot fort. 100 % = le style d’origine.",
+      "sizeText": "Taille du texte",
+      "sizeEmphasis": "Taille du mot fort"
+    },
+    "colors": {
+      "swatch": "Couleur {color}",
+      "remove": "Supprimer la couleur {color}",
+      "pick": "Choisir une couleur à la souris",
+      "code": "Code couleur",
+      "invalid": "Code non valide. Exemple : #FF8800 ou FF8800",
+      "validate": "Valider"
     }
   }
 }

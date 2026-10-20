@@ -231,8 +231,6 @@
     "colorsTitle": "Cores",
     "textColor": "Texto",
     "accentColor": "Palavra-chave",
-    "customColor": "Escolher outra cor",
-    "colorSwatch": "Cor {color}",
     "resetColors": "Cores originais",
     "styles": {
       "cinema": "Cinema",
@@ -248,7 +246,7 @@
       "glass": "Vidro",
       "liquid": "Preenchimento líquido"
     },
-    "personalize": "Personalizar",
+    "personalize": "Personalizar o estilo",
     "colorsHelp": "Mude a cor do texto e a da palavra-chave.",
     "noWords": "Suas legendas vão aparecer no vídeo quando o texto for gerado.",
     "goTranscription": "Ir para a transcrição",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "Original",
       "fontTitle": "Fonte",
-      "fontHelp": "O formato das letras. Cada nome está escrito na própria fonte.",
+      "fontHelp": "Uma fonte para o texto e outra para a palavra-chave: escolha cada uma na sua aba.",
       "animationTitle": "Animação",
       "animationHelp": "Como cada palavra aparece. Passe o mouse na prévia acima para ver.",
       "positionTitle": "Posição",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Sem contorno",
         "thin": "Fino",
-        "thick": "Grosso"
-      }
+        "thick": "Grosso",
+        "heavy": "Muito grosso"
+      },
+      "changed": "Personalizadas",
+      "fontTabText": "Texto",
+      "fontTabEmphasis": "Palavra-chave",
+      "sizeTitle": "Tamanho",
+      "sizeHelp": "Aumente ou reduza o texto ou a palavra-chave. 100 % é o estilo original.",
+      "sizeText": "Tamanho do texto",
+      "sizeEmphasis": "Tamanho da palavra-chave"
+    },
+    "colors": {
+      "swatch": "Cor {color}",
+      "remove": "Excluir a cor {color}",
+      "pick": "Escolher uma cor com o mouse",
+      "code": "Código da cor",
+      "invalid": "Código inválido. Exemplo: #FF8800 ou FF8800",
+      "validate": "Confirmar"
     }
   }
 }

@@ -13,6 +13,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 
+import { saveCustomColors } from "@/features/preferences/actions";
+import { MAX_CUSTOM_COLORS } from "@/features/preferences/schemas";
+
 import { setCaptionStyle } from "./actions";
 import { useCaptionWords } from "./caption-words";
 import { CaptionPlayer } from "./caption-player";
@@ -36,6 +39,7 @@ export function CaptionStudio({
   initialPreset,
   initialColors,
   initialTweaks,
+  initialCustomColors,
   titleSlot,
   transcriptionSlot,
 }: {
@@ -44,6 +48,7 @@ export function CaptionStudio({
   initialPreset: PresetId;
   initialColors: CaptionColors;
   initialTweaks: CaptionTweaks;
+  initialCustomColors: string[];
   titleSlot: ReactNode;
   // null when the project has no video to transcribe: the tab is not shown
   transcriptionSlot: ReactNode | null;
@@ -53,6 +58,9 @@ export function CaptionStudio({
   const [preset, setPreset] = useState<PresetId>(initialPreset);
   const [colors, setColors] = useState<CaptionColors>(initialColors);
   const [tweaks, setTweaks] = useState<CaptionTweaks>(initialTweaks);
+  const [customColors, setCustomColors] = useState<string[]>(initialCustomColors);
+  // an animation was just chosen: the settings preview plays it once (id changes at every click)
+  const [replay, setReplay] = useState<{ id: number; mode: "once" | "stop" } | null>(null);
   const [failed, setFailed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<TabId>("styles");
@@ -133,6 +141,21 @@ export function CaptionStudio({
     save(preset, {}, {}, 0);
   }
 
+  function updateCustomColors(next: string[]) {
+    setCustomColors(next);
+    void saveCustomColors(next);
+  }
+
+  function addCustomColor(color: string) {
+    updateCustomColors(
+      [color, ...customColors.filter((known) => known !== color)].slice(0, MAX_CUSTOM_COLORS),
+    );
+  }
+
+  function removeCustomColor(color: string) {
+    updateCustomColors(customColors.filter((known) => known !== color));
+  }
+
   // every card shows the user's colours, so the choice is made on the real result
   const styles = useMemo(
     () =>
@@ -198,6 +221,7 @@ export function CaptionStudio({
                 labelOf={(id) => t(`styles.${id}`)}
                 styleOf={(id) => styles[id] ?? CAPTION_PRESETS[id]}
                 lightOf={(id) => colors.accent ?? CARD_LIGHTS[id]}
+                replay={replay}
                 current={current}
                 settingsOpen={settingsOpen}
                 onSettingsOpenChange={setSettingsOpen}
@@ -208,10 +232,13 @@ export function CaptionStudio({
                   <SettingsPanel
                     colors={colors}
                     tweaks={tweaks}
+                    customColors={customColors}
                     onColors={recolor}
                     onTweaks={retweak}
+                    onAddCustomColor={addCustomColor}
+                    onRemoveCustomColor={removeCustomColor}
+                    onReplay={(mode) => setReplay((last) => ({ id: (last?.id ?? 0) + 1, mode }))}
                     onResetAll={resetSettings}
-                    changed={hasColors || hasTweaks(tweaks)}
                   />
                 }
               />

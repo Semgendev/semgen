@@ -231,8 +231,6 @@
     "colorsTitle": "Colores",
     "textColor": "Texto",
     "accentColor": "Palabra clave",
-    "customColor": "Elegir otro color",
-    "colorSwatch": "Color {color}",
     "resetColors": "Colores originales",
     "styles": {
       "cinema": "Cine",
@@ -248,7 +246,7 @@
       "glass": "Cristal",
       "liquid": "Relleno líquido"
     },
-    "personalize": "Personalizar",
+    "personalize": "Personalizar el estilo",
     "colorsHelp": "Cambia el color del texto y el de la palabra clave.",
     "noWords": "Tus subtítulos aparecerán en el vídeo cuando el texto esté generado.",
     "goTranscription": "Ir a la transcripción",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "Original",
       "fontTitle": "Fuente",
-      "fontHelp": "La forma de las letras. Cada nombre está escrito con su propia fuente.",
+      "fontHelp": "Una fuente para el texto y otra para la palabra clave: elige cada una en su pestaña.",
       "animationTitle": "Animación",
       "animationHelp": "Cómo aparece cada palabra. Pasa el ratón por la vista previa de arriba para verla.",
       "positionTitle": "Posición",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Sin contorno",
         "thin": "Fino",
-        "thick": "Grueso"
-      }
+        "thick": "Grueso",
+        "heavy": "Muy grueso"
+      },
+      "changed": "Personalizados",
+      "fontTabText": "Texto",
+      "fontTabEmphasis": "Palabra clave",
+      "sizeTitle": "Tamaño",
+      "sizeHelp": "Agranda o reduce el texto o la palabra clave. 100 % es el estilo original.",
+      "sizeText": "Tamaño del texto",
+      "sizeEmphasis": "Tamaño de la palabra clave"
+    },
+    "colors": {
+      "swatch": "Color {color}",
+      "remove": "Eliminar el color {color}",
+      "pick": "Elegir un color con el ratón",
+      "code": "Código de color",
+      "invalid": "Código no válido. Ejemplo: #FF8800 o FF8800",
+      "validate": "Confirmar"
     }
   }
 }

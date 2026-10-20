@@ -231,8 +231,6 @@
     "colorsTitle": "Colours",
     "textColor": "Text",
     "accentColor": "Key word",
-    "customColor": "Pick another colour",
-    "colorSwatch": "Colour {color}",
     "resetColors": "Original colours",
     "styles": {
       "cinema": "Cinema",
@@ -248,7 +246,7 @@
       "glass": "Glass",
       "liquid": "Liquid fill"
     },
-    "personalize": "Customize",
+    "personalize": "Customize the style",
     "colorsHelp": "Change the colour of the text and of the key word.",
     "noWords": "Your captions will appear on the video once the text is generated.",
     "goTranscription": "Go to transcription",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "As designed",
       "fontTitle": "Font",
-      "fontHelp": "The shape of the letters. Each name is written in its own font.",
+      "fontHelp": "One font for the text and another for the key word: pick each in its tab.",
       "animationTitle": "Animation",
       "animationHelp": "How each word appears. Hover the preview above to see it.",
       "positionTitle": "Position",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "No outline",
         "thin": "Thin",
-        "thick": "Thick"
-      }
+        "thick": "Thick",
+        "heavy": "Extra thick"
+      },
+      "changed": "Customized",
+      "fontTabText": "Text",
+      "fontTabEmphasis": "Key word",
+      "sizeTitle": "Size",
+      "sizeHelp": "Make the text or the key word bigger or smaller. 100 % is the style as designed.",
+      "sizeText": "Text size",
+      "sizeEmphasis": "Key word size"
+    },
+    "colors": {
+      "swatch": "Colour {color}",
+      "remove": "Delete the colour {color}",
+      "pick": "Pick a colour with the mouse",
+      "code": "Colour code",
+      "invalid": "Not a valid code. Example: #FF8800 or FF8800",
+      "validate": "Confirm"
     }
   }
 }

@@ -2,19 +2,26 @@
 
 import { RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { ColorRow } from "./color-row";
+import { AccordionSection } from "./accordion-section";
+import { ColorField } from "./color-field";
 import type { CaptionColors } from "./colors";
 import { loadPreviewFont, previewFamily } from "./fonts";
 import { ACCENT_SWATCHES, DEFAULT_OUTLINE_COLOR, OUTLINE_SWATCHES, TEXT_SWATCHES } from "./presets";
 import { FONT_IDS, type FontId } from "./style";
 import {
   OUTLINE_SIZES,
+  SIZE_DEFAULT,
+  SIZE_MAX,
+  SIZE_MIN,
+  SIZE_STEP,
   TWEAK_ANIMATIONS,
   TWEAK_POSITIONS,
+  chosenFonts,
+  hasTweaks,
   type CaptionTweaks,
   type TweakPosition,
 } from "./tweaks";
@@ -39,31 +46,6 @@ const FONT_NAMES: Record<FontId, string> = {
   anybody: "Anybody",
 };
 
-// One group of settings: a title, one line that says what it does, then the choices.
-function Group({
-  id,
-  title,
-  help,
-  children,
-}: {
-  id: string;
-  title: string;
-  help: string;
-  children: ReactNode;
-}) {
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-2.5">
-      <div className="flex flex-col gap-0.5">
-        <h3 id={id} className="text-sm font-semibold">
-          {title}
-        </h3>
-        <p className="text-text-3 text-xs leading-snug">{help}</p>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 // A choice button: big enough for a finger, clear when chosen.
 function Choice({
   chosen,
@@ -86,7 +68,7 @@ function Choice({
       onClick={onClick}
       style={style}
       className={cn(
-        "focus-visible:ring-focus flex min-h-11 items-center justify-center rounded-xl border px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-2",
+        "focus-visible:ring-focus flex min-h-11 items-center justify-center rounded-xl border px-3 py-2 text-center text-sm transition-colors outline-none focus-visible:ring-2",
         chosen
           ? "border-brand bg-brand/10 text-text font-semibold"
           : "border-border text-text-2 hover:border-brand-border hover:text-text",
@@ -95,6 +77,25 @@ function Choice({
     >
       {children}
     </button>
+  );
+}
+
+// "As designed": the same size as the other tiles, centred above them.
+function OriginTile({
+  chosen,
+  onClick,
+  label,
+}: {
+  chosen: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <div className="flex justify-center">
+      <Choice chosen={chosen} onClick={onClick} className="w-[calc(50%-0.25rem)]">
+        {label}
+      </Choice>
+    </div>
   );
 }
 
@@ -111,55 +112,152 @@ function PositionIcon({ position }: { position: TweakPosition }) {
   );
 }
 
+// Size of one look, in % of the style: a slider with the value, and a way back to the original.
+function SizeSlider({
+  label,
+  value,
+  onChange,
+  originalLabel,
+}: {
+  label: string;
+  value: number | undefined;
+  onChange: (value: number | undefined) => void;
+  originalLabel: string;
+}) {
+  const shown = value ?? SIZE_DEFAULT;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-text-2 text-sm font-medium">{label}</span>
+        <span className="flex items-center gap-2">
+          {value !== undefined ? (
+            <button
+              type="button"
+              onClick={() => onChange(undefined)}
+              className="text-text-2 hover:text-text focus-visible:ring-ring flex items-center gap-1 rounded text-xs outline-none focus-visible:ring-2"
+            >
+              <RotateCcw className="size-3" aria-hidden="true" />
+              {originalLabel}
+            </button>
+          ) : null}
+          <output className="text-text w-12 text-end text-sm font-semibold tabular-nums">
+            {shown} %
+          </output>
+        </span>
+      </div>
+      <input
+        type="range"
+        min={SIZE_MIN}
+        max={SIZE_MAX}
+        step={SIZE_STEP}
+        value={shown}
+        aria-label={label}
+        onChange={(event) => {
+          const next = Number(event.target.value);
+          onChange(next === SIZE_DEFAULT ? undefined : next);
+        }}
+        className="accent-brand h-11 w-full cursor-pointer"
+      />
+    </div>
+  );
+}
+
 export type SettingsPanelProps = {
   colors: CaptionColors;
   tweaks: CaptionTweaks;
+  customColors: string[];
   onColors: (colors: CaptionColors) => void;
   onTweaks: (tweaks: CaptionTweaks) => void;
+  onAddCustomColor: (color: string) => void;
+  onRemoveCustomColor: (color: string) => void;
+  // an animation was chosen: play it once on the preview ("stop" for none)
+  onReplay: (mode: "once" | "stop") => void;
   onResetAll: () => void;
-  changed: boolean;
 };
 
-// The settings of the chosen style, in plain words: colours, font, how the text comes in, where it
-// sits, its outline. Every change shows at once on the video and is saved.
+// The settings of the chosen style, in plain words, in unfolding groups: colours, font, size,
+// animation, position, outline. Every change shows at once on the video and is saved.
 export function SettingsPanel({
   colors,
   tweaks,
+  customColors,
   onColors,
   onTweaks,
+  onAddCustomColor,
+  onRemoveCustomColor,
+  onReplay,
   onResetAll,
-  changed,
 }: SettingsPanelProps) {
   const t = useTranslations("captions");
+  const [fontTarget, setFontTarget] = useState<"text" | "emphasis">("text");
   const hasColors = Boolean(colors.text || colors.accent);
+  const fonts = chosenFonts(tweaks);
+  const original = t("tweaks.original");
 
   // the fonts are written in themselves: fetch their letters when the settings open
   useEffect(() => {
     for (const id of FONT_IDS) loadPreviewFont(id);
   }, []);
 
-  function setTweak<K extends keyof CaptionTweaks>(key: K, value: CaptionTweaks[K] | undefined) {
-    const next = { ...tweaks };
-    if (value === undefined) delete next[key];
-    else next[key] = value;
+  function setTweaks(patch: Partial<CaptionTweaks>) {
+    const next: CaptionTweaks = { ...tweaks, ...patch };
+    // an empty group is no group
+    if (next.fonts && !next.fonts.text && !next.fonts.emphasis) delete next.fonts;
+    if (next.sizes && !next.sizes.text && !next.sizes.emphasis) delete next.sizes;
+    for (const key of Object.keys(next) as (keyof CaptionTweaks)[]) {
+      if (next[key] === undefined) delete next[key];
+    }
     onTweaks(next);
   }
 
+  function setFont(target: "text" | "emphasis", id: FontId | undefined) {
+    // the first version's single font is split, so changing one look keeps the other as it was
+    const current = chosenFonts(tweaks);
+    const next = { ...current, [target]: id };
+    setTweaks({ font: undefined, fonts: { text: next.text, emphasis: next.emphasis } });
+  }
+
+  const fontSummary =
+    fonts.text || fonts.emphasis
+      ? [
+          fonts.text ? FONT_NAMES[fonts.text] : original,
+          fonts.emphasis ? FONT_NAMES[fonts.emphasis] : original,
+        ].join(" · ")
+      : original;
+  const sizeSummary =
+    tweaks.sizes?.text || tweaks.sizes?.emphasis
+      ? `${tweaks.sizes?.text ?? SIZE_DEFAULT} % · ${tweaks.sizes?.emphasis ?? SIZE_DEFAULT} %`
+      : original;
+  const outline = tweaks.outline;
+
   return (
     <>
-      <Group id="set-colors" title={t("colorsTitle")} help={t("colorsHelp")}>
-        <ColorRow
-          label={t("textColor")}
-          swatches={TEXT_SWATCHES}
-          value={colors.text}
-          onChange={(text) => onColors({ ...colors, text })}
-        />
-        <ColorRow
-          label={t("accentColor")}
-          swatches={ACCENT_SWATCHES}
-          value={colors.accent}
-          onChange={(accent) => onColors({ ...colors, accent })}
-        />
+      <AccordionSection
+        title={t("colorsTitle")}
+        summary={hasColors ? t("tweaks.changed") : original}
+        help={t("colorsHelp")}
+        defaultOpen
+      >
+        <div className="flex flex-col gap-4">
+          <ColorField
+            label={t("textColor")}
+            swatches={TEXT_SWATCHES}
+            value={colors.text}
+            custom={customColors}
+            onChange={(text) => onColors({ ...colors, text })}
+            onAddCustom={onAddCustomColor}
+            onRemoveCustom={onRemoveCustomColor}
+          />
+          <ColorField
+            label={t("accentColor")}
+            swatches={ACCENT_SWATCHES}
+            value={colors.accent}
+            custom={customColors}
+            onChange={(accent) => onColors({ ...colors, accent })}
+            onAddCustom={onAddCustomColor}
+            onRemoveCustom={onRemoveCustomColor}
+          />
+        </div>
         {hasColors ? (
           <button
             type="button"
@@ -170,110 +268,186 @@ export function SettingsPanel({
             {t("resetColors")}
           </button>
         ) : null}
-      </Group>
+      </AccordionSection>
 
-      <Group id="set-font" title={t("tweaks.fontTitle")} help={t("tweaks.fontHelp")}>
-        <div role="radiogroup" aria-labelledby="set-font" className="grid grid-cols-2 gap-2">
-          <Choice
-            chosen={!tweaks.font}
-            onClick={() => setTweak("font", undefined)}
-            className="col-span-2"
-          >
-            {t("tweaks.original")}
-          </Choice>
-          {FONT_IDS.map((id) => (
-            <Choice
-              key={id}
-              chosen={tweaks.font === id}
-              onClick={() => setTweak("font", id)}
-              className="min-h-12 text-base"
-              style={{ fontFamily: previewFamily(id), fontWeight: 700 }}
+      <AccordionSection
+        title={t("tweaks.fontTitle")}
+        summary={fontSummary}
+        help={t("tweaks.fontHelp")}
+      >
+        <div
+          role="tablist"
+          aria-label={t("tweaks.fontTitle")}
+          className="bg-surface-2 border-border flex gap-1 rounded-xl border p-1"
+        >
+          {(["text", "emphasis"] as const).map((target) => (
+            <button
+              key={target}
+              type="button"
+              role="tab"
+              aria-selected={fontTarget === target}
+              onClick={() => setFontTarget(target)}
+              className={cn(
+                "focus-visible:ring-focus min-h-10 flex-1 rounded-lg px-3 text-sm font-medium transition-colors outline-none focus-visible:ring-2",
+                fontTarget === target
+                  ? "bg-surface text-text shadow-sm"
+                  : "text-text-2 hover:text-text",
+              )}
             >
-              {FONT_NAMES[id]}
-            </Choice>
+              {target === "text" ? t("tweaks.fontTabText") : t("tweaks.fontTabEmphasis")}
+            </button>
           ))}
         </div>
-      </Group>
+        <div role="radiogroup" aria-label={t("tweaks.fontTitle")} className="flex flex-col gap-2">
+          <OriginTile
+            chosen={!fonts[fontTarget]}
+            onClick={() => setFont(fontTarget, undefined)}
+            label={original}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {FONT_IDS.map((id) => (
+              <Choice
+                key={id}
+                chosen={fonts[fontTarget] === id}
+                onClick={() => setFont(fontTarget, id)}
+                className="min-h-12 text-base"
+                style={{ fontFamily: previewFamily(id), fontWeight: 700 }}
+              >
+                {FONT_NAMES[id]}
+              </Choice>
+            ))}
+          </div>
+        </div>
+      </AccordionSection>
 
-      <Group id="set-animation" title={t("tweaks.animationTitle")} help={t("tweaks.animationHelp")}>
-        <div role="radiogroup" aria-labelledby="set-animation" className="grid grid-cols-2 gap-2">
-          <Choice
+      <AccordionSection
+        title={t("tweaks.sizeTitle")}
+        summary={sizeSummary}
+        help={t("tweaks.sizeHelp")}
+      >
+        <SizeSlider
+          label={t("tweaks.sizeText")}
+          value={tweaks.sizes?.text}
+          originalLabel={original}
+          onChange={(text) => setTweaks({ sizes: { ...tweaks.sizes, text } })}
+        />
+        <SizeSlider
+          label={t("tweaks.sizeEmphasis")}
+          value={tweaks.sizes?.emphasis}
+          originalLabel={original}
+          onChange={(emphasis) => setTweaks({ sizes: { ...tweaks.sizes, emphasis } })}
+        />
+      </AccordionSection>
+
+      <AccordionSection
+        title={t("tweaks.animationTitle")}
+        summary={tweaks.animation ? t(`tweaks.animations.${tweaks.animation}`) : original}
+        help={t("tweaks.animationHelp")}
+      >
+        <div
+          role="radiogroup"
+          aria-label={t("tweaks.animationTitle")}
+          className="flex flex-col gap-2"
+        >
+          <OriginTile
             chosen={!tweaks.animation}
-            onClick={() => setTweak("animation", undefined)}
-            className="col-span-2"
-          >
-            {t("tweaks.original")}
-          </Choice>
-          {TWEAK_ANIMATIONS.map((id) => (
-            <Choice
-              key={id}
-              chosen={tweaks.animation === id}
-              onClick={() => setTweak("animation", id)}
-            >
-              {t(`tweaks.animations.${id}`)}
-            </Choice>
-          ))}
+            onClick={() => {
+              setTweaks({ animation: undefined });
+              onReplay("once");
+            }}
+            label={original}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {TWEAK_ANIMATIONS.map((id) => (
+              <Choice
+                key={id}
+                chosen={tweaks.animation === id}
+                onClick={() => {
+                  setTweaks({ animation: id });
+                  onReplay(id === "none" ? "stop" : "once");
+                }}
+              >
+                {t(`tweaks.animations.${id}`)}
+              </Choice>
+            ))}
+          </div>
         </div>
-      </Group>
+      </AccordionSection>
 
-      <Group id="set-position" title={t("tweaks.positionTitle")} help={t("tweaks.positionHelp")}>
-        <div role="radiogroup" aria-labelledby="set-position" className="grid grid-cols-4 gap-2">
-          <Choice
+      <AccordionSection
+        title={t("tweaks.positionTitle")}
+        summary={tweaks.position ? t(`tweaks.positions.${tweaks.position}`) : original}
+        help={t("tweaks.positionHelp")}
+      >
+        <div
+          role="radiogroup"
+          aria-label={t("tweaks.positionTitle")}
+          className="flex flex-col gap-2"
+        >
+          <OriginTile
             chosen={!tweaks.position}
-            onClick={() => setTweak("position", undefined)}
-            className="h-full text-xs"
-          >
-            {t("tweaks.original")}
-          </Choice>
-          {TWEAK_POSITIONS.map((id) => (
-            <Choice
-              key={id}
-              chosen={tweaks.position === id}
-              onClick={() => setTweak("position", id)}
-              className="flex-col gap-1.5 py-2 text-xs"
-            >
-              <PositionIcon position={id} />
-              {t(`tweaks.positions.${id}`)}
-            </Choice>
-          ))}
+            onClick={() => setTweaks({ position: undefined })}
+            label={original}
+          />
+          <div className="grid grid-cols-3 gap-2">
+            {TWEAK_POSITIONS.map((id) => (
+              <Choice
+                key={id}
+                chosen={tweaks.position === id}
+                onClick={() => setTweaks({ position: id })}
+                className="flex-col gap-1.5 py-2 text-xs"
+              >
+                <PositionIcon position={id} />
+                {t(`tweaks.positions.${id}`)}
+              </Choice>
+            ))}
+          </div>
         </div>
-      </Group>
+      </AccordionSection>
 
-      <Group id="set-outline" title={t("tweaks.outlineTitle")} help={t("tweaks.outlineHelp")}>
-        <div role="radiogroup" aria-labelledby="set-outline" className="grid grid-cols-2 gap-2">
-          <Choice
-            chosen={!tweaks.outline}
-            onClick={() => setTweak("outline", undefined)}
-            className="col-span-2"
-          >
-            {t("tweaks.original")}
-          </Choice>
-          {OUTLINE_SIZES.map((size) => (
-            <Choice
-              key={size}
-              chosen={tweaks.outline?.size === size}
-              onClick={() =>
-                setTweak("outline", { size, color: tweaks.outline?.color ?? DEFAULT_OUTLINE_COLOR })
-              }
-              className={size === "none" ? "col-span-2" : undefined}
-            >
-              {t(`tweaks.outlineSizes.${size}`)}
-            </Choice>
-          ))}
+      <AccordionSection
+        title={t("tweaks.outlineTitle")}
+        summary={outline ? t(`tweaks.outlineSizes.${outline.size}`) : original}
+        help={t("tweaks.outlineHelp")}
+      >
+        <div
+          role="radiogroup"
+          aria-label={t("tweaks.outlineTitle")}
+          className="flex flex-col gap-2"
+        >
+          <OriginTile
+            chosen={!outline}
+            onClick={() => setTweaks({ outline: undefined })}
+            label={original}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {OUTLINE_SIZES.map((size) => (
+              <Choice
+                key={size}
+                chosen={outline?.size === size}
+                onClick={() =>
+                  setTweaks({ outline: { size, color: outline?.color ?? DEFAULT_OUTLINE_COLOR } })
+                }
+              >
+                {t(`tweaks.outlineSizes.${size}`)}
+              </Choice>
+            ))}
+          </div>
         </div>
-        {tweaks.outline && tweaks.outline.size !== "none" ? (
-          <ColorRow
+        {outline && outline.size !== "none" ? (
+          <ColorField
             label={t("tweaks.outlineColor")}
             swatches={OUTLINE_SWATCHES}
-            value={tweaks.outline.color}
-            onChange={(color) =>
-              setTweak("outline", { size: tweaks.outline?.size ?? "thin", color })
-            }
+            value={outline.color}
+            custom={customColors}
+            onChange={(color) => setTweaks({ outline: { ...outline, color } })}
+            onAddCustom={onAddCustomColor}
+            onRemoveCustom={onRemoveCustomColor}
           />
         ) : null}
-      </Group>
+      </AccordionSection>
 
-      {changed ? (
+      {hasColors || hasTweaks(tweaks) ? (
         <button
           type="button"
           onClick={onResetAll}

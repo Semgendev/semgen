@@ -46,6 +46,7 @@ export function StyleStage({
   light,
   playing,
   resume = false,
+  replay = null,
   className,
 }: {
   style: CaptionStyle;
@@ -53,6 +54,8 @@ export function StyleStage({
   playing: boolean;
   // pause where it stands and continue from there, instead of going back to the still frame
   resume?: boolean;
+  // play once from the start then rest on the still frame ("stop": rest at once); the id changes at each request
+  replay?: { id: number; mode: "once" | "stop" } | null;
   className?: string;
 }) {
   const locale = useLocale();
@@ -84,6 +87,31 @@ export function StyleStage({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
+  // A requested replay: once from the start, then back to the still frame.
+  const onceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const current = player.current;
+    if (!replay || !current) return;
+    if (onceTimer.current) clearTimeout(onceTimer.current);
+    if (replay.mode === "stop") {
+      current.pause();
+      current.seekTo(POSTER_FRAME);
+      return;
+    }
+    started.current = true;
+    current.seekTo(0);
+    current.play();
+    onceTimer.current = setTimeout(
+      () => {
+        player.current?.pause();
+        player.current?.seekTo(POSTER_FRAME);
+      },
+      (durationInFrames / CARD_FPS) * 1000,
+    );
+    return () => {
+      if (onceTimer.current) clearTimeout(onceTimer.current);
+    };
+  }, [replay, durationInFrames, near]);
   const inputProps = useMemo<CaptionedVideoProps>(() => {
     const centered = { ...style, position: { ...style.position, y: 50 } };
     return { videoSrc: null, pages: paginate(words, centered), style: centered };

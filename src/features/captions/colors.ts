@@ -89,3 +89,22 @@ export function applyColors(style: CaptionStyle, colors: CaptionColors | undefin
     emphasis: colors.accent ? withAccent(style.emphasis, colors.accent) : style.emphasis,
   };
 }
+
+// Reads a colour typed or pasted by a person: with or without "#", 3 or 6 digits, any case,
+// spaces around. Returns "#RRGGBB" in capitals, or null when it is not a colour.
+export function parseHexInput(raw: string): string | null {
+  const digits = raw.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(digits)) {
+    return `#${digits
+      .split("")
+      .map((digit) => digit + digit)
+      .join("")}`.toUpperCase();
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(digits)) return `#${digits}`.toUpperCase();
+  return null;
+}
+
+// a six-digit hex colour gives its red, green and blue values (0 to 255)
+export function hexToRgb(hex: string): [number, number, number] {
+  return channels(hex);
+}

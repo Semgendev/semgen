@@ -231,8 +231,6 @@
     "colorsTitle": "Renkler",
     "textColor": "Metin",
     "accentColor": "Anahtar kelime",
-    "customColor": "Başka bir renk seç",
-    "colorSwatch": "{color} rengi",
     "resetColors": "Özgün renkler",
     "styles": {
       "cinema": "Sinema",
@@ -248,7 +246,7 @@
       "glass": "Cam",
       "liquid": "Sıvı dolgu"
     },
-    "personalize": "Özelleştir",
+    "personalize": "Stili özelleştir",
     "colorsHelp": "Metnin ve anahtar kelimenin rengini değiştir.",
     "noWords": "Metin oluşturulunca altyazıların videoda görünecek.",
     "goTranscription": "Metne git",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "Orijinal",
       "fontTitle": "Yazı tipi",
-      "fontHelp": "Harflerin biçimi. Her ad kendi yazı tipiyle yazılmıştır.",
+      "fontHelp": "Metin için bir yazı tipi, anahtar kelime için başka bir tane: her birini kendi sekmesinden seç.",
       "animationTitle": "Animasyon",
       "animationHelp": "Her kelimenin nasıl belirdiği. Görmek için yukarıdaki önizlemenin üzerine gel.",
       "positionTitle": "Konum",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Kenarlık yok",
         "thin": "İnce",
-        "thick": "Kalın"
-      }
+        "thick": "Kalın",
+        "heavy": "Çok kalın"
+      },
+      "changed": "Özelleştirildi",
+      "fontTabText": "Metin",
+      "fontTabEmphasis": "Anahtar kelime",
+      "sizeTitle": "Boyut",
+      "sizeHelp": "Metni veya anahtar kelimeyi büyüt ya da küçült. %100 özgün stildir.",
+      "sizeText": "Metin boyutu",
+      "sizeEmphasis": "Anahtar kelime boyutu"
+    },
+    "colors": {
+      "swatch": "{color} rengi",
+      "remove": "{color} rengini sil",
+      "pick": "Fareyle renk seç",
+      "code": "Renk kodu",
+      "invalid": "Geçersiz kod. Örnek: #FF8800 veya FF8800",
+      "validate": "Onayla"
     }
   }
 }

@@ -14,6 +14,7 @@ import { PlayerProvider } from "@/features/projects/player";
 import { PreviewStatusPanel } from "@/features/projects/preview-status";
 import { ProjectTitle } from "@/features/projects/project-title";
 import { getProject, getVideoUrls } from "@/features/projects/service";
+import { getCustomColors } from "@/features/preferences/queries";
 import { getLatestTranscriptionJob, getTranscript } from "@/features/transcription/queries";
 import { TranscriptionSection } from "@/features/transcription/transcription-section";
 import { Link } from "@/i18n/routing";
@@ -30,11 +31,12 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   if (!data?.claims) redirect(`/${locale}/login?next=/${locale}/projects`);
 
   // everything is asked at once: row-level security hides what is not the user's own
-  const [project, transcript, job, balance] = await Promise.all([
+  const [project, transcript, job, balance, customColors] = await Promise.all([
     getProject(supabase, id),
     getTranscript(supabase, id),
     getLatestTranscriptionJob(supabase, id),
     getCreditBalance(supabase),
+    getCustomColors(supabase),
   ]);
   if (!project) notFound();
   const urls = await getVideoUrls(supabase, [project]);
@@ -72,6 +74,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
             initialPreset={resolveCaptionStyle(project.caption_style).presetId}
             initialColors={resolveCaptionStyle(project.caption_style).colors}
             initialTweaks={resolveCaptionStyle(project.caption_style).tweaks}
+            initialCustomColors={customColors}
             titleSlot={title}
             transcriptionSlot={transcription}
           />

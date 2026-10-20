@@ -231,8 +231,6 @@
     "colorsTitle": "الألوان",
     "textColor": "النص",
     "accentColor": "الكلمة البارزة",
-    "customColor": "اختيار لون آخر",
-    "colorSwatch": "اللون {color}",
     "resetColors": "الألوان الأصلية",
     "styles": {
       "cinema": "سينما",
@@ -248,7 +246,7 @@
       "glass": "زجاج",
       "liquid": "امتلاء سائل"
     },
-    "personalize": "تخصيص",
+    "personalize": "تخصيص النمط",
     "colorsHelp": "غيّر لون النص ولون الكلمة البارزة.",
     "noWords": "ستظهر ترجماتك النصية على الفيديو بعد إنشاء النص.",
     "goTranscription": "الانتقال إلى التفريغ النصي",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "كما صُمّم",
       "fontTitle": "الخط",
-      "fontHelp": "شكل الحروف. كل اسم مكتوب بخطه الخاص.",
+      "fontHelp": "خط للنص وخط آخر للكلمة البارزة: اختر كلًّا منهما في تبويبه.",
       "animationTitle": "الحركة",
       "animationHelp": "طريقة ظهور كل كلمة. مرّر المؤشر فوق المعاينة في الأعلى لرؤيتها.",
       "positionTitle": "الموضع",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "بدون حدود",
         "thin": "رفيعة",
-        "thick": "سميكة"
-      }
+        "thick": "سميكة",
+        "heavy": "سميكة جدًا"
+      },
+      "changed": "مخصّصة",
+      "fontTabText": "النص",
+      "fontTabEmphasis": "الكلمة البارزة",
+      "sizeTitle": "الحجم",
+      "sizeHelp": "كبّر النص أو الكلمة البارزة أو صغّرهما. 100 % هو النمط الأصلي.",
+      "sizeText": "حجم النص",
+      "sizeEmphasis": "حجم الكلمة البارزة"
+    },
+    "colors": {
+      "swatch": "اللون {color}",
+      "remove": "حذف اللون {color}",
+      "pick": "اختر لونًا بالفأرة",
+      "code": "رمز اللون",
+      "invalid": "رمز غير صالح. مثال: #FF8800 أو FF8800",
+      "validate": "تأكيد"
     }
   }
 }

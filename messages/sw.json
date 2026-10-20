@@ -231,8 +231,6 @@
     "colorsTitle": "Rangi",
     "textColor": "Maandishi",
     "accentColor": "Neno kuu",
-    "customColor": "Chagua rangi nyingine",
-    "colorSwatch": "Rangi {color}",
     "resetColors": "Rangi za awali",
     "styles": {
       "cinema": "Sinema",
@@ -248,7 +246,7 @@
       "glass": "Kioo",
       "liquid": "Kujaza kimiminika"
     },
-    "personalize": "Badilisha",
+    "personalize": "Badilisha mtindo",
     "colorsHelp": "Badilisha rangi ya maandishi na ya neno kuu.",
     "noWords": "Manukuu yako yataonekana kwenye video maandishi yakishatengenezwa.",
     "goTranscription": "Nenda kwenye unukuzi",
@@ -262,7 +260,7 @@
     "tweaks": {
       "original": "Kama ilivyo",
       "fontTitle": "Fonti",
-      "fontHelp": "Umbo la herufi. Kila jina limeandikwa kwa fonti yake.",
+      "fontHelp": "Fonti moja kwa maandishi na nyingine kwa neno kuu: chagua kila moja kwenye kichupo chake.",
       "animationTitle": "Uhuishaji",
       "animationHelp": "Jinsi kila neno linavyoonekana. Weka kipanya juu ya onyesho la awali hapo juu kuona.",
       "positionTitle": "Mahali",
@@ -287,8 +285,24 @@
       "outlineSizes": {
         "none": "Bila mstari",
         "thin": "Mwembamba",
-        "thick": "Mnene"
-      }
+        "thick": "Mnene",
+        "heavy": "Nene sana"
+      },
+      "changed": "Zimebadilishwa",
+      "fontTabText": "Maandishi",
+      "fontTabEmphasis": "Neno kuu",
+      "sizeTitle": "Ukubwa",
+      "sizeHelp": "Kuza au punguza maandishi au neno kuu. 100 % ni mtindo wa awali.",
+      "sizeText": "Ukubwa wa maandishi",
+      "sizeEmphasis": "Ukubwa wa neno kuu"
+    },
+    "colors": {
+      "swatch": "Rangi {color}",
+      "remove": "Futa rangi {color}",
+      "pick": "Chagua rangi kwa kipanya",
+      "code": "Msimbo wa rangi",
+      "invalid": "Msimbo si sahihi. Mfano: #FF8800 au FF8800",
+      "validate": "Thibitisha"
     }
   }
 }
