@@ -21,7 +21,9 @@ import { setCaptionStyle } from "./actions";
 import {
   useCaptionWords,
   usePublishCaptionPresetId,
+  useBlockRequest,
   usePublishLostMoves,
+  useRequestBlock,
   usePublishTranscriptVisible,
 } from "./caption-words";
 import { CaptionPlayer } from "./caption-player";
@@ -37,7 +39,6 @@ import {
   resetElement,
   setApart,
   shiftElement,
-  toggleLayer,
   withStyleMoves,
   type CaptionMoves,
   type ElementId,
@@ -271,6 +272,25 @@ export function CaptionStudio({
     [words, layout, grouping, maxWordsPerPage, maxCharsPerLine, preset],
   );
   const styleMoves = moves[preset];
+
+  // The transcript tab asks for a block to be selected on the video (the icon of a line).
+  const blockRequest = useBlockRequest();
+  const requestBlock = useRequestBlock();
+  const [handledRequest, setHandledRequest] = useState(blockRequest?.id ?? 0);
+  if (blockRequest && blockRequest.id !== handledRequest) {
+    setHandledRequest(blockRequest.id);
+    if (blockRequest.kind === "select") {
+      const page = pages.find((candidate) => candidate.firstWord >= blockRequest.firstWord);
+      if (page) setPicked({ key: blockKey(page), element: "block" });
+    }
+  }
+
+  // The cross on the frame (or the panel button): the transcript removes the block's words.
+  function deleteBlock(key: string) {
+    const page = pages.find((candidate) => blockKey(candidate) === key);
+    if (page) requestBlock?.("delete", page.firstWord);
+    setPicked(null);
+  }
   // Moves left behind by a change of the text: they are kept (undo brings the block, and its move,
   // back) and the transcript tab tells the user in its notice.
   const lostCount = useMemo(() => lostBlockKeys(styleMoves, pages).length, [styleMoves, pages]);
@@ -296,10 +316,21 @@ export function CaptionStudio({
     : null;
 
   // stable for the player: a new editor object at every render would redraw the video
-  const latestMoves = useRef({ fresh: freshMoves, everyBlock, update: updateMoves });
-  useEffect(() => {
-    latestMoves.current = { fresh: freshMoves, everyBlock, update: updateMoves };
+  const latestMoves = useRef({
+    fresh: freshMoves,
+    everyBlock,
+    update: updateMoves,
+    remove: deleteBlock,
   });
+  useEffect(() => {
+    latestMoves.current = {
+      fresh: freshMoves,
+      everyBlock,
+      update: updateMoves,
+      remove: deleteBlock,
+    };
+  });
+  const deleteLabel = t("move.deleteBlock");
   const editor = useMemo<CaptionEditor>(
     () => ({
       selected: picked,
@@ -307,6 +338,12 @@ export function CaptionStudio({
         dragBase.current = null;
         setPicked({ key, element });
       },
+      onDeselect: () => {
+        dragBase.current = null;
+        setPicked(null);
+      },
+      onDelete: (key) => latestMoves.current.remove(key),
+      deleteLabel,
       onDrag: (key, element, dx, dy, done) => {
         const latest = latestMoves.current;
         if (dragBase.current === null) dragBase.current = latest.fresh();
@@ -320,18 +357,26 @@ export function CaptionStudio({
         if (done) dragBase.current = null;
       },
     }),
-    [picked],
+    [picked, deleteLabel],
   );
 
   // what the picked text says (title of the panel)
   const pickedInfo = useMemo(() => {
     if (!picked) return null;
     const page = pages.find((candidate) => blockKey(candidate) === picked.key);
-    if (!page) return { text: "", isKeyWord: picked.element === "emphasis" };
+    if (!page) return { text: "", isKeyWord: picked.element === "emphasis", isBlock: false };
+    if (picked.element === "block") {
+      return {
+        text: page.words.map((word) => word.text).join(" "),
+        isKeyWord: false,
+        isBlock: true,
+      };
+    }
     if (picked.element === "emphasis") {
       return {
         text: page.words.find((word) => word.emphasis)?.text ?? "",
         isKeyWord: true,
+        isBlock: false,
       };
     }
     const lines = layoutLines(page.words, current);
@@ -340,6 +385,7 @@ export function CaptionStudio({
     return {
       text: line.map((index) => page.words[index]?.text ?? "").join(" "),
       isKeyWord: false,
+      isBlock: false,
     };
   }, [picked, pages, current]);
 
@@ -378,7 +424,7 @@ export function CaptionStudio({
               <MovePanel
                 text={pickedInfo.text}
                 isKeyWord={pickedInfo.isKeyWord}
-                layer={placement.layer}
+                isBlock={pickedInfo.isBlock}
                 canReset={placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined}
                 everyBlock={everyBlock}
                 apart={isApart(styleMoves, picked.key)}
@@ -391,7 +437,7 @@ export function CaptionStudio({
                   if (target.everyBlock) next = resetElement(next, target);
                   updateMoves(next, 0);
                 }}
-                onLayer={(layer) => updateMoves(toggleLayer(freshMoves(), target, layer), 0)}
+                onDelete={() => deleteBlock(picked.key)}
                 onEveryBlock={setEveryBlock}
                 onApart={(apart) => updateMoves(setApart(freshMoves(), picked.key, apart), 0)}
                 onDone={() => setPicked(null)}

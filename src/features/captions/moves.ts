@@ -15,7 +15,9 @@ export const MOVE_STEP_PCT = 1;
 const MAX_LINES = 6;
 const MAX_BLOCKS = 3000;
 
+// "block" is the whole caption (all its lines and its key word) moved as one.
 export const ELEMENT_IDS = [
+  "block",
   "emphasis",
   ...Array.from({ length: MAX_LINES }, (_, index) => `line-${index}` as const),
 ] as const;

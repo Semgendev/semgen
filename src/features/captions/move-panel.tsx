@@ -1,21 +1,12 @@
 "use client";
 
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  BringToFront,
-  RotateCcw,
-  SendToBack,
-  X,
-} from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, RotateCcw, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { MOVE_STEP_PCT, type Move } from "./moves";
+import { MOVE_STEP_PCT } from "./moves";
 
 // Holding an arrow keeps moving the text: a first step at once, then a steady repeat.
 const REPEAT_DELAY_MS = 350;
@@ -184,19 +175,19 @@ function Toggle({
   );
 }
 
-// Moving the text picked on the video: arrows (or a drag on the video), in front / behind, and the
-// choice between this block only and every block of the video.
+// Moving the text picked on the video: arrows (or a drag on the video), and the choice between this
+// block only and every block of the video. A whole block can also be removed from here.
 export function MovePanel({
   text,
   isKeyWord,
-  layer,
+  isBlock,
   canReset,
   everyBlock,
   apart,
   showApart,
   onShift,
   onReset,
-  onLayer,
+  onDelete,
   onEveryBlock,
   onApart,
   onDone,
@@ -204,7 +195,8 @@ export function MovePanel({
   // the words of the picked text, shown in the title
   text: string;
   isKeyWord: boolean;
-  layer: Move["layer"];
+  // the whole caption block is picked (not one of its parts)
+  isBlock: boolean;
   canReset: boolean;
   everyBlock: boolean;
   apart: boolean;
@@ -212,7 +204,7 @@ export function MovePanel({
   showApart: boolean;
   onShift: (dx: number, dy: number) => void;
   onReset: () => void;
-  onLayer: (layer: "front" | "back") => void;
+  onDelete: () => void;
   onEveryBlock: (everyBlock: boolean) => void;
   onApart: (apart: boolean) => void;
   onDone: () => void;
@@ -273,7 +265,7 @@ export function MovePanel({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 id="move-panel-title" className="text-text text-base font-semibold">
-            {isKeyWord ? t("titleKeyWord") : t("title")}
+            {isBlock ? t("titleBlock") : isKeyWord ? t("titleKeyWord") : t("title")}
           </h3>
           <p className="text-text-2 truncate text-sm">« {text} »</p>
         </div>
@@ -290,33 +282,16 @@ export function MovePanel({
 
       <div className="flex flex-row items-center gap-4 sm:gap-6">
         <DirectionPad onShift={onShift} onReset={onReset} canReset={canReset} />
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="text-text-2 text-xs font-medium">{t("layer")}</p>
-          <div role="group" aria-label={t("layer")} className="grid grid-cols-1 gap-2">
-            {(
-              [
-                ["front", BringToFront, t("front")],
-                ["back", SendToBack, t("back")],
-              ] as const
-            ).map(([value, Icon, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={layer === value}
-                onClick={() => onLayer(value)}
-                className={cn(
-                  "focus-visible:ring-focus flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm transition-colors outline-none focus-visible:ring-2",
-                  layer === value
-                    ? "border-brand bg-brand/10 text-text font-semibold"
-                    : "border-border text-text-2 hover:border-brand-border hover:text-text",
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden="true" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        {isBlock ? (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="text-danger border-border hover:border-danger focus-visible:ring-focus flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm transition-colors outline-none focus-visible:ring-2"
+          >
+            <Trash2 className="size-4 shrink-0" aria-hidden="true" />
+            {t("deleteBlock")}
+          </button>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">

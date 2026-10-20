@@ -7,6 +7,7 @@ import {
   Download,
   Loader2,
   Merge,
+  Move,
   ReplaceAll,
   Redo2,
   RotateCcw,
@@ -38,9 +39,11 @@ import {
 import { cn } from "@/lib/utils";
 
 import {
+  useBlockRequest,
   useCaptionPresetId,
   useLostMoves,
   usePublishCaptionWords,
+  useRequestBlock,
   useTranscriptVisible,
 } from "../captions/caption-words";
 import { paginate } from "../captions/paginate";
@@ -55,7 +58,14 @@ import {
   joinAt,
   restoreCuts,
 } from "./cuts";
-import { deleteWord, editWord, findMatchIndices, replaceAll, type TranscriptDraft } from "./edit";
+import {
+  deleteRange,
+  deleteWord,
+  editWord,
+  findMatchIndices,
+  replaceAll,
+  type TranscriptDraft,
+} from "./edit";
 import { InlineWordEditor, SearchTool, WordActions } from "./edit-panels";
 import { ReplacePanel, type PanelPosition } from "./replace-panel";
 import type { Transcript } from "./queries";
@@ -517,6 +527,31 @@ export function TranscriptView({
     commit(joinAt(history.present, index, captionStyle, presetId));
     setSelected(null);
   });
+  // The icon of a line: its block is selected on the video (which goes to it) to be moved there.
+  const requestBlock = useRequestBlock();
+  const moveBlock = useStable((firstWord: number, startMs: number) => {
+    seek(startMs, false);
+    requestBlock?.("select", firstWord);
+  });
+
+  // The cross on the frame of a block, on the video: the words of that block are removed here (one
+  // step of the undo history, so it can be taken back).
+  const blockRequest = useBlockRequest();
+  const handledBlock = useRef(blockRequest?.id ?? 0);
+  const removeBlock = useStable((firstWord: number) => {
+    const line = lines.find((one) => one.word_start <= firstWord && firstWord <= one.word_end);
+    if (!line) return;
+    const next = deleteRange(history.present, line.word_start, line.word_end);
+    if (!next) return;
+    commit(next);
+    setSelected(null);
+    setNotice(t("edit.blockDeleted"));
+  });
+  useEffect(() => {
+    if (!blockRequest || blockRequest.id === handledBlock.current) return;
+    handledBlock.current = blockRequest.id;
+    if (blockRequest.kind === "delete") removeBlock(blockRequest.firstWord);
+  }, [blockRequest, removeBlock]);
   const onCommitWord = useStable(commitWord);
   const onRemoveWord = useStable(removeWord);
   const onSplitAtSelected = useStable(splitAtSelected);
@@ -586,13 +621,13 @@ export function TranscriptView({
                     </span>
                   );
                 })}
-                {/* right after the last word, a little apart from it */}
+                {/* right after the last word, a little apart from it, always in view */}
                 {lineIndex > 0 ? (
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="ms-2 size-8 align-middle focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="ms-2 size-8 align-middle"
                     title={t("edit.merge")}
                     aria-label={t("edit.merge")}
                     onClick={() => mergeLine(line.word_start)}
@@ -600,6 +635,17 @@ export function TranscriptView({
                     <Merge aria-hidden="true" />
                   </Button>
                 ) : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={cn("size-8 align-middle", lineIndex > 0 ? "ms-0.5" : "ms-2")}
+                  title={t("edit.moveBlock")}
+                  aria-label={t("edit.moveBlock")}
+                  onClick={() => moveBlock(line.word_start, lineStart)}
+                >
+                  <Move aria-hidden="true" />
+                </Button>
               </p>
             </div>
           </div>
@@ -618,6 +664,7 @@ export function TranscriptView({
       seek,
       openWord,
       mergeLine,
+      moveBlock,
       onCommitWord,
       onRemoveWord,
       onSplitAtSelected,

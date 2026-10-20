@@ -15,6 +15,8 @@
 
 - **Onglets (2026-10-20)** : « Transcription » est maintenant avant « Style » et s’ouvre en premier. Icône de fusion de ligne placée juste après le dernier mot (écart `ms-2`).
 
+- **Déplacer / supprimer un bloc (étape 1, 2026-10-21)** : toucher la vidéo = lecture / pause (curseur flèche) ; toucher un texte sélectionne **tout le bloc** (cadre en tirets, main, croix pour supprimer, panneau « Déplacer le bloc de mots », plus de « devant / derrière ») ; toucher à côté désélectionne sans lancer la vidéo ; icône « 4 flèches » toujours visible sur chaque ligne de la transcription (après l’icône de fusion) = sélectionne le bloc sur la vidéo ; la croix supprime les mots du bloc (annulable). Testé en vrai par l’agent QA (bureau + mobile). **Étape 2 à faire** : bouton « Séparer » (texte / mot fort en deux cadres, chacun avec sa croix = le cacher sur la vidéo + « Réafficher »), icône « Fusionner le bloc » dans la liste, gros boutons Séparer / Fusionner / Supprimer dans la feuille mobile (croix du cadre = 18 px sur mobile, trop petite).
+
 ## Pour reprendre (ordre)
 0. Lot B commité (`c6db7f9`) + avertissement « déplacement perdu » commité ; pas encore poussé sur GitHub (accord d’Ashanti).
 1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).

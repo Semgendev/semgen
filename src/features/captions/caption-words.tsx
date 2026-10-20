@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 import type { TranscriptWord } from "../transcription/types";
 import { DEFAULT_PRESET, type PresetId } from "./presets";
@@ -9,6 +9,11 @@ import { DEFAULT_PRESET, type PresetId } from "./presets";
 // captions on the video change at once, before the automatic save even happens.
 // The chosen style travels the other way: the transcript tab cuts the text like the video does.
 // (Only the style decides the cuts: colours, fonts and other adjustments never change them.)
+// A request about one caption block, from one side to the other: the transcript line asks the video
+// to select its block ("select"), the video asks the transcript to remove the block's words
+// ("delete"). firstWord = index of the first word of the block in the transcript.
+export type BlockRequest = { id: number; kind: "select" | "delete"; firstWord: number };
+
 type CaptionWordsApi = {
   words: TranscriptWord[];
   setWords: (words: TranscriptWord[]) => void;
@@ -21,6 +26,8 @@ type CaptionWordsApi = {
   // the first word of the block deleted): the transcript tab says so in its notice
   lostMoves: { presetId: PresetId; count: number };
   setLostMoves: (lost: { presetId: PresetId; count: number }) => void;
+  blockRequest: BlockRequest | null;
+  requestBlock: (kind: BlockRequest["kind"], firstWord: number) => void;
 };
 
 const CaptionWordsContext = createContext<CaptionWordsApi | null>(null);
@@ -38,6 +45,10 @@ export function CaptionWordsProvider({
   const [presetId, setPresetId] = useState(initialPresetId);
   const [transcriptVisible, setTranscriptVisible] = useState(true);
   const [lostMoves, setLostMoves] = useState({ presetId: initialPresetId, count: 0 });
+  const [blockRequest, setBlockRequest] = useState<BlockRequest | null>(null);
+  const requestBlock = useCallback((kind: BlockRequest["kind"], firstWord: number) => {
+    setBlockRequest((last) => ({ id: (last?.id ?? 0) + 1, kind, firstWord }));
+  }, []);
   const value = useMemo(
     () => ({
       words,
@@ -48,8 +59,10 @@ export function CaptionWordsProvider({
       setTranscriptVisible,
       lostMoves,
       setLostMoves,
+      blockRequest,
+      requestBlock,
     }),
-    [words, presetId, transcriptVisible, lostMoves],
+    [words, presetId, transcriptVisible, lostMoves, blockRequest, requestBlock],
   );
   return <CaptionWordsContext.Provider value={value}>{children}</CaptionWordsContext.Provider>;
 }
@@ -74,6 +87,14 @@ export function usePublishCaptionPresetId(): ((presetId: PresetId) => void) | nu
 
 export function useTranscriptVisible(): boolean {
   return useContext(CaptionWordsContext)?.transcriptVisible ?? true;
+}
+
+export function useBlockRequest(): BlockRequest | null {
+  return useContext(CaptionWordsContext)?.blockRequest ?? null;
+}
+
+export function useRequestBlock(): CaptionWordsApi["requestBlock"] | null {
+  return useContext(CaptionWordsContext)?.requestBlock ?? null;
 }
 
 const NO_LOST = { presetId: DEFAULT_PRESET, count: 0 };

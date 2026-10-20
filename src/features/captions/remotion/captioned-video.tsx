@@ -60,6 +60,11 @@ import type { CaptionFill, CaptionStyle, TextLook } from "../style";
 export type CaptionEditor = {
   selected: { key: string; element: ElementId } | null;
   onPick: (key: string, element: ElementId) => void;
+  // a touch on the video away from the framed text: the selection is dropped
+  onDeselect: () => void;
+  // the cross on the frame of the selected block
+  onDelete: (key: string) => void;
+  deleteLabel: string;
   // dx / dy since the start of the drag; done = the finger / mouse was released
   onDrag: (key: string, element: ElementId, dx: number, dy: number, done: boolean) => void;
 };
@@ -73,20 +78,22 @@ export type CaptionedVideoProps = {
   editor?: CaptionEditor;
 };
 
-// Look of a text the user can touch (the picked one is framed).
+// Look of a text the user can touch. The cursor stays an arrow until the text is selected: only
+// then it is a hand (and the text is framed), so the video keeps feeling like a video.
 function pickable(
   editor: CaptionEditor | undefined,
   key: string,
   element: ElementId | null,
+  height: number,
 ): CSSProperties {
   if (!editor || !element) return {};
   const selected = editor.selected?.key === key && editor.selected.element === element;
   return {
     pointerEvents: "auto",
-    cursor: selected ? "grab" : "pointer",
+    cursor: selected ? "grab" : "default",
     touchAction: "none",
-    outline: selected ? "0.12em dashed var(--color-brand)" : undefined,
-    outlineOffset: selected ? "0.12em" : undefined,
+    outline: selected ? `${Math.max(2, height * 0.003)}px dashed var(--color-brand)` : undefined,
+    outlineOffset: selected ? `${height * 0.008}px` : undefined,
   };
 }
 
@@ -623,6 +630,10 @@ function PageBlock({
   const elements = lineElements(lines, page.words, style.layout === "stack");
   // the key word inside a line (one-line styles) moves on its own, on top of its line
   const keyWord = placementOf(moves, key, "emphasis");
+  // the whole block moved as one
+  const blockPlace = placementOf(moves, key, "block");
+  const blockSelected = editor?.selected?.key === key && editor.selected.element === "block";
+  const crossPx = height * 0.045;
 
   return (
     <div
@@ -633,98 +644,165 @@ function PageBlock({
         transform: "translate(-50%, -50%)",
         width: `${style.maxWidthPct}%`,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: `${style.lineGapEm * baseFontPx}px`,
-        textAlign: "center",
+        justifyContent: "center",
+        // only the block itself can be touched, not the empty sides around it
+        pointerEvents: editor ? "none" : undefined,
       }}
     >
-      {lines.map((line, lineIndex) => {
-        const lengths = line.map(
-          (wordIndex) => applyCase(page.words[wordIndex]?.text ?? "", style.textCase).length,
-        );
-        const total = lengths.reduce((sum, length) => sum + length, 0) + line.length - 1;
-        // an Arabic line is laid out from right to left: the first word is on the right
-        const rtl = line.some((wordIndex) => ARABIC_TEXT.test(page.words[wordIndex]?.text ?? ""));
-        let before = 0;
-        const places = lengths.map((length) => {
-          // place on screen, counted from the left
-          const place = { before: rtl ? total - before - length : before, middle: (total - 1) / 2 };
-          before += length + 1;
-          return place;
-        });
-        const element = elements[lineIndex] ?? null;
-        const place = element ? placementOf(moves, key, element) : null;
-        const holdsKeyWord =
-          element !== "emphasis" &&
-          line.some((wordIndex) => page.words[wordIndex]?.emphasis === true);
-        // a key word put in front / behind takes its line along (lines stack as a whole), unless
-        // the line itself was given a layer
-        const lineLayer =
-          holdsKeyWord && keyWord.layer && !place?.layer
-            ? layerIndex(keyWord.layer)
-            : layerIndex(place?.layer);
-        return (
-          <div
-            key={lineIndex}
-            data-caption-element={editor && element ? `${key}|${element}` : undefined}
-            // reachable with the keyboard too (Enter picks it)
-            tabIndex={editor && element ? 0 : undefined}
-            role={editor && element ? "button" : undefined}
+      <div
+        data-caption-element={editor ? `${key}|block` : undefined}
+        // reachable with the keyboard too (Enter selects it)
+        tabIndex={editor ? 0 : undefined}
+        role={editor ? "button" : undefined}
+        style={{
+          ...pickable(editor, key, "block", height),
+          position: "relative",
+          width: "max-content",
+          maxWidth: "100%",
+          transform: shiftOf(blockPlace, width, height),
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: `${style.lineGapEm * baseFontPx}px`,
+          textAlign: "center",
+        }}
+      >
+        {editor && blockSelected ? (
+          <span
+            role="button"
+            tabIndex={0}
+            data-caption-delete=""
+            aria-label={editor.deleteLabel}
+            title={editor.deleteLabel}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              editor.onDelete(key);
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              event.stopPropagation();
+              editor.onDelete(key);
+            }}
             style={{
-              ...pickable(editor, key, element),
-              position: "relative",
-              zIndex: lineLayer,
-              transform: place ? shiftOf(place, width, height) : undefined,
+              position: "absolute",
+              top: -crossPx * 0.7,
+              right: -crossPx * 0.7,
+              zIndex: 6,
+              width: crossPx,
+              height: crossPx,
+              borderRadius: "50%",
               display: "flex",
-              // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
-              flexWrap: "nowrap",
-              direction: rtl ? "rtl" : "ltr",
+              alignItems: "center",
               justifyContent: "center",
-              alignItems: "baseline",
-              columnGap: `${baseFontPx * 0.28}px`,
-              backgroundColor: style.lineBox?.color,
-              borderRadius: style.lineBox ? `${style.lineBox.radiusEm * baseFontPx}px` : undefined,
-              padding: style.lineBox
-                ? `${style.lineBox.paddingYEm * baseFontPx}px ${style.lineBox.paddingXEm * baseFontPx}px`
-                : undefined,
+              cursor: "pointer",
+              pointerEvents: "auto",
+              background: "var(--color-brand)",
+              color: "var(--color-on-brand)",
             }}
           >
-            {line.map((wordIndex, position) => {
-              const word = page.words[wordIndex];
-              if (!word) return null;
-              const look = word.emphasis ? style.emphasis : style.base;
-              const ownKeyWord = word.emphasis && element !== "emphasis";
-              return (
-                <Word
-                  key={wordIndex}
-                  shift={ownKeyWord ? shiftOf(keyWord, width, height) : undefined}
-                  zIndex={ownKeyWord ? layerIndex(keyWord.layer) : 1}
-                  pick={
-                    ownKeyWord && editor
-                      ? { id: `${key}|emphasis`, style: pickable(editor, key, "emphasis") }
-                      : undefined
-                  }
-                  word={word}
-                  look={look}
-                  style={style}
-                  motion={wordMotionAt(page, wordIndex, timeMs, style)}
-                  trail={blurSamples(page, wordIndex, timeMs, fps, style)}
-                  progress={fillProgress(page, wordIndex, timeMs)}
-                  timeMs={timeMs}
-                  active={activeAmount(page, wordIndex, timeMs)}
-                  said={interpolate(timeMs - activeWindow(page, wordIndex).start, [0, 90], [0, 1], {
-                    extrapolateLeft: "clamp",
-                    extrapolateRight: "clamp",
-                  })}
-                  fontPx={(look.sizePct / 100) * height * fit.scale}
-                  place={places[position] ?? { before: 0, middle: 0 }}
-                />
-              );
-            })}
-          </div>
-        );
-      })}
+            <svg
+              viewBox="0 0 24 24"
+              width={crossPx * 0.55}
+              height={crossPx * 0.55}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={3}
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </span>
+        ) : null}
+        {lines.map((line, lineIndex) => {
+          const lengths = line.map(
+            (wordIndex) => applyCase(page.words[wordIndex]?.text ?? "", style.textCase).length,
+          );
+          const total = lengths.reduce((sum, length) => sum + length, 0) + line.length - 1;
+          // an Arabic line is laid out from right to left: the first word is on the right
+          const rtl = line.some((wordIndex) => ARABIC_TEXT.test(page.words[wordIndex]?.text ?? ""));
+          let before = 0;
+          const places = lengths.map((length) => {
+            // place on screen, counted from the left
+            const place = {
+              before: rtl ? total - before - length : before,
+              middle: (total - 1) / 2,
+            };
+            before += length + 1;
+            return place;
+          });
+          const element = elements[lineIndex] ?? null;
+          const place = element ? placementOf(moves, key, element) : null;
+          const holdsKeyWord =
+            element !== "emphasis" &&
+            line.some((wordIndex) => page.words[wordIndex]?.emphasis === true);
+          // a key word put in front / behind takes its line along (lines stack as a whole), unless
+          // the line itself was given a layer
+          const lineLayer =
+            holdsKeyWord && keyWord.layer && !place?.layer
+              ? layerIndex(keyWord.layer)
+              : layerIndex(place?.layer);
+          return (
+            <div
+              key={lineIndex}
+              style={{
+                position: "relative",
+                zIndex: lineLayer,
+                transform: place ? shiftOf(place, width, height) : undefined,
+                display: "flex",
+                // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
+                flexWrap: "nowrap",
+                direction: rtl ? "rtl" : "ltr",
+                justifyContent: "center",
+                alignItems: "baseline",
+                columnGap: `${baseFontPx * 0.28}px`,
+                backgroundColor: style.lineBox?.color,
+                borderRadius: style.lineBox
+                  ? `${style.lineBox.radiusEm * baseFontPx}px`
+                  : undefined,
+                padding: style.lineBox
+                  ? `${style.lineBox.paddingYEm * baseFontPx}px ${style.lineBox.paddingXEm * baseFontPx}px`
+                  : undefined,
+              }}
+            >
+              {line.map((wordIndex, position) => {
+                const word = page.words[wordIndex];
+                if (!word) return null;
+                const look = word.emphasis ? style.emphasis : style.base;
+                const ownKeyWord = word.emphasis && element !== "emphasis";
+                return (
+                  <Word
+                    key={wordIndex}
+                    shift={ownKeyWord ? shiftOf(keyWord, width, height) : undefined}
+                    zIndex={ownKeyWord ? layerIndex(keyWord.layer) : 1}
+                    word={word}
+                    look={look}
+                    style={style}
+                    motion={wordMotionAt(page, wordIndex, timeMs, style)}
+                    trail={blurSamples(page, wordIndex, timeMs, fps, style)}
+                    progress={fillProgress(page, wordIndex, timeMs)}
+                    timeMs={timeMs}
+                    active={activeAmount(page, wordIndex, timeMs)}
+                    said={interpolate(
+                      timeMs - activeWindow(page, wordIndex).start,
+                      [0, 90],
+                      [0, 1],
+                      {
+                        extrapolateLeft: "clamp",
+                        extrapolateRight: "clamp",
+                      },
+                    )}
+                    fontPx={(look.sizePct / 100) * height * fit.scale}
+                    place={places[position] ?? { before: 0, middle: 0 }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -807,12 +885,24 @@ export function CaptionLayer({
   return (
     <AbsoluteFill
       ref={root}
-      // the frame itself lets clicks through to the player: only the texts can be touched
-      style={{ pointerEvents: "none" }}
+      // The frame lets clicks through to the player (touching the video plays / pauses it), except
+      // while a block is selected: a touch away from it then only drops the selection.
+      style={{ pointerEvents: editor.selected ? "auto" : "none" }}
       onPointerDown={(event) => {
+        if (event.target instanceof Element && event.target.closest("[data-caption-delete]"))
+          return;
         const target = targetOf(event);
         const picked = elementOf(target);
-        if (!target || !picked) return;
+        if (!target || !picked) {
+          // away from the framed block: the selection is dropped, and the player (which plays /
+          // pauses on the press itself) never hears about this touch
+          if (editor.selected) {
+            event.stopPropagation();
+            event.preventDefault();
+            editor.onDeselect();
+          }
+          return;
+        }
         event.stopPropagation();
         event.preventDefault();
         target.setPointerCapture(event.pointerId);
@@ -866,9 +956,14 @@ export function CaptionLayer({
         event.stopPropagation();
         editor.onPick(picked.key, picked.element);
       }}
-      // a touch on a text never plays / pauses the video
+      // a touch on a text never plays / pauses the video; nor does the touch that drops the selection
       onClick={(event) => {
-        if (targetOf(event)) event.stopPropagation();
+        if (targetOf(event)) {
+          event.stopPropagation();
+        } else if (editor.selected) {
+          event.stopPropagation();
+          editor.onDeselect();
+        }
       }}
     >
       {blocks}

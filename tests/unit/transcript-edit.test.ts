@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   countMatches,
+  deleteRange,
   deleteWord,
   editWord,
   findMatchIndices,
@@ -161,5 +162,27 @@ describe("deleteWord / replaceAt", () => {
     const all = replaceAll(draft, "claude", "CLAUDE", false);
     expect(all.count).toBe(2);
     expect(all.draft.words.map((item) => item.text)).toEqual(["CLAUDE", "CLAUDE."]);
+  });
+});
+
+describe("deleteRange (the cross on a block of the video)", () => {
+  it("removes a whole run of words and keeps the segments in step", () => {
+    const next = deleteRange(makeDraft(), 0, 2);
+    expect(next?.words.map((one) => one.text)).toEqual(["Merci", "beaucoup"]);
+    expect(next && isValidDraft(next)).toBe(true);
+  });
+
+  it("never empties the transcript: one word always stays", () => {
+    const next = deleteRange(makeDraft(), 0, 4);
+    expect(next?.words).toHaveLength(1);
+  });
+
+  it("returns null when nothing can be removed", () => {
+    const one = {
+      words: [word("Salut", 0, 300)],
+      segments: buildSegments([word("Salut", 0, 300)]),
+    };
+    expect(deleteRange(one, 0, 0)).toBeNull();
+    expect(deleteRange(makeDraft(), 9, 12)).toBeNull();
   });
 });

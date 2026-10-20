@@ -112,6 +112,24 @@ export function deleteWord(draft: TranscriptDraft, index: number): TranscriptDra
   return withSegments(words, segments);
 }
 
+// Removes the words from `from` to `to` (a whole caption block). The transcript
+// is never emptied (one word stays): null when nothing could be removed.
+export function deleteRange(
+  draft: TranscriptDraft,
+  from: number,
+  to: number,
+): TranscriptDraft | null {
+  let current = draft;
+  let removed = false;
+  for (let index = Math.min(to, draft.words.length - 1); index >= Math.max(0, from); index -= 1) {
+    const next = deleteWord(current, index);
+    if (!next) continue;
+    current = next;
+    removed = true;
+  }
+  return removed ? current : null;
+}
+
 function searchPattern(find: string, caseSensitive: boolean): RegExp {
   const escaped = find.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(escaped, caseSensitive ? "gu" : "giu");

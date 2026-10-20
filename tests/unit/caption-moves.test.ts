@@ -174,3 +174,20 @@ describe("moves left behind by a change of the text", () => {
     expect(lostBlockKeys(moved, [page(1300), page(5000), page(7000)])).toEqual(["1200"]);
   });
 });
+
+describe("moving a whole block", () => {
+  const block: MoveTarget = { key: "1200", element: "block", everyBlock: false };
+
+  it("moves the block as one, apart from its lines and its key word", () => {
+    const moves = shiftElement(undefined, block, 4, -6);
+    expect(placementOf(moves, "1200", "block")).toEqual({ x: 4, y: -6, layer: undefined });
+    expect(placementOf(moves, "1200", "line-0")).toEqual({ x: 0, y: 0, layer: undefined });
+    expect(placementOf(moves, "1200", "emphasis")).toEqual({ x: 0, y: 0, layer: undefined });
+  });
+
+  it("can follow every block, and is stored with the style", () => {
+    const moves = shiftElement(undefined, { ...block, everyBlock: true }, 0, 3);
+    expect(placementOf(moves, "9000", "block")).toEqual({ x: 0, y: 3, layer: undefined });
+    expect(captionMovesSchema.safeParse({ cinema: moves }).success).toBe(true);
+  });
+});
