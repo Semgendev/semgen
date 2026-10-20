@@ -44,9 +44,23 @@ function useVideoMeta(src: string): VideoMeta | null {
 
 // The project video with its animated captions (same composition as the export), kept in sync with
 // the transcript: clicking a word moves this player, and playing it highlights the words.
-export function CaptionPlayer({ src, style }: { src: string; style: CaptionStyle }) {
+export function CaptionPlayer({
+  src,
+  style,
+  presetId,
+}: {
+  src: string;
+  style: CaptionStyle;
+  // the cuts made by hand for this style apply
+  presetId: string;
+}) {
   const words = useCaptionWords();
-  const pages = useMemo(() => paginate(words, style), [words, style]);
+  // only these settings change the cuts: moving a colour slider does not cut the text again
+  const { layout, grouping, maxWordsPerPage, maxCharsPerLine } = style;
+  const pages = useMemo(
+    () => paginate(words, { layout, grouping, maxWordsPerPage, maxCharsPerLine }, presetId),
+    [words, layout, grouping, maxWordsPerPage, maxCharsPerLine, presetId],
+  );
   const meta = useVideoMeta(src);
   const player = useRef<PlayerRef>(null);
   const lastMs = useRef(-1);

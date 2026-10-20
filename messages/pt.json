@@ -101,6 +101,8 @@
       "wordLabel": "Palavra a corrigir",
       "newLine": "Nova linha aqui",
       "merge": "Juntar com a linha de cima",
+      "restoreCuts": "Voltar aos meus cortes anteriores",
+      "cutsRestored": "Seus cortes voltaram.",
       "searchLabel": "Buscar uma palavra",
       "searchPlaceholder": "Buscar uma palavra",
       "clearSearch": "Limpar a busca",

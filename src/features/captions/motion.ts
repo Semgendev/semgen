@@ -404,15 +404,18 @@ export function layoutLines(
       (sum, index, position) => sum + (words[index]?.text.length ?? 0) + (position ? 1 : 0),
       0,
     );
-  // one line when it fits, else two lines of close length, cut where the sentence allows it
-  // ("Salut, je viendrai" / "chez toi demain !", never "chez" / "toi")
+  // one line when it fits, else lines of close length, cut where the sentence allows it
+  // ("Salut, je viendrai" / "chez toi demain !", never "chez" / "toi"). A long sentence (or captions
+  // glued by hand) gets three lines or more instead of two over-long ones.
   const split = (line: number[]): number[][] => {
-    if (line.length < 2 || length(line) <= style.maxCharsPerLine) return [line];
+    const count = Math.ceil(length(line) / style.maxCharsPerLine);
+    if (line.length < 2 || count <= 1) return [line];
     const cut = bestCut(
       line.map((index) => words[index]?.text ?? ""),
-      { balance: 12 },
+      { balance: 12, firstShare: count > 2 ? 1 / count : undefined },
     );
-    return [line.slice(0, cut), line.slice(cut)];
+    if (count <= 2) return [line.slice(0, cut), line.slice(cut)];
+    return [line.slice(0, cut), ...split(line.slice(cut))];
   };
   if (style.layout === "stack") {
     // the small words around the key word get the same care: a long lead-in is set on two lines

@@ -148,6 +148,11 @@ export const captionStyleSchema = z.object({
   // "line": words flow on one or two lines. "stack": the key word alone on a big line, the other
   // words small above / below it (kinetic typography).
   layout: z.enum(["line", "stack"]),
+  // How the text is cut into captions (every style must choose; the video, the transcript tab and the
+  // exports all show the same captions). "sentence": a whole sentence per caption, a very long one is
+  // still cut where the sentence allows it. "phrase": short pieces ("Salut, j'espère" / "que tu vas
+  // bien"), cut at the word / character limits below.
+  grouping: z.enum(["sentence", "phrase"]),
   maxWordsPerPage: z.number().int().min(1).max(12),
   maxCharsPerLine: z.number().int().min(6).max(60),
   textCase: z.enum(["none", "upper", "lower"]),

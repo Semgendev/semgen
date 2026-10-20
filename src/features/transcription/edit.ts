@@ -1,5 +1,4 @@
 import type { TranscriptSegment, TranscriptWord } from "./types";
-import { findSegmentIndex } from "./view";
 
 export type TranscriptDraft = { words: TranscriptWord[]; segments: TranscriptSegment[] };
 
@@ -75,7 +74,10 @@ export function editWord(
       position === parts.length - 1
         ? word.end
         : word.start + Math.round((span * consumed) / totalChars);
-    return { ...word, text, start, end };
+    // a cut made by hand stays before the first of the new words only
+    const piece = { ...word, text, start, end };
+    if (position > 0) delete piece.cuts;
+    return piece;
   });
   const words = [...draft.words.slice(0, index), ...replacements, ...draft.words.slice(index + 1)];
   const segments = draft.segments.map((segment) => ({
@@ -88,8 +90,17 @@ export function editWord(
 
 // Removes a word (a mistake, a stutter). A line left empty disappears; the last word stays.
 export function deleteWord(draft: TranscriptDraft, index: number): TranscriptDraft | null {
-  if (!draft.words[index] || draft.words.length <= 1) return null;
-  const words = draft.words.filter((_, position) => position !== index);
+  const removed = draft.words[index];
+  if (!removed || draft.words.length <= 1) return null;
+  // a cut made by hand before the removed word moves to the word after it
+  const words = draft.words.flatMap((word, position) => {
+    if (position === index) return [];
+    if (position === index + 1 && removed.cuts) {
+      // the word's own cuts win when both have one for the same style
+      return [{ ...word, cuts: { ...removed.cuts, ...word.cuts } }];
+    }
+    return [word];
+  });
   const segments = draft.segments.flatMap((segment) => {
     if (segment.word_end < index) return [segment];
     if (segment.word_start > index) {
@@ -99,36 +110,6 @@ export function deleteWord(draft: TranscriptDraft, index: number): TranscriptDra
     return word_end < segment.word_start ? [] : [{ ...segment, word_end }];
   });
   return withSegments(words, segments);
-}
-
-export function mergeWithPrevious(
-  draft: TranscriptDraft,
-  segmentIndex: number,
-): TranscriptDraft | null {
-  const previous = draft.segments[segmentIndex - 1];
-  const current = draft.segments[segmentIndex];
-  if (!previous || !current) return null;
-  const merged = { ...previous, word_end: current.word_end };
-  const segments = [
-    ...draft.segments.slice(0, segmentIndex - 1),
-    merged,
-    ...draft.segments.slice(segmentIndex + 1),
-  ];
-  return withSegments(draft.words, segments);
-}
-
-// Starts a new line at the given word (it becomes the first word of the new line).
-export function splitSegmentAt(draft: TranscriptDraft, wordIndex: number): TranscriptDraft | null {
-  const segmentIndex = findSegmentIndex(draft.segments, wordIndex);
-  const segment = draft.segments[segmentIndex];
-  if (!segment || wordIndex <= segment.word_start) return null;
-  const segments = [
-    ...draft.segments.slice(0, segmentIndex),
-    { ...segment, word_end: wordIndex - 1 },
-    { ...segment, word_start: wordIndex },
-    ...draft.segments.slice(segmentIndex + 1),
-  ];
-  return withSegments(draft.words, segments);
 }
 
 function searchPattern(find: string, caseSensitive: boolean): RegExp {

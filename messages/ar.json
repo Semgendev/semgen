@@ -101,6 +101,8 @@
       "wordLabel": "الكلمة المراد تصحيحها",
       "newLine": "سطر جديد هنا",
       "merge": "الدمج مع السطر السابق",
+      "restoreCuts": "العودة إلى تقسيماتي السابقة",
+      "cutsRestored": "عادت تقسيماتك.",
       "searchLabel": "البحث عن كلمة",
       "searchPlaceholder": "البحث عن كلمة",
       "clearSearch": "مسح البحث",

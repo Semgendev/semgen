@@ -60,13 +60,15 @@ export function breakScore(before: string, after: string | undefined): number {
 
 // Glues lonely punctuation to its word with a no-break space ("demain" + "!" → "demain !"), so it
 // can never end up alone on a line or on a caption of its own.
-export function gluePunctuation(words: TranscriptWord[]): TranscriptWord[] {
-  const result: TranscriptWord[] = [];
-  let pendingOpen: TranscriptWord | null = null;
+export function gluePunctuation<T extends TranscriptWord>(words: T[]): T[] {
+  const result: T[] = [];
+  let pendingOpen: T | null = null;
   for (const word of words) {
     const text = word.text.trim();
-    if (CLOSING_PUNCTUATION.test(text) && result.length > 0) {
-      const previous = result[result.length - 1]!;
+    if (CLOSING_PUNCTUATION.test(text)) {
+      const previous = result[result.length - 1];
+      // nothing before it (start of the text): a lonely "!" is never shown as a caption
+      if (!previous) continue;
       // French typography: a no-break space before ! ? : ; and »; none before , . … )
       const space = /^[!?:;»]/.test(text) ? NBSP : "";
       result[result.length - 1] = {
@@ -102,21 +104,35 @@ export function gluePunctuation(words: TranscriptWord[]): TranscriptWord[] {
 // end of a sentence).
 const LONELY_PENALTY = 4;
 
+// `firstShare` (0–1, with balance > 0) aims the first part at that share of the text instead of half
+// (used to cut a long text in three lines or more). `allowed` rules some cuts out; texts.length is
+// returned when none is allowed.
 export function bestCut(
   texts: string[],
-  options: { balance: number; minFirst?: number; lonelyLast?: boolean },
+  options: {
+    balance: number;
+    minFirst?: number;
+    lonelyLast?: boolean;
+    firstShare?: number;
+    allowed?: (cut: number) => boolean;
+  },
 ): number {
   const lengths = texts.map((text) => text.length);
   const total = lengths.reduce((sum, length) => sum + length, 0) + texts.length - 1;
   let best = texts.length;
   let bestScore = -Infinity;
   for (let cut = Math.max(1, options.minFirst ?? 1); cut < texts.length; cut++) {
+    if (options.allowed && !options.allowed(cut)) continue;
     const first = lengths.slice(0, cut).reduce((sum, length) => sum + length, 0) + cut - 1;
     const second = total - first - 1;
+    const gap =
+      options.firstShare === undefined
+        ? Math.abs(first - second)
+        : 2 * Math.abs(first - options.firstShare * total);
     const score =
       breakScore(texts[cut - 1] ?? "", texts[cut]) -
       (options.balance > 0
-        ? (options.balance * Math.abs(first - second)) / Math.max(1, total)
+        ? (options.balance * gap) / Math.max(1, total)
         : (-options.balance * second) / Math.max(1, total)) -
       (options.lonelyLast && cut === texts.length - 1 ? LONELY_PENALTY : 0);
     if (score > bestScore) {

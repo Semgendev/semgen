@@ -101,6 +101,8 @@
       "wordLabel": "Zu korrigierendes Wort",
       "newLine": "Hier neue Zeile",
       "merge": "Mit der Zeile darüber verbinden",
+      "restoreCuts": "Meine vorherigen Schnitte zurückholen",
+      "cutsRestored": "Deine Schnitte sind wieder da.",
       "searchLabel": "Nach einem Wort suchen",
       "searchPlaceholder": "Nach einem Wort suchen",
       "clearSearch": "Suche löschen",

@@ -38,6 +38,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   cinema: {
     version: 1,
     layout: "stack",
+    grouping: "phrase",
     maxWordsPerPage: 4,
     maxCharsPerLine: 16,
     textCase: "upper",
@@ -73,6 +74,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   elegance: {
     version: 1,
     layout: "stack",
+    grouping: "phrase",
     maxWordsPerPage: 4,
     maxCharsPerLine: 18,
     textCase: "none",
@@ -110,6 +112,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   editorial: {
     version: 1,
     layout: "stack",
+    grouping: "phrase",
     maxWordsPerPage: 5,
     maxCharsPerLine: 22,
     textCase: "none",
@@ -155,6 +158,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   signature: {
     version: 1,
     layout: "stack",
+    grouping: "phrase",
     maxWordsPerPage: 5,
     maxCharsPerLine: 20,
     textCase: "none",
@@ -196,7 +200,8 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   minimal: {
     version: 1,
     layout: "line",
-    maxWordsPerPage: 7,
+    grouping: "sentence",
+    maxWordsPerPage: 12,
     maxCharsPerLine: 24,
     textCase: "none",
     position: { x: 50, y: 70 },
@@ -230,6 +235,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   pop: {
     version: 1,
     layout: "line",
+    grouping: "phrase",
     maxWordsPerPage: 4,
     maxCharsPerLine: 13,
     textCase: "none",
@@ -276,6 +282,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   highlighter: {
     version: 1,
     layout: "line",
+    grouping: "phrase",
     maxWordsPerPage: 6,
     maxCharsPerLine: 18,
     textCase: "none",
@@ -319,6 +326,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   converge: {
     version: 1,
     layout: "stack",
+    grouping: "phrase",
     maxWordsPerPage: 5,
     maxCharsPerLine: 20,
     textCase: "upper",
@@ -364,6 +372,7 @@ const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "li
   impact: {
     version: 1,
     layout: "line",
+    grouping: "phrase",
     maxWordsPerPage: 5,
     maxCharsPerLine: 15,
     textCase: "none",
@@ -411,6 +420,7 @@ const GOLD: CaptionStyle = {
   // rise one by one from behind a mask, a reflection running across it.
   version: 1,
   layout: "stack",
+  grouping: "phrase",
   maxWordsPerPage: 5,
   maxCharsPerLine: 22,
   textCase: "none",
@@ -467,6 +477,7 @@ const GLASS: CaptionStyle = {
   // inside it in an icy gradient.
   version: 1,
   layout: "line",
+  grouping: "phrase",
   maxWordsPerPage: 6,
   maxCharsPerLine: 20,
   textCase: "none",
@@ -516,6 +527,7 @@ const LIQUID: CaptionStyle = {
   // rises inside it with a soft wave, following the voice.
   version: 1,
   layout: "line",
+  grouping: "phrase",
   maxWordsPerPage: 4,
   maxCharsPerLine: 14,
   textCase: "upper",

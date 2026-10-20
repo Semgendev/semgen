@@ -17,7 +17,11 @@ import { saveCustomColors } from "@/features/preferences/actions";
 import { MAX_CUSTOM_COLORS } from "@/features/preferences/schemas";
 
 import { setCaptionStyle } from "./actions";
-import { useCaptionWords } from "./caption-words";
+import {
+  useCaptionWords,
+  usePublishCaptionPresetId,
+  usePublishTranscriptVisible,
+} from "./caption-words";
 import { CaptionPlayer } from "./caption-player";
 import { applyColors, type CaptionColors } from "./colors";
 import { CAPTION_PRESETS, CARD_LIGHTS, DEFAULT_PRESET, PRESET_IDS, type PresetId } from "./presets";
@@ -64,6 +68,15 @@ export function CaptionStudio({
   const [failed, setFailed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<TabId>("styles");
+  // the transcript tab cuts its lines like the chosen style
+  const publishPresetId = usePublishCaptionPresetId();
+  useEffect(() => {
+    publishPresetId?.(preset);
+  }, [publishPresetId, preset]);
+  const publishTranscriptVisible = usePublishTranscriptVisible();
+  useEffect(() => {
+    publishTranscriptVisible?.(tab === "transcription");
+  }, [publishTranscriptVisible, tab]);
   const [, startSaving] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -199,11 +212,17 @@ export function CaptionStudio({
             onChange={setTab}
             moreLabel={t("moreTabs")}
           />
-          {tab === "transcription" && transcriptionSlot ? (
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4">
+          {/* Kept mounted while hidden: the text being corrected, its undo history and its
+              automatic save survive a visit to the styles. */}
+          {transcriptionSlot ? (
+            <div
+              hidden={tab !== "transcription"}
+              className="min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 [&:not([hidden])]:flex"
+            >
               {transcriptionSlot}
             </div>
-          ) : (
+          ) : null}
+          {tab === "transcription" && transcriptionSlot ? null : (
             <>
               <StudioGuide />
               <StylePanel
@@ -250,7 +269,7 @@ export function CaptionStudio({
       {/* right: the video in a card as tall as the left panel; it never moves while the panel scrolls */}
       <div className="bg-surface border-border order-1 flex flex-col items-center justify-center gap-2 rounded-2xl border p-3 lg:sticky lg:top-[4.75rem] lg:order-2 lg:h-[calc(100dvh-var(--studio-offset))]">
         <div className="w-full shrink-0">{titleSlot}</div>
-        <CaptionPlayer src={src} style={current} />
+        <CaptionPlayer src={src} style={current} presetId={preset} />
         {needsText ? (
           <div className="text-text-2 flex shrink-0 flex-col items-center gap-2 text-center text-sm">
             <p>{t("noWords")}</p>

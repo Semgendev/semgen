@@ -58,7 +58,11 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
     <PlayerProvider>
       <CaptionFontPreload selected={resolveCaptionStyle(project.caption_style).presetId} />
       {/* Remounts when the transcript arrives, so the captions start from its words. */}
-      <CaptionWordsProvider key={transcript?.id ?? "none"} initialWords={transcript?.words ?? []}>
+      <CaptionWordsProvider
+        key={transcript?.id ?? "none"}
+        initialWords={transcript?.words ?? []}
+        initialPresetId={resolveCaptionStyle(project.caption_style).presetId}
+      >
         <Link
           href="/projects"
           className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors lg:-my-1 lg:min-h-8"

@@ -9,10 +9,20 @@ import {
   Merge,
   Redo2,
   RotateCcw,
+  Scissors,
   Undo2,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { memo, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,18 +36,24 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-import { usePublishCaptionWords } from "../captions/caption-words";
+import {
+  useCaptionPresetId,
+  usePublishCaptionWords,
+  useTranscriptVisible,
+} from "../captions/caption-words";
+import { paginate } from "../captions/paginate";
+import { CAPTION_PRESETS } from "../captions/presets";
 import { usePlayerControls, usePlayerTime } from "../projects/player";
 import { revertTranscript, saveTranscript } from "./actions";
 import {
-  deleteWord,
-  editWord,
-  findMatchIndices,
-  mergeWithPrevious,
-  replaceAll,
-  splitSegmentAt,
-  type TranscriptDraft,
-} from "./edit";
+  breakBefore,
+  captionLines,
+  captionsForExport,
+  hiddenCutCount,
+  joinAt,
+  restoreCuts,
+} from "./cuts";
+import { deleteWord, editWord, findMatchIndices, replaceAll, type TranscriptDraft } from "./edit";
 import { InlineWordEditor, SearchBar, WordActions } from "./edit-panels";
 import { ReplacePanel, type PanelPosition } from "./replace-panel";
 import type { Transcript } from "./queries";
@@ -123,6 +139,16 @@ function download(fileName: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
+// Same function at every render, always calling the latest version: the memoised lines below are
+// not drawn again for nothing.
+function useStable<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+  const latest = useRef(fn);
+  useLayoutEffect(() => {
+    latest.current = fn;
+  });
+  return useCallback((...args: A) => latest.current(...args), []);
+}
+
 type History = { past: TranscriptDraft[]; present: TranscriptDraft; future: TranscriptDraft[] };
 type SaveState = "idle" | "saved" | "error";
 
@@ -168,16 +194,28 @@ export function TranscriptView({
   const [history, setHistory] = useState<History>({ past: [], present: saved, future: [] });
   const container = useRef<HTMLDivElement>(null);
 
-  const { words, segments } = history.present;
+  const { words } = history.present;
   // Every correction shows up at once in the captions on the video.
   const publishWords = usePublishCaptionWords();
   useEffect(() => {
     publishWords?.(words);
   }, [publishWords, words]);
-  // Every correction shows up at once in the captions on the video.  const publishWords = usePublishCaptionWords();  useEffect(() => {    publishWords?.(words);  }, [publishWords, words]);
+  // One line per caption of the chosen style, exactly as on the video. Computed again only when the
+  // text, the style or a cut changes (never while the video plays).
+  const presetId = useCaptionPresetId();
+  const captionStyle = CAPTION_PRESETS[presetId];
+  const pages = useMemo(
+    () => paginate(words, captionStyle, presetId),
+    [words, captionStyle, presetId],
+  );
+  const lines = useMemo(() => captionLines(pages, words.length), [pages, words.length]);
+  const exported = useMemo(() => captionsForExport(pages), [pages]);
+  const hiddenCuts = useMemo(() => hiddenCutCount(words, presetId), [words, presetId]);
   const dirty = history.present !== saved;
-  const activeWord = findActiveWordIndex(words, timeMs);
-  const activeSegment = activeWord >= 0 ? findSegmentIndex(segments, activeWord) : -1;
+  // Hidden behind the styles tab: nothing follows the video, so the lines are not drawn again.
+  const visible = useTranscriptVisible();
+  const activeWord = visible ? findActiveWordIndex(words, timeMs) : -1;
+  const activeLine = activeWord >= 0 ? findSegmentIndex(lines, activeWord) : -1;
   const doubtCount = useMemo(() => words.filter(isLowConfidence).length, [words]);
   const matchIndices = useMemo(() => findMatchIndices(words, find, false), [words, find]);
   const replaceMatches = useMemo(
@@ -272,13 +310,13 @@ export function TranscriptView({
 
   // While playing, keep the current line in view inside the transcript box (not the whole page).
   useEffect(() => {
-    if (activeSegment < 0 || !isPlaying()) return;
+    if (activeLine < 0 || !isPlaying()) return;
     const box = container.current;
-    const line = box?.querySelector<HTMLElement>(`[data-segment-index="${activeSegment}"]`);
+    const line = box?.querySelector<HTMLElement>(`[data-line-index="${activeLine}"]`);
     if (!box || !line) return;
     const top = line.offsetTop - box.clientHeight / 3;
     box.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-  }, [activeSegment, isPlaying]);
+  }, [activeLine, isPlaying]);
 
   const save = useCallback(() => {
     const draft = history.present;
@@ -314,7 +352,7 @@ export function TranscriptView({
 
   async function copyText() {
     try {
-      await navigator.clipboard.writeText(toPlainText(segments));
+      await navigator.clipboard.writeText(toPlainText(exported));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -402,8 +440,9 @@ export function TranscriptView({
     setSelected(null);
   }
 
+  // "New line": a caption starts at this word, in this style only (a cut made by hand).
   function splitBefore(index: number) {
-    commit(splitSegmentAt(history.present, index));
+    commit(breakBefore(history.present, index, presetId));
     setSelected(null);
   }
 
@@ -411,9 +450,128 @@ export function TranscriptView({
   function splitAtSelected() {
     if (selected === null) return;
     const edited = editWord(history.present, selected, editText) ?? history.present;
-    commit(splitSegmentAt(edited, selected) ?? (edited === history.present ? null : edited));
+    commit(breakBefore(edited, selected, presetId) ?? (edited === history.present ? null : edited));
     setSelected(null);
   }
+
+  // Brings back the cuts made by hand in other styles.
+  function bringBackCuts() {
+    commit(restoreCuts(history.present, presetId));
+    setSelected(null);
+    setNotice(t("edit.cutsRestored"));
+  }
+
+  const mergeLine = useStable((index: number) => {
+    commit(joinAt(history.present, index, captionStyle, presetId));
+    setSelected(null);
+  });
+  const onCommitWord = useStable(commitWord);
+  const onRemoveWord = useStable(removeWord);
+  const onSplitAtSelected = useStable(splitAtSelected);
+  const onDeleteAt = useStable(deleteAt);
+  const onSplitBefore = useStable(splitBefore);
+
+  // Drawn again only when the text, the style, the open word or the word being said changes.
+  const lineList = useMemo(
+    () =>
+      lines.map((line, lineIndex) => {
+        const lineStart = words[line.word_start]?.start ?? 0;
+        return (
+          <div
+            key={line.word_start}
+            data-line-index={lineIndex}
+            className="group flex gap-3 leading-8"
+          >
+            <button
+              type="button"
+              onClick={() => seek(lineStart)}
+              className="text-muted-foreground hover:text-foreground w-12 shrink-0 text-end text-xs tabular-nums"
+              aria-label={t("jumpTo", { time: formatTimestamp(lineStart) })}
+            >
+              {formatTimestamp(lineStart)}
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="break-words">
+                {words.slice(line.word_start, line.word_end + 1).map((word, offset) => {
+                  const index = line.word_start + offset;
+                  return (
+                    <span key={index}>
+                      {index === selected ? (
+                        <span className="relative">
+                          <InlineWordEditor
+                            value={editText}
+                            onChange={setEditText}
+                            canSplit={index > line.word_start}
+                            onCommit={onCommitWord}
+                            onSplit={onSplitAtSelected}
+                            onDelete={onRemoveWord}
+                            onCancel={() => setSelected(null)}
+                          />
+                          <WordActions
+                            keepFocus
+                            canSplit={index > line.word_start}
+                            onDelete={onRemoveWord}
+                            onSplit={onSplitAtSelected}
+                          />
+                        </span>
+                      ) : (
+                        <WordCell
+                          word={word}
+                          index={index}
+                          active={index === activeWord}
+                          flagged={showDoubts && isLowConfidence(word)}
+                          matched={matchSet.has(index)}
+                          currentMatch={index === currentMatch}
+                          canSplit={index > line.word_start}
+                          doubtLabel={t("doubtful", {
+                            percent: Math.round((word.confidence ?? 0) * 100),
+                          })}
+                          onOpen={openWord}
+                          onDelete={onDeleteAt}
+                          onSplit={onSplitBefore}
+                        />
+                      )}{" "}
+                    </span>
+                  );
+                })}
+              </p>
+            </div>
+            {lineIndex > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                title={t("edit.merge")}
+                aria-label={t("edit.merge")}
+                onClick={() => mergeLine(line.word_start)}
+              >
+                <Merge aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        );
+      }),
+    [
+      lines,
+      words,
+      selected,
+      editText,
+      activeWord,
+      showDoubts,
+      matchSet,
+      currentMatch,
+      t,
+      seek,
+      openWord,
+      mergeLine,
+      onCommitWord,
+      onRemoveWord,
+      onSplitAtSelected,
+      onDeleteAt,
+      onSplitBefore,
+    ],
+  );
 
   const baseName = title.replace(/[^\p{L}\p{N}_-]+/gu, "_").slice(0, 60) || "transcript";
 
@@ -447,7 +605,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => download(`${baseName}.srt`, toSrt(segments), "application/x-subrip")}
+            onClick={() => download(`${baseName}.srt`, toSrt(exported), "application/x-subrip")}
           >
             <Download aria-hidden="true" />
             SRT
@@ -456,7 +614,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => download(`${baseName}.txt`, toPlainText(segments), "text/plain")}
+            onClick={() => download(`${baseName}.txt`, toPlainText(exported), "text/plain")}
           >
             <Download aria-hidden="true" />
             TXT
@@ -544,6 +702,12 @@ export function TranscriptView({
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <p className="text-text-3 text-sm">{t("edit.hint")}</p>
+        {hiddenCuts > 0 ? (
+          <Button type="button" variant="outline" size="sm" onClick={bringBackCuts}>
+            <Scissors aria-hidden="true" />
+            {t("edit.restoreCuts")}
+          </Button>
+        ) : null}
         {doubtCount > 0 ? (
           <label className="text-muted-foreground flex items-center gap-2 text-sm">
             <input
@@ -562,84 +726,7 @@ export function TranscriptView({
         // Extra room on top and between lines: the icons above a word never hide the line above it.
         className="bg-card relative flex max-h-[60vh] flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-xl border p-4 pt-9"
       >
-        {segments.map((segment, segmentIndex) => (
-          <div
-            key={segment.word_start}
-            data-segment-index={segmentIndex}
-            className="group flex gap-3 leading-8"
-          >
-            <button
-              type="button"
-              onClick={() => seek(segment.start)}
-              className="text-muted-foreground hover:text-foreground w-12 shrink-0 text-end text-xs tabular-nums"
-              aria-label={t("jumpTo", { time: formatTimestamp(segment.start) })}
-            >
-              {formatTimestamp(segment.start)}
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="break-words">
-                {words.slice(segment.word_start, segment.word_end + 1).map((word, offset) => {
-                  const index = segment.word_start + offset;
-                  return (
-                    <span key={index}>
-                      {index === selected ? (
-                        <span className="relative">
-                          <InlineWordEditor
-                            value={editText}
-                            onChange={setEditText}
-                            canSplit={index > segment.word_start}
-                            onCommit={commitWord}
-                            onSplit={splitAtSelected}
-                            onDelete={removeWord}
-                            onCancel={() => setSelected(null)}
-                          />
-                          <WordActions
-                            keepFocus
-                            canSplit={index > segment.word_start}
-                            onDelete={removeWord}
-                            onSplit={splitAtSelected}
-                          />
-                        </span>
-                      ) : (
-                        <WordCell
-                          word={word}
-                          index={index}
-                          active={index === activeWord}
-                          flagged={showDoubts && isLowConfidence(word)}
-                          matched={matchSet.has(index)}
-                          currentMatch={index === currentMatch}
-                          canSplit={index > segment.word_start}
-                          doubtLabel={t("doubtful", {
-                            percent: Math.round((word.confidence ?? 0) * 100),
-                          })}
-                          onOpen={openWord}
-                          onDelete={deleteAt}
-                          onSplit={splitBefore}
-                        />
-                      )}{" "}
-                    </span>
-                  );
-                })}
-              </p>
-            </div>
-            {segmentIndex > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                title={t("edit.merge")}
-                aria-label={t("edit.merge")}
-                onClick={() => {
-                  commit(mergeWithPrevious(history.present, segmentIndex));
-                  setSelected(null);
-                }}
-              >
-                <Merge aria-hidden="true" />
-              </Button>
-            ) : null}
-          </div>
-        ))}
+        {lineList}
       </div>
 
       <Dialog

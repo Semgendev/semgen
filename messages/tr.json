@@ -101,6 +101,8 @@
       "wordLabel": "Düzeltilecek kelime",
       "newLine": "Burada yeni satır",
       "merge": "Üstteki satırla birleştir",
+      "restoreCuts": "Önceki kesimlerime dön",
+      "cutsRestored": "Kesimlerin geri geldi.",
       "searchLabel": "Kelime ara",
       "searchPlaceholder": "Kelime ara",
       "clearSearch": "Aramayı temizle",

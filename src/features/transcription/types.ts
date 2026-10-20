@@ -9,9 +9,17 @@ export const transcriptWordSchema = z.object({
   end: z.number().int().nonnegative(),
   confidence: z.number().min(0).max(1).nullable(),
   speaker: z.string().nullable(),
+  // Cuts made by hand just before this word, one per style (key = preset id): "break" starts a new
+  // caption here, "join" glues this word's caption to the previous one. Each style only uses its
+  // own; the user can copy the cuts of the other styles into the current one.
+  cuts: z
+    .record(z.string().regex(/^[a-z0-9-]{1,40}$/), z.enum(["break", "join"]))
+    .refine((cuts) => Object.keys(cuts).length <= 50)
+    .optional(),
 });
 
 export type TranscriptWord = z.infer<typeof transcriptWordSchema>;
+export type CutKind = "break" | "join";
 
 export const transcriptSegmentSchema = z.object({
   start: z.number().int().nonnegative(),

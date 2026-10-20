@@ -63,6 +63,7 @@ describe("paginate with sentence-aware cuts", () => {
       maxWordsPerPage: 4,
       maxCharsPerLine: 14,
       layout: "line",
+      grouping: "phrase",
     });
     const all = pages.map((page) => texts(page.words));
     expect(all.some((text) => /chez$/.test(text))).toBe(false);
@@ -75,6 +76,7 @@ describe("paginate with sentence-aware cuts", () => {
       maxWordsPerPage: 6,
       maxCharsPerLine: 18,
       layout: "line",
+      grouping: "phrase",
     });
     expect(texts(pages[0]!.words)).toBe("Quand tu viendras demain matin,");
   });

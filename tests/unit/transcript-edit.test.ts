@@ -6,10 +6,8 @@ import {
   editWord,
   findMatchIndices,
   isValidDraft,
-  mergeWithPrevious,
   replaceAll,
   replaceAt,
-  splitSegmentAt,
   type TranscriptDraft,
 } from "@/features/transcription/edit";
 import { buildSegments } from "@/features/transcription/logic";
@@ -63,23 +61,30 @@ describe("editWord", () => {
   });
 });
 
-describe("mergeWithPrevious / splitSegmentAt", () => {
-  it("merges a line into the previous one", () => {
-    const merged = mergeWithPrevious(makeDraft(), 1);
-    expect(merged?.segments).toHaveLength(1);
-    expect(merged?.segments[0]).toMatchObject({ start: 0, end: 4000, word_start: 0, word_end: 4 });
-    expect(mergeWithPrevious(makeDraft(), 0)).toBeNull();
+describe("cuts made by hand follow the words", () => {
+  const cuts = { cinema: "break" as const };
+
+  it("keeps the cut before the first word when one word becomes several", () => {
+    const draft = makeDraft();
+    draft.words[2] = { ...draft.words[2]!, cuts };
+    const next = editWord(draft, 2, "grandes idées.");
+    expect(next?.words[2]?.cuts).toEqual(cuts);
+    expect(next?.words[3]?.cuts).toBeUndefined();
   });
 
-  it("splits a line before a word, and merging again restores it", () => {
-    const split = splitSegmentAt(makeDraft(), 2);
-    expect(split?.segments.map((segment) => segment.text)).toEqual([
-      "Les meilleur",
-      "idées.",
-      "Merci beaucoup",
-    ]);
-    expect(split && mergeWithPrevious(split, 1)?.segments[0]?.text).toBe("Les meilleur idées.");
-    expect(splitSegmentAt(makeDraft(), 0)).toBeNull();
+  it("moves the cut to the next word when its word is deleted", () => {
+    const draft = makeDraft();
+    draft.words[2] = { ...draft.words[2]!, cuts };
+    const next = deleteWord(draft, 2);
+    expect(next?.words[2]?.text).toBe("Merci");
+    expect(next?.words[2]?.cuts).toEqual(cuts);
+  });
+
+  it("keeps both cuts when the next word already has its own", () => {
+    const draft = makeDraft();
+    draft.words[2] = { ...draft.words[2]!, cuts: { cinema: "break", minimal: "break" } };
+    draft.words[3] = { ...draft.words[3]!, cuts: { cinema: "join" } };
+    expect(deleteWord(draft, 2)?.words[2]?.cuts).toEqual({ cinema: "join", minimal: "break" });
   });
 });
 

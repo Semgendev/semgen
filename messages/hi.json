@@ -101,6 +101,8 @@
       "wordLabel": "ठीक करने वाला शब्द",
       "newLine": "यहाँ से नई पंक्ति",
       "merge": "ऊपर की पंक्ति से जोड़ें",
+      "restoreCuts": "मेरे पिछले कट वापस लाएँ",
+      "cutsRestored": "आपके कट वापस आ गए।",
       "searchLabel": "शब्द खोजें",
       "searchPlaceholder": "शब्द खोजें",
       "clearSearch": "खोज साफ़ करें",

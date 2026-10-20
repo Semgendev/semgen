@@ -101,6 +101,8 @@
       "wordLabel": "Word to fix",
       "newLine": "New line here",
       "merge": "Merge with the line above",
+      "restoreCuts": "Back to my previous cuts",
+      "cutsRestored": "Your cuts are back.",
       "searchLabel": "Search for a word",
       "searchPlaceholder": "Search for a word",
       "clearSearch": "Clear search",

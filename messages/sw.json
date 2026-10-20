@@ -101,6 +101,8 @@
       "wordLabel": "Neno la kusahihisha",
       "newLine": "Mstari mpya hapa",
       "merge": "Unganisha na mstari wa juu",
+      "restoreCuts": "Rudisha mikato yangu ya awali",
+      "cutsRestored": "Mikato yako imerudi.",
       "searchLabel": "Tafuta neno",
       "searchPlaceholder": "Tafuta neno",
       "clearSearch": "Futa utafutaji",

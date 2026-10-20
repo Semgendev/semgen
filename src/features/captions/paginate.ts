@@ -6,7 +6,15 @@ import type { CaptionStyle } from "./style";
 // Times are in milliseconds, like the transcript.
 export type CaptionWord = { text: string; start: number; end: number; emphasis: boolean };
 // start/end = when the caption is on screen; speechEnd = when its last word is said.
-export type CaptionPage = { start: number; end: number; speechEnd: number; words: CaptionWord[] };
+// firstWord = index, in the transcript, of the caption's first word (the transcript tab shows the same
+// captions as the video).
+export type CaptionPage = {
+  start: number;
+  end: number;
+  speechEnd: number;
+  firstWord: number;
+  words: CaptionWord[];
+};
 
 // Timing rules of professional subtitles:
 // - the text shows up slightly before the voice, so it is readable when the word is heard;
@@ -63,24 +71,54 @@ export function pickEmphasis(words: Pick<CaptionWord, "text">[]): number {
   return best;
 }
 
+// A transcript word on its way to a caption: its place in the transcript and the cut made by hand
+// just before it, if that cut applies to the current style.
+type Kept = TranscriptWord & { index: number; hand: "break" | "join" | null };
+
+function keptWords(words: TranscriptWord[], cutsFor: string | undefined): Kept[] {
+  const kept: Kept[] = [];
+  // a cut made before a hesitation moves to the next word that is shown
+  let carried: Kept["hand"] = null;
+  words.forEach((word, index) => {
+    const hand = (cutsFor !== undefined && word.cuts?.[cutsFor]) || null;
+    if (FILLER.test(word.text.trim())) {
+      carried = hand ?? carried;
+      return;
+    }
+    kept.push({ ...word, index, hand: hand ?? carried });
+    carried = null;
+  });
+  return gluePunctuation(kept);
+}
+
+// Captions glued by hand ("join" on the first word of a caption) become one caption, whatever their
+// length: the user asked for it.
+function joinByHand(groups: Kept[][]): Kept[][] {
+  const result: Kept[][] = [];
+  groups.forEach((group) => {
+    const previous = result[result.length - 1];
+    if (previous && group[0]?.hand === "join") previous.push(...group);
+    else result.push(group);
+  });
+  return result;
+}
+
 function charCount(group: TranscriptWord[]): number {
   return group.reduce((sum, item, position) => sum + item.text.length + (position ? 1 : 0), 0);
 }
 
 // A caption of a single word flashes by too fast to read: glue it to its neighbour when they are
 // said in one breath ("tu vas bien." rather than "tu vas" / "bien.").
-function mergeOrphans(
-  groups: TranscriptWord[][],
-  maxWords: number,
-  maxChars: number,
-): TranscriptWord[][] {
-  const result: TranscriptWord[][] = [];
-  const fits = (a: TranscriptWord[], b: TranscriptWord[]) => {
+function mergeOrphans(groups: Kept[][], maxWords: number, maxChars: number): Kept[][] {
+  const result: Kept[][] = [];
+  const fits = (a: Kept[], b: Kept[]) => {
     const tail = a[a.length - 1];
     const head = b[0];
     return (
       !!tail &&
       !!head &&
+      // a cut made by hand stays where it is
+      head.hand !== "break" &&
       tail.speaker === head.speaker &&
       head.start - tail.end <= MAX_PAUSE_MS &&
       a.length + b.length <= maxWords + 1 &&
@@ -103,18 +141,30 @@ function mergeOrphans(
   return result;
 }
 
-// Groups transcript words into captions shown one after the other.
+// Groups transcript words into captions shown one after the other, the way the style wants them
+// (see `grouping`). `cutsFor` = the style the hand-made cuts apply to (preset id); without it, the
+// cuts are ignored (style cards, demos).
 export function paginate(
   words: TranscriptWord[],
-  style: Pick<CaptionStyle, "maxWordsPerPage" | "maxCharsPerLine" | "layout">,
+  style: Pick<CaptionStyle, "maxWordsPerPage" | "maxCharsPerLine" | "layout" | "grouping">,
+  cutsFor?: string,
 ): CaptionPage[] {
-  const kept = gluePunctuation(words.filter((word) => !FILLER.test(word.text.trim())));
-  // "line" captions may use two lines; "stack" captions keep one short line around the key word.
-  const maxChars = style.layout === "line" ? style.maxCharsPerLine * 2 : style.maxCharsPerLine * 3;
-  const groups: TranscriptWord[][] = [];
-  let current: TranscriptWord[] = [];
+  const kept = keptWords(words, cutsFor);
+  const sentence = style.grouping === "sentence";
+  // "line" captions may use two lines (three for a whole sentence); "stack" captions keep one short
+  // line around the key word.
+  const maxChars = style.maxCharsPerLine * (style.layout === "line" && !sentence ? 2 : 3);
+  // a whole sentence stays on screen through a short breath; short pieces end at any pause
+  const maxPause = sentence ? BRIDGE_GAP_MS : MAX_PAUSE_MS;
+  const groups: Kept[][] = [];
+  let current: Kept[] = [];
 
   kept.forEach((word, index) => {
+    // cut by hand: a new caption starts at this word
+    if (word.hand === "break" && current.length > 0) {
+      groups.push(current);
+      current = [];
+    }
     current.push(word);
     // Too long: cut where the sentence allows it (after a comma, before "et"...), never between
     // "chez" and "toi"; the words after the cut start the next caption.
@@ -134,16 +184,17 @@ export function paginate(
     const next = kept[index + 1];
     const shouldBreak =
       !next ||
+      next.hand === "break" ||
       SENTENCE_END.test(word.text) ||
       next.speaker !== word.speaker ||
-      next.start - word.end > MAX_PAUSE_MS;
+      next.start - word.end > maxPause;
     if (shouldBreak) {
       groups.push(current);
       current = [];
     }
   });
 
-  const merged = mergeOrphans(groups, style.maxWordsPerPage, maxChars);
+  const merged = joinByHand(mergeOrphans(groups, style.maxWordsPerPage, maxChars));
   const starts: number[] = [];
   merged.forEach((group, index) => {
     const lead = (group[0]?.start ?? 0) - TEXT_LEAD_MS;
@@ -165,6 +216,7 @@ export function paginate(
       start,
       end: Math.max(start + 1, Math.min(wanted, nextStart)),
       speechEnd: lastEnd,
+      firstWord: group[0]?.index ?? 0,
       words: group.map((word, position) => ({
         text: word.text,
         start: word.start,
