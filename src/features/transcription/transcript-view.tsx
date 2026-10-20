@@ -638,18 +638,21 @@ export function TranscriptView({
             : ""}
         </p>
         <div data-tools-anchor className="flex flex-wrap gap-2">
-          {isEdited ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={saving || dirty}
-              onClick={() => setRevertOpen(true)}
-            >
-              <RotateCcw aria-hidden="true" />
-              {t("edit.revert")}
-            </Button>
-          ) : null}
+          {/* Kept (invisible) when there is nothing to revert: the buttons stay where they are, and
+              the search field always starts at the same place. */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(!isEdited && "invisible")}
+            aria-hidden={!isEdited}
+            tabIndex={isEdited ? undefined : -1}
+            disabled={!isEdited || saving || dirty}
+            onClick={() => setRevertOpen(true)}
+          >
+            <RotateCcw aria-hidden="true" />
+            {t("edit.revert")}
+          </Button>
           <Button type="button" variant="outline" size="sm" onClick={copyText}>
             {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             {copied ? t("copied") : t("copy")}
