@@ -106,7 +106,6 @@
       "movesLost": "{count, plural, one {हिलाया गया एक टेक्स्ट अपनी मूल जगह पर लौट आया।} other {हिलाए गए # टेक्स्ट अपनी मूल जगह पर लौट आए।}}",
       "searchLabel": "शब्द खोजें",
       "searchPlaceholder": "शब्द खोजें",
-      "clearSearch": "खोज साफ़ करें",
       "replaceHeading": "शब्द बदलें",
       "replaceFindLabel": "शब्द खोजें",
       "replaceToggleHint": "शब्द बदलें",

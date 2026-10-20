@@ -76,6 +76,9 @@ const AUTOSAVE_DELAY_MS = 1000;
 const NOTICE_MS = 4000;
 // an icon of the tools frame (a larger target on a phone)
 const TOOL_BUTTON = "size-11 rounded-lg hover:bg-surface sm:size-9";
+// the small frame around one tool (or one pair of tools)
+const TOOL_FRAME =
+  "border-border bg-surface-2 flex min-w-0 shrink-0 items-center gap-0.5 rounded-xl border p-0.5";
 
 type WordCellProps = {
   word: TranscriptWord;
@@ -207,6 +210,7 @@ export function TranscriptView({
   const [revertError, setRevertError] = useState(false);
   const [reverting, startReverting] = useTransition();
   const [currentMatch, setCurrentMatch] = useState<number | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [saving, startSaving] = useTransition();
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saved, setSaved] = useState<TranscriptDraft>({
@@ -297,6 +301,10 @@ export function TranscriptView({
       seek(startMs, false);
       setEditText(text);
       setSelected(index);
+      // the search is done: it folds and the next time it opens it is empty
+      setSearchOpen(false);
+      setFind("");
+      setCurrentMatch(null);
     },
     [seek],
   );
@@ -382,9 +390,25 @@ export function TranscriptView({
     }
   }
 
+  // Typing in the search: when no result is in view, the list scrolls to the first one.
   function changeFind(value: string) {
     setFind(value);
-    setCurrentMatch(null);
+    const found = findMatchIndices(words, value, false);
+    const first = found[0];
+    setCurrentMatch(first ?? null);
+    const box = container.current;
+    if (first === undefined || !box) return;
+    const room = box.getBoundingClientRect();
+    const inView = found.some((index) => {
+      const rect = box
+        .querySelector<HTMLElement>(`[data-word-index="${index}"]`)
+        ?.getBoundingClientRect();
+      return rect !== undefined && rect.top >= room.top && rect.bottom <= room.bottom;
+    });
+    if (inView) return;
+    box
+      .querySelector<HTMLElement>(`[data-word-index="${first}"]`)
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
   }
 
   // Enter in the search field: jump to the next result (and wrap around).
@@ -682,54 +706,61 @@ export function TranscriptView({
             </p>
           ) : null}
         </div>
-        {/* The tools in a small frame: search | undo, redo | replace. */}
-        <div className="border-border bg-surface-2 flex min-w-0 shrink-0 items-center gap-0.5 rounded-xl border p-0.5">
-          <SearchTool
-            find={find}
-            onFind={changeFind}
-            matchCount={matchIndices.length}
-            onNext={nextMatch}
-            buttonClassName={TOOL_BUTTON}
-          />
-          <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={TOOL_BUTTON}
-            aria-label={t("edit.undo")}
-            title={t("edit.undo")}
-            disabled={history.past.length === 0}
-            onClick={undo}
-          >
-            <Undo2 aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={TOOL_BUTTON}
-            aria-label={t("edit.redo")}
-            title={t("edit.redo")}
-            disabled={history.future.length === 0}
-            onClick={redo}
-          >
-            <Redo2 aria-hidden="true" />
-          </Button>
-          <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(TOOL_BUTTON, replaceOpen && "bg-surface text-brand")}
-            aria-haspopup="dialog"
-            aria-expanded={replaceOpen}
-            aria-label={t("edit.replaceToggleHint")}
-            title={t("edit.replaceToggleHint")}
-            onClick={toggleReplace}
-          >
-            <ReplaceAll aria-hidden="true" />
-          </Button>
+        {/* The tools, apart from each other: search, replace, then undo / redo together. */}
+        <div className="flex min-w-0 shrink-0 items-center gap-2">
+          <div className={TOOL_FRAME}>
+            <SearchTool
+              find={find}
+              onFind={changeFind}
+              matchCount={matchIndices.length}
+              onNext={nextMatch}
+              buttonClassName={TOOL_BUTTON}
+              open={searchOpen}
+              onOpenChange={setSearchOpen}
+            />
+          </div>
+          <div className={TOOL_FRAME}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(TOOL_BUTTON, replaceOpen && "bg-surface text-brand")}
+              aria-haspopup="dialog"
+              aria-expanded={replaceOpen}
+              aria-label={t("edit.replaceToggleHint")}
+              title={t("edit.replaceToggleHint")}
+              onClick={toggleReplace}
+            >
+              <ReplaceAll aria-hidden="true" />
+            </Button>
+          </div>
+          <div className={TOOL_FRAME}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={TOOL_BUTTON}
+              aria-label={t("edit.undo")}
+              title={t("edit.undo")}
+              disabled={history.past.length === 0}
+              onClick={undo}
+            >
+              <Undo2 aria-hidden="true" />
+            </Button>
+            <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={TOOL_BUTTON}
+              aria-label={t("edit.redo")}
+              title={t("edit.redo")}
+              disabled={history.future.length === 0}
+              onClick={redo}
+            >
+              <Redo2 aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </div>
 

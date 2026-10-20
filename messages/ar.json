@@ -106,7 +106,6 @@
       "movesLost": "{count, plural, one {عاد نص تم تحريكه إلى مكانه الأصلي.} other {عادت # نصوص تم تحريكها إلى مكانها الأصلي.}}",
       "searchLabel": "البحث عن كلمة",
       "searchPlaceholder": "البحث عن كلمة",
-      "clearSearch": "مسح البحث",
       "replaceHeading": "استبدال كلمة",
       "replaceFindLabel": "البحث عن كلمة",
       "replaceToggleHint": "استبدال كلمة",

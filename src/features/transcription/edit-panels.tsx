@@ -1,8 +1,8 @@
 "use client";
 
-import { CornerDownLeft, Search, Trash2, X } from "lucide-react";
+import { CornerDownLeft, Search, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,15 +133,26 @@ type SearchToolProps = {
   onNext: () => void;
   // the classes of the icon, shared with the other tools of the row
   buttonClassName: string;
+  // the field is open or folded: the parent also folds it when a word is touched
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
 // Search only finds a word and jumps to it. It is an icon: tapping it makes the field grow out of
 // the icon towards the start of the row (the other tools stay where they are), tapping it again
-// folds the field back. The words typed stay while it is folded; the cross empties them.
+// folds the field back. The words typed stay while it is folded, but touching a word of the text
+// folds it and empties it (see the transcript view).
 // Replacing is a separate tool.
-export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }: SearchToolProps) {
+export function SearchTool({
+  find,
+  onFind,
+  matchCount,
+  onNext,
+  buttonClassName,
+  open,
+  onOpenChange,
+}: SearchToolProps) {
   const t = useTranslations("transcription.edit");
-  const [open, setOpen] = useState(false);
   const field = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
@@ -155,7 +166,7 @@ export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }
       className="flex min-w-0 items-center"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
-          setOpen(false);
+          onOpenChange(false);
           button.current?.focus();
         }
       }}
@@ -182,7 +193,7 @@ export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchLabel")}
             autoComplete="off"
-            className="h-9 border-0 bg-transparent ps-2 pe-16 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
+            className="h-9 border-0 bg-transparent ps-2 pe-14 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
             onChange={(event) => onFind(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -193,25 +204,11 @@ export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }
           />
           {find ? (
             <span
-              className="text-text-2 absolute end-8 top-1/2 -translate-y-1/2 text-xs"
+              className="text-text-2 absolute end-2 top-1/2 -translate-y-1/2 text-xs"
               aria-live="polite"
             >
               {t("matches", { count: matchCount })}
             </span>
-          ) : null}
-          {find ? (
-            <button
-              type="button"
-              aria-label={t("clearSearch")}
-              title={t("clearSearch")}
-              onClick={() => {
-                onFind("");
-                field.current?.focus();
-              }}
-              className="text-text-2 hover:text-text hover:bg-surface absolute end-1 top-1/2 -translate-y-1/2 rounded-md p-1"
-            >
-              <X className="size-4" aria-hidden="true" />
-            </button>
           ) : null}
         </div>
         {/* the line that draws itself under the field, from the icon towards the start */}
@@ -232,7 +229,7 @@ export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }
         aria-expanded={open}
         aria-label={t("searchLabel")}
         title={t("searchLabel")}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => onOpenChange(!open)}
       >
         <Search aria-hidden="true" />
       </Button>

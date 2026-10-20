@@ -106,7 +106,6 @@
       "movesLost": "{count, plural, one {Maandishi moja yaliyohamishwa yamerudi mahali pake pa awali.} other {Maandishi # yaliyohamishwa yamerudi mahali pake pa awali.}}",
       "searchLabel": "Tafuta neno",
       "searchPlaceholder": "Tafuta neno",
-      "clearSearch": "Futa utafutaji",
       "replaceHeading": "Badilisha neno",
       "replaceFindLabel": "Tafuta neno",
       "replaceToggleHint": "Badilisha neno",

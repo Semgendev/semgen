@@ -166,6 +166,18 @@ describe("TranscriptView", () => {
     // Reopening after a replacement: both fields are empty again.    await userEvent.click(screen.getByRole("button", { name: "Replace a word" }));    expect(screen.getByRole("textbox", { name: "Find a word" })).toHaveValue("");    expect(screen.getByRole("textbox", { name: "Replace with" })).toHaveValue("");
   });
 
+  it("marks the first result while typing and empties the search when a word is touched", async () => {
+    renderView();
+    await userEvent.type(await openSearch(), "all");
+    expect(screen.getByRole("button", { name: "Allez" }).className).toContain("ring-brand");
+    await userEvent.click(screen.getByRole("button", { name: "Allez" }));
+    expect(
+      screen.getByRole("button", { name: "Search for a word", expanded: false }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Search for a word" }));
+    expect(screen.getByRole("searchbox", { name: "Search for a word" })).toHaveValue("");
+  });
+
   it("closes the replace panel with the cross and keeps the search bar independent", async () => {
     renderView();
     await userEvent.type(await openSearch(), "allez");

@@ -106,7 +106,6 @@
       "movesLost": "{count, plural, one {Un texto movido volvió a su lugar original.} other {# textos movidos volvieron a su lugar original.}}",
       "searchLabel": "Buscar una palabra",
       "searchPlaceholder": "Buscar una palabra",
-      "clearSearch": "Borrar la búsqueda",
       "replaceHeading": "Reemplazar una palabra",
       "replaceFindLabel": "Buscar una palabra",
       "replaceToggleHint": "Reemplazar una palabra",

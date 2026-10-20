@@ -106,7 +106,6 @@
       "movesLost": "{count, plural, one {Taşınan bir metin özgün yerine döndü.} other {Taşınan # metin özgün yerine döndü.}}",
       "searchLabel": "Kelime ara",
       "searchPlaceholder": "Kelime ara",
-      "clearSearch": "Aramayı temizle",
       "replaceHeading": "Bir kelimeyi değiştir",
       "replaceFindLabel": "Kelime bul",
       "replaceToggleHint": "Bir kelimeyi değiştir",
