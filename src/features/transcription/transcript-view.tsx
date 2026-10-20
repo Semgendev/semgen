@@ -675,7 +675,7 @@ export function TranscriptView({
       </div>
 
       {/* The tools row: the save status at the start, the tools at the end (they never move). */}
-      <div className="flex min-h-11 items-center justify-between gap-2">
+      <div data-tools-row className="flex min-h-11 items-center justify-between gap-2">
         <div
           className="flex min-w-0 flex-1 items-center gap-x-4 overflow-hidden whitespace-nowrap"
           aria-live="polite"

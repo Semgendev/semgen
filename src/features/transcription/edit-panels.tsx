@@ -155,6 +155,34 @@ export function SearchTool({
   const t = useTranslations("transcription.edit");
   const field = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+
+  // Open, the field spans from the start of the tools row (the same edge as the line of buttons
+  // above) to the icon. The width is set on the element itself (no render), and follows the row.
+  useEffect(() => {
+    const element = box.current;
+    const row = element?.closest<HTMLElement>("[data-tools-row]");
+    if (!element || !row) return;
+    function fit() {
+      if (!element || !row) return;
+      if (!open) {
+        element.style.width = "0px";
+        return;
+      }
+      const edge = element.getBoundingClientRect();
+      const bounds = row.getBoundingClientRect();
+      const rtl = getComputedStyle(row).direction === "rtl";
+      // minus the gap left of the tools and 3px of border and padding around the icon
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const room = rtl ? bounds.right - edge.left : edge.right - bounds.left;
+      element.style.width = `${Math.max(0, Math.round(room - gap) - 3)}px`;
+    }
+    fit();
+    if (!open || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(fit);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [open]);
 
   // the field takes the focus once it is no longer inert
   useEffect(() => {
@@ -172,17 +200,18 @@ export function SearchTool({
       }}
     >
       <div
+        ref={box}
         role="search"
         aria-hidden={!open}
         inert={!open}
         className={cn(
-          "relative w-56 min-w-0 overflow-hidden transition-[max-width,opacity] duration-300 ease-out motion-reduce:transition-none",
-          open ? "max-w-56 opacity-100" : "max-w-0 opacity-0",
+          "relative w-0 min-w-0 overflow-hidden transition-[width,opacity] duration-300 ease-out motion-reduce:transition-none",
+          open ? "opacity-100" : "opacity-0",
         )}
       >
         <div
           className={cn(
-            "relative origin-right transition-transform duration-300 ease-out motion-reduce:transition-none",
+            "relative origin-right transition-transform duration-300 ease-out motion-reduce:transition-none rtl:origin-left",
             open ? "scale-100" : "scale-x-75",
           )}
         >
@@ -193,7 +222,7 @@ export function SearchTool({
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchLabel")}
             autoComplete="off"
-            className="h-9 border-0 bg-transparent ps-2 pe-14 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
+            className="h-9 border-0 bg-transparent ps-3 pe-16 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
             onChange={(event) => onFind(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -215,7 +244,7 @@ export function SearchTool({
         <span
           aria-hidden="true"
           className={cn(
-            "bg-brand absolute inset-x-1 bottom-0 h-0.5 origin-right rounded-full transition-transform duration-500 ease-out motion-reduce:transition-none",
+            "bg-brand absolute inset-x-1 bottom-0 h-0.5 origin-right rounded-full transition-transform duration-500 ease-out motion-reduce:transition-none rtl:origin-left",
             open ? "scale-x-100 delay-100" : "scale-x-0",
           )}
         />
