@@ -596,7 +596,7 @@ export function TranscriptView({
   const baseName = title.replace(/[^\p{L}\p{N}_-]+/gu, "_").slice(0, 60) || "transcript";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted-foreground text-sm">
           {t("detectedLanguage", { language: languageName ?? transcript.language })}
@@ -691,37 +691,39 @@ export function TranscriptView({
         />
       ) : null}
 
-      {/* Always rendered (even when empty) so the text below does not jump when the status appears. */}
-      <div className="flex min-h-6 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
-        {saveState === "error" ? (
-          <p className="text-danger flex items-center gap-2 text-sm">
-            <CircleAlert className="size-4" aria-hidden="true" />
-            {t("edit.saveFailed")}
-            <Button type="button" variant="outline" size="sm" onClick={save}>
-              {t("edit.retry")}
-            </Button>
-          </p>
-        ) : dirty || saving ? (
-          <p className="text-text-2 flex items-center gap-2 text-sm">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            {t("edit.saving")}
-          </p>
-        ) : saveState === "saved" ? (
-          <p className="text-text-2 flex items-center gap-2 text-sm">
-            <Check className="text-success size-4" aria-hidden="true" />
-            {t("edit.saved")}
-          </p>
-        ) : null}
-        {notice ? (
-          <p className="text-text-2 flex items-center gap-2 text-sm">
-            <Check className="text-success size-4" aria-hidden="true" />
-            {notice}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="text-text-3 text-sm">{t("edit.hint")}</p>
+      {/* One line under the search bar: the save status or notice when there is one, the quick help
+          otherwise. It always keeps its height, so the text below never jumps. */}
+      <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+          {saveState === "error" ? (
+            <p className="text-danger flex items-center gap-2 text-sm">
+              <CircleAlert className="size-4" aria-hidden="true" />
+              {t("edit.saveFailed")}
+              <Button type="button" variant="outline" size="sm" onClick={save}>
+                {t("edit.retry")}
+              </Button>
+            </p>
+          ) : dirty || saving ? (
+            <p className="text-text-2 flex items-center gap-2 text-sm">
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              {t("edit.saving")}
+            </p>
+          ) : saveState === "saved" ? (
+            <p className="text-text-2 flex items-center gap-2 text-sm">
+              <Check className="text-success size-4" aria-hidden="true" />
+              {t("edit.saved")}
+            </p>
+          ) : null}
+          {notice ? (
+            <p className="text-text-2 flex items-center gap-2 text-sm">
+              <Check className="text-success size-4" aria-hidden="true" />
+              {notice}
+            </p>
+          ) : null}
+          {saveState === "idle" && !dirty && !saving && !notice ? (
+            <p className="text-text-3 text-xs">{t("edit.hint")}</p>
+          ) : null}
+        </div>
         {hiddenCuts > 0 ? (
           <Button type="button" variant="outline" size="sm" onClick={bringBackCuts}>
             <Scissors aria-hidden="true" />

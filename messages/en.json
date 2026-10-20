@@ -97,7 +97,7 @@
       "saved": "Saved",
       "unsaved": "Unsaved changes",
       "saveFailed": "Saving failed. Please try again.",
-      "hint": "Tap a word to fix it (Enter confirms). Hover a word to delete it or start a new line. Enter or Space pauses the video.",
+      "hint": "Tap a word to fix it · Enter confirms · Space pauses",
       "wordLabel": "Word to fix",
       "newLine": "New line here",
       "merge": "Merge with the line above",

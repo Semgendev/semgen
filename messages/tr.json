@@ -97,7 +97,7 @@
       "saved": "Kaydedildi",
       "unsaved": "Kaydedilmemiş değişiklikler",
       "saveFailed": "Kaydedilemedi. Lütfen tekrar dene.",
-      "hint": "Düzeltmek için bir kelimeye dokun (Enter onaylar). Silmek veya yeni satır başlatmak için kelimenin üzerine gel. Enter veya Boşluk videoyu duraklatır.",
+      "hint": "Düzeltmek için bir kelimeye dokun · Enter onaylar · Boşluk duraklatır",
       "wordLabel": "Düzeltilecek kelime",
       "newLine": "Burada yeni satır",
       "merge": "Üstteki satırla birleştir",

@@ -97,7 +97,7 @@
       "saved": "Salvo",
       "unsaved": "Alterações não salvas",
       "saveFailed": "Não foi possível salvar. Tente novamente.",
-      "hint": "Toque em uma palavra para corrigi-la (Enter confirma). Passe o mouse sobre uma palavra para apagá-la ou iniciar uma nova linha. Enter ou Espaço pausam o vídeo.",
+      "hint": "Toque numa palavra para corrigir · Enter confirma · Espaço pausa",
       "wordLabel": "Palavra a corrigir",
       "newLine": "Nova linha aqui",
       "merge": "Juntar com a linha de cima",
