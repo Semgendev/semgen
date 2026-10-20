@@ -691,10 +691,11 @@ export function TranscriptView({
         />
       ) : null}
 
-      {/* One line under the search bar: the save status or notice when there is one, the quick help
-          otherwise. It always keeps its height, so the text below never jumps. */}
+      {/* One row under the search bar: the quick help (always there) and, beside it, the save status or
+          notice. It always keeps its height, so the text below never jumps. */}
       <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+        <p className="text-text-3 min-w-0 flex-1 basis-64 text-xs leading-5">{t("edit.hint")}</p>
+        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
           {saveState === "error" ? (
             <p className="text-danger flex items-center gap-2 text-sm">
               <CircleAlert className="size-4" aria-hidden="true" />
@@ -719,9 +720,6 @@ export function TranscriptView({
               <Check className="text-success size-4" aria-hidden="true" />
               {notice}
             </p>
-          ) : null}
-          {saveState === "idle" && !dirty && !saving && !notice ? (
-            <p className="text-text-3 text-xs">{t("edit.hint")}</p>
           ) : null}
         </div>
         {hiddenCuts > 0 ? (

@@ -97,7 +97,7 @@
       "saved": "Salvato",
       "unsaved": "Modifiche non salvate",
       "saveFailed": "Salvataggio non riuscito. Riprova.",
-      "hint": "Tocca una parola per correggerla · Invio conferma · Spazio mette in pausa",
+      "hint": "Tocca una parola per correggerla. Invio: conferma la modifica. Spazio: riproduci o metti in pausa il video.",
       "wordLabel": "Parola da correggere",
       "newLine": "Nuova riga qui",
       "merge": "Unisci alla riga sopra",

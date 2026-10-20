@@ -97,7 +97,7 @@
       "saved": "Enregistré",
       "unsaved": "Modifications non enregistrées",
       "saveFailed": "L’enregistrement a échoué. Réessaie.",
-      "hint": "Touche un mot pour le corriger · Entrée valide · Espace met en pause",
+      "hint": "Touche un mot pour le corriger. Entrée : valider la modification. Espace : lire ou mettre la vidéo en pause.",
       "wordLabel": "Mot à corriger",
       "newLine": "Nouvelle ligne ici",
       "merge": "Fusionner avec la ligne du dessus",

@@ -97,7 +97,7 @@
       "saved": "Guardado",
       "unsaved": "Cambios sin guardar",
       "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
-      "hint": "Toca una palabra para corregirla · Intro confirma · Espacio pausa",
+      "hint": "Toca una palabra para corregirla. Intro: confirmar el cambio. Espacio: reproducir o pausar el vídeo.",
       "wordLabel": "Palabra a corregir",
       "newLine": "Nueva línea aquí",
       "merge": "Unir con la línea anterior",

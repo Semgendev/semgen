@@ -97,7 +97,7 @@
       "saved": "Gespeichert",
       "unsaved": "Ungespeicherte Änderungen",
       "saveFailed": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
-      "hint": "Wort antippen zum Korrigieren · Enter bestätigt · Leertaste pausiert",
+      "hint": "Tippe auf ein Wort, um es zu korrigieren. Enter: Änderung bestätigen. Leertaste: Video abspielen oder pausieren.",
       "wordLabel": "Zu korrigierendes Wort",
       "newLine": "Hier neue Zeile",
       "merge": "Mit der Zeile darüber verbinden",

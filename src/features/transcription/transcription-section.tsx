@@ -131,7 +131,7 @@ export function TranscriptionSection({
 
   if (transcript) {
     return (
-      <section aria-labelledby="transcript-title" className="flex min-h-0 flex-1 flex-col gap-3">
+      <section aria-labelledby="transcript-title" className="flex min-h-0 flex-1 flex-col gap-1">
         <h2 id="transcript-title" className="text-lg font-semibold">
           {t("title")}
         </h2>
