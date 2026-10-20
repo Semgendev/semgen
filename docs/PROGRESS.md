@@ -13,6 +13,8 @@
 - **Déplacer les textes (lot B, 2026-10-20)** : toucher une ligne ou le mot fort sur la vidéo → panneau « Déplacer le texte » (pavé rond 4 flèches + remettre à sa place, devant / derrière, « Appliquer à tous les blocs », « Garder ce bloc à part ») ; glisser à la souris / au doigt ; clavier. Enregistré par style dans `caption_style.moves` (sans migration). Sur mobile : feuille en bas, la vidéo se réduit et remonte au-dessus. Vérifié par l’agent QA (390, 360, 1440).
 - **Tests :** 265 unitaires verts (2026-10-20) ; intégration (base dev) 34 verts ; E2E pas relancés (arrêter `npm run dev` avant).
 
+- **Onglets (2026-10-20)** : « Transcription » est maintenant avant « Style » et s’ouvre en premier. Icône de fusion de ligne placée juste après le dernier mot (écart `ms-2`).
+
 ## Pour reprendre (ordre)
 0. Lot B commité (`c6db7f9`) + avertissement « déplacement perdu » commité ; pas encore poussé sur GitHub (accord d’Ashanti).
 1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).
@@ -94,7 +96,7 @@
 | 2026-10-19 | Vérifié moi-même en captures image par image (Playwright sur `/dev/animations`) : petites phrases des styles empilés sur 2 lignes, plus de mot de fin seul (« Salut, je viendrai » / « chez toi demain ! »), Convergence tenue dans la zone, carrousel aussi dans le labo, lueur + coche du style choisi corrigées, aperçu masqué aux lecteurs d’écran | ✅ 154 tests verts |
 
 ## Problèmes ouverts
-- **Déplacements** : rattachés au début du 1er mot du bloc → une coupe ajoutée/retirée ou la suppression de ce mot détache le déplacement. **Décision d’Ashanti (2026-10-20) : prévenir.** Fait : message sous la vidéo « Un texte déplacé est revenu à sa place d’origine » + bouton OK (efface les déplacements perdus ; annuler dans l’éditeur les ramène tant qu’on n’a pas cliqué OK). Pas encore vu à l’œil sur une vraie page. Export T4.4 : passer aussi `moves`. Idées en attente : « Reprendre mes couleurs du style précédent », liste des blocs avec timecode, style propre à un bloc (phase 2).
+- **Déplacements** : rattachés au début du 1er mot du bloc → une coupe ajoutée/retirée ou la suppression de ce mot détache le déplacement. **Décision d’Ashanti (2026-10-20) : prévenir.** Fait (v2, retour d’Ashanti) : le message « Un texte déplacé est revenu à sa place d’origine » apparaît dans la zone d’avis de l’onglet Transcription (près de « Enregistré »), sans bouton, et disparaît seul après 4 s (tous les avis de cette zone). Les déplacements perdus sont gardés (annuler les ramène). Pas encore vu à l’œil sur une vraie page. Export T4.4 : passer aussi `moves`. Idées en attente : « Reprendre mes couleurs du style précédent », liste des blocs avec timecode, style propre à un bloc (phase 2).
 - **Export Lambda (T4.4)** : appeler `paginate(words, style, presetId)` avec le style choisi, sinon l’export ignore les coupes à la main.
 - Onglet Transcription sur mobile : boutons Copier / SRT / TXT / Revenir… sous 44 px de haut et champ « Rechercher » trop étroit (≈ 4 lettres) — à reprendre (Sonnet).
 - Console en dev : `Date.now()` pendant le prérendu dans `UserNav`, avertissement d’hydratation, 2 ressources 404 — à vérifier en build de production.

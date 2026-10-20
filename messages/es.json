@@ -103,6 +103,7 @@
       "merge": "Unir con la línea anterior",
       "restoreCuts": "Volver a mis cortes anteriores",
       "cutsRestored": "Tus cortes han vuelto.",
+      "movesLost": "{count, plural, one {Un texto movido volvió a su lugar original.} other {# textos movidos volvieron a su lugar original.}}",
       "searchLabel": "Buscar una palabra",
       "searchPlaceholder": "Buscar una palabra",
       "clearSearch": "Borrar la búsqueda",
@@ -323,8 +324,6 @@
       "everyBlockHint": "Este texto se mueve igual en todo el vídeo.",
       "everyBlockApart": "Este bloque está aparte: no sigue a los demás.",
       "apart": "Mantener este bloque aparte",
-      "lost": "{count, plural, one {Un texto movido volvió a su lugar original.} other {# textos movidos volvieron a su lugar original.}}",
-      "lostOk": "OK",
       "apartHint": "No sigue los movimientos aplicados a todos los bloques.",
       "done": "Listo"
     }

@@ -17,6 +17,10 @@ type CaptionWordsApi = {
   // false while the transcript tab is hidden behind the styles (it then stops following the video)
   transcriptVisible: boolean;
   setTranscriptVisible: (visible: boolean) => void;
+  // how many moved blocks of the chosen style have lost their place (a cut added or taken away, or
+  // the first word of the block deleted): the transcript tab says so in its notice
+  lostMoves: { presetId: PresetId; count: number };
+  setLostMoves: (lost: { presetId: PresetId; count: number }) => void;
 };
 
 const CaptionWordsContext = createContext<CaptionWordsApi | null>(null);
@@ -33,9 +37,19 @@ export function CaptionWordsProvider({
   const [words, setWords] = useState(initialWords);
   const [presetId, setPresetId] = useState(initialPresetId);
   const [transcriptVisible, setTranscriptVisible] = useState(true);
+  const [lostMoves, setLostMoves] = useState({ presetId: initialPresetId, count: 0 });
   const value = useMemo(
-    () => ({ words, setWords, presetId, setPresetId, transcriptVisible, setTranscriptVisible }),
-    [words, presetId, transcriptVisible],
+    () => ({
+      words,
+      setWords,
+      presetId,
+      setPresetId,
+      transcriptVisible,
+      setTranscriptVisible,
+      lostMoves,
+      setLostMoves,
+    }),
+    [words, presetId, transcriptVisible, lostMoves],
   );
   return <CaptionWordsContext.Provider value={value}>{children}</CaptionWordsContext.Provider>;
 }
@@ -60,6 +74,17 @@ export function usePublishCaptionPresetId(): ((presetId: PresetId) => void) | nu
 
 export function useTranscriptVisible(): boolean {
   return useContext(CaptionWordsContext)?.transcriptVisible ?? true;
+}
+
+const NO_LOST = { presetId: DEFAULT_PRESET, count: 0 };
+
+export function useLostMoves(): { presetId: PresetId; count: number } {
+  return useContext(CaptionWordsContext)?.lostMoves ?? NO_LOST;
+}
+
+export function usePublishLostMoves():
+  ((lost: { presetId: PresetId; count: number }) => void) | null {
+  return useContext(CaptionWordsContext)?.setLostMoves ?? null;
 }
 
 export function usePublishTranscriptVisible(): ((visible: boolean) => void) | null {

@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 
 import {
   useCaptionPresetId,
+  useLostMoves,
   usePublishCaptionWords,
   useTranscriptVisible,
 } from "../captions/caption-words";
@@ -70,6 +71,8 @@ import {
 const MAX_UNDO_STEPS = 100;
 // Pause after the last change before saving by itself.
 const AUTOSAVE_DELAY_MS = 1000;
+// how long a short notice stays next to the save status
+const NOTICE_MS = 4000;
 
 type WordCellProps = {
   word: TranscriptWord;
@@ -179,6 +182,22 @@ export function TranscriptView({
   const [replacePosition, setReplacePosition] = useState<PanelPosition>({ x: 16, y: 120 });
   // Short confirmation shown near the save status (e.g. "3 replacements").
   const [notice, setNotice] = useState<string | null>(null);
+  // The notice goes away by itself after a few seconds.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  // A moved text that lost its place (a cut added or taken away, its first word deleted) is said
+  // here. Another style has its own moves: changing style never counts as a loss.
+  const lostMoves = useLostMoves();
+  const [seenLost, setSeenLost] = useState(lostMoves);
+  if (lostMoves !== seenLost) {
+    setSeenLost(lostMoves);
+    if (lostMoves.presetId === seenLost.presetId && lostMoves.count > seenLost.count) {
+      setNotice(t("edit.movesLost", { count: lostMoves.count - seenLost.count }));
+    }
+  }
   // true once an original text is kept aside on the server (after the first saved correction)
   const [isEdited, setIsEdited] = useState(transcript.is_edited);
   const [revertOpen, setRevertOpen] = useState(false);
@@ -534,21 +553,22 @@ export function TranscriptView({
                     </span>
                   );
                 })}
+                {/* right after the last word, a little apart from it */}
+                {lineIndex > 0 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="ms-2 size-8 align-middle focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    title={t("edit.merge")}
+                    aria-label={t("edit.merge")}
+                    onClick={() => mergeLine(line.word_start)}
+                  >
+                    <Merge aria-hidden="true" />
+                  </Button>
+                ) : null}
               </p>
             </div>
-            {lineIndex > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                title={t("edit.merge")}
-                aria-label={t("edit.merge")}
-                onClick={() => mergeLine(line.word_start)}
-              >
-                <Merge aria-hidden="true" />
-              </Button>
-            ) : null}
           </div>
         );
       }),

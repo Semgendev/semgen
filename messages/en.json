@@ -103,6 +103,7 @@
       "merge": "Merge with the line above",
       "restoreCuts": "Back to my previous cuts",
       "cutsRestored": "Your cuts are back.",
+      "movesLost": "{count, plural, one {A moved text went back to its original place.} other {# moved texts went back to their original place.}}",
       "searchLabel": "Search for a word",
       "searchPlaceholder": "Search for a word",
       "clearSearch": "Clear search",
@@ -323,8 +324,6 @@
       "everyBlockHint": "This text moves the same way in the whole video.",
       "everyBlockApart": "This block is kept apart: it does not follow the others.",
       "apart": "Keep this block apart",
-      "lost": "{count, plural, one {A moved text went back to its original place.} other {# moved texts went back to their original place.}}",
-      "lostOk": "OK",
       "apartHint": "It does not follow the moves applied to every block.",
       "done": "Done"
     }

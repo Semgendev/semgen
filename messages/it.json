@@ -103,6 +103,7 @@
       "merge": "Unisci alla riga sopra",
       "restoreCuts": "Torna ai miei tagli precedenti",
       "cutsRestored": "I tuoi tagli sono tornati.",
+      "movesLost": "{count, plural, one {Un testo spostato è tornato al suo posto originale.} other {# testi spostati sono tornati al loro posto originale.}}",
       "searchLabel": "Cerca una parola",
       "searchPlaceholder": "Cerca una parola",
       "clearSearch": "Cancella la ricerca",
@@ -323,8 +324,6 @@
       "everyBlockHint": "Questo testo si sposta allo stesso modo in tutto il video.",
       "everyBlockApart": "Questo blocco è tenuto a parte: non segue gli altri.",
       "apart": "Tieni questo blocco a parte",
-      "lost": "{count, plural, one {Un testo spostato è tornato al suo posto originale.} other {# testi spostati sono tornati al loro posto originale.}}",
-      "lostOk": "OK",
       "apartHint": "Non segue gli spostamenti applicati a tutti i blocchi.",
       "done": "Fatto"
     }

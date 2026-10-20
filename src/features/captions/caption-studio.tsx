@@ -21,6 +21,7 @@ import { setCaptionStyle } from "./actions";
 import {
   useCaptionWords,
   usePublishCaptionPresetId,
+  usePublishLostMoves,
   usePublishTranscriptVisible,
 } from "./caption-words";
 import { CaptionPlayer } from "./caption-player";
@@ -28,7 +29,6 @@ import { applyColors, type CaptionColors } from "./colors";
 import { MovePanel } from "./move-panel";
 import {
   blockKey,
-  dropBlocks,
   lostBlockKeys,
   hasSharedMoves,
   isApart,
@@ -111,7 +111,8 @@ export function CaptionStudio({
   const [replay, setReplay] = useState<{ id: number; mode: "once" | "stop" } | null>(null);
   const [failed, setFailed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tab, setTab] = useState<TabId>("styles");
+  // the text is checked before the style is chosen: the transcript is the first tab
+  const [tab, setTab] = useState<TabId>(transcriptionSlot ? "transcription" : "styles");
   // the transcript tab cuts its lines like the chosen style
   const publishPresetId = usePublishCaptionPresetId();
   useEffect(() => {
@@ -270,9 +271,13 @@ export function CaptionStudio({
     [words, layout, grouping, maxWordsPerPage, maxCharsPerLine, preset],
   );
   const styleMoves = moves[preset];
-  // moves left behind by a change of the text (kept until the user has seen the notice: undo
-  // brings the block, and its move, back)
-  const lostKeys = useMemo(() => lostBlockKeys(styleMoves, pages), [styleMoves, pages]);
+  // Moves left behind by a change of the text: they are kept (undo brings the block, and its move,
+  // back) and the transcript tab tells the user in its notice.
+  const lostCount = useMemo(() => lostBlockKeys(styleMoves, pages).length, [styleMoves, pages]);
+  const publishLostMoves = usePublishLostMoves();
+  useEffect(() => {
+    publishLostMoves?.({ presetId: preset, count: lostCount });
+  }, [publishLostMoves, preset, lostCount]);
 
   // the latest moves of this style (arrows held down move faster than the screen is redrawn)
   function freshMoves(): StyleMoves | undefined {
@@ -354,10 +359,10 @@ export function CaptionStudio({
         <div className={PANEL_CARD}>
           <StudioTabs
             tabs={[
-              { id: "styles", label: t("tabStyles") },
               ...(transcriptionSlot
                 ? [{ id: "transcription" as const, label: t("tabTranscription") }]
                 : []),
+              { id: "styles", label: t("tabStyles") },
             ]}
             value={tab}
             onChange={(next) => {
@@ -456,21 +461,6 @@ export function CaptionStudio({
         <div className="w-full shrink-0">{titleSlot}</div>
         <CaptionPlayer src={src} style={current} pages={pages} moves={styleMoves} editor={editor} />
         {/* keeps its room while a text is moved: the video does not jump */}
-        {lostKeys.length > 0 ? (
-          <div
-            role="status"
-            className="bg-surface-2 text-text-2 flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-xs"
-          >
-            <p>{t("move.lost", { count: lostKeys.length })}</p>
-            <button
-              type="button"
-              onClick={() => updateMoves(dropBlocks(freshMoves(), lostKeys), 0)}
-              className="text-brand focus-visible:ring-brand min-h-11 shrink-0 rounded px-2 font-medium focus-visible:ring-2 focus-visible:outline-none"
-            >
-              {t("move.lostOk")}
-            </button>
-          </div>
-        ) : null}
         {words.length > 0 ? (
           <p
             aria-hidden={picked ? true : undefined}

@@ -226,17 +226,6 @@ export function lostBlockKeys(
   return saved.filter((key) => !present.has(key));
 }
 
-// The moves without the given blocks (a "kept apart" choice on a lost block goes with it).
-export function dropBlocks(moves: StyleMoves | undefined, keys: string[]): StyleMoves {
-  const base = moves ?? {};
-  if (!base.blocks) return base;
-  const blocks = { ...base.blocks };
-  for (const key of keys) delete blocks[key];
-  const next: StyleMoves = { ...base, blocks };
-  if (Object.keys(blocks).length === 0) delete next.blocks;
-  return next;
-}
-
 // The moves of one style replaced in the moves of every style (an empty one is dropped).
 export function withStyleMoves(
   all: CaptionMoves,

@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   blockKey,
   captionMovesSchema,
-  dropBlocks,
   hasSharedMoves,
   isApart,
   layerIndex,
@@ -173,13 +172,5 @@ describe("moves left behind by a change of the text", () => {
 
   it("finds a moved block whose first word is gone, never a block that was not moved", () => {
     expect(lostBlockKeys(moved, [page(1300), page(5000), page(7000)])).toEqual(["1200"]);
-  });
-
-  it("drops only the lost blocks, and the moves for every block stay", () => {
-    const withShared = shiftElement(moved, everyBlock, 0, 1);
-    const kept = dropBlocks(withShared, ["1200"]);
-    expect(placementOf(kept, "1200", "line-0")).toEqual({ x: 0, y: 1, layer: undefined });
-    expect(placementOf(kept, "5000", "line-0")).toEqual({ x: 0, y: 3, layer: undefined });
-    expect(Object.keys(dropBlocks(moved, ["1200", "5000"])).includes("blocks")).toBe(false);
   });
 });
