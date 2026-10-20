@@ -74,6 +74,8 @@ const MAX_UNDO_STEPS = 100;
 const AUTOSAVE_DELAY_MS = 1000;
 // how long a short notice stays next to the save status
 const NOTICE_MS = 4000;
+// an icon of the tools frame (a larger target on a phone)
+const TOOL_BUTTON = "size-11 rounded-lg hover:bg-surface sm:size-9";
 
 type WordCellProps = {
   word: TranscriptWord;
@@ -650,7 +652,10 @@ export function TranscriptView({
 
       {/* The tools row: the save status at the start, the tools at the end (they never move). */}
       <div className="flex min-h-11 items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+        <div
+          className="flex min-w-0 flex-1 items-center gap-x-4 overflow-hidden whitespace-nowrap"
+          aria-live="polite"
+        >
           {saveState === "error" ? (
             <p className="text-danger flex items-center gap-2 text-sm">
               <CircleAlert className="size-4" aria-hidden="true" />
@@ -677,18 +682,21 @@ export function TranscriptView({
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        {/* The tools in a small frame: search | undo, redo | replace. */}
+        <div className="border-border bg-surface-2 flex min-w-0 shrink-0 items-center gap-0.5 rounded-xl border p-0.5">
           <SearchTool
             find={find}
             onFind={changeFind}
             matchCount={matchIndices.length}
             onNext={nextMatch}
+            buttonClassName={TOOL_BUTTON}
           />
+          <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="size-11"
+            className={TOOL_BUTTON}
             aria-label={t("edit.undo")}
             title={t("edit.undo")}
             disabled={history.past.length === 0}
@@ -700,7 +708,7 @@ export function TranscriptView({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-11"
+            className={TOOL_BUTTON}
             aria-label={t("edit.redo")}
             title={t("edit.redo")}
             disabled={history.future.length === 0}
@@ -708,11 +716,12 @@ export function TranscriptView({
           >
             <Redo2 aria-hidden="true" />
           </Button>
+          <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className={cn("size-11", replaceOpen && "bg-surface-2 text-brand")}
+            className={cn(TOOL_BUTTON, replaceOpen && "bg-surface text-brand")}
             aria-haspopup="dialog"
             aria-expanded={replaceOpen}
             aria-label={t("edit.replaceToggleHint")}

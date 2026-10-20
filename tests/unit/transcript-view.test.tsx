@@ -127,7 +127,10 @@ describe("TranscriptView", () => {
 
   // The search is an icon: the field opens in front of the lines when it is tapped.
   async function openSearch() {
-    await userEvent.click(screen.getByRole("button", { name: "Search for a word" }));
+    const open = screen.queryByRole("searchbox", { name: "Search for a word" });
+    if (!open) {
+      await userEvent.click(screen.getByRole("button", { name: "Search for a word" }));
+    }
     return screen.getByRole("searchbox", { name: "Search for a word" });
   }
 

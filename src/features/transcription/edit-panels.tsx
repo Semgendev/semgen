@@ -131,29 +131,28 @@ type SearchToolProps = {
   onFind: (value: string) => void;
   matchCount: number;
   onNext: () => void;
+  // the classes of the icon, shared with the other tools of the row
+  buttonClassName: string;
 };
 
-// Search only finds a word and jumps to it. It is an icon: the field opens in front of the lines
-// (nothing around it moves) and closes with Escape or a tap elsewhere. Replacing is a separate tool.
-export function SearchTool({ find, onFind, matchCount, onNext }: SearchToolProps) {
+// Search only finds a word and jumps to it. It is an icon: tapping it makes the field grow out of
+// the icon towards the start of the row (the other tools stay where they are), tapping it again
+// folds the field back. The words typed stay while it is folded; the cross empties them.
+// Replacing is a separate tool.
+export function SearchTool({ find, onFind, matchCount, onNext, buttonClassName }: SearchToolProps) {
   const t = useTranslations("transcription.edit");
   const [open, setOpen] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
+  const field = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
+  // the field takes the focus once it is no longer inert
   useEffect(() => {
-    if (!open) return;
-    function away(event: PointerEvent) {
-      if (event.target instanceof Node && !wrap.current?.contains(event.target)) setOpen(false);
-    }
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
+    if (open) field.current?.focus({ preventScroll: true });
   }, [open]);
 
   return (
     <div
-      ref={wrap}
-      className="relative"
+      className="flex min-w-0 items-center"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           setOpen(false);
@@ -161,12 +160,75 @@ export function SearchTool({ find, onFind, matchCount, onNext }: SearchToolProps
         }
       }}
     >
+      <div
+        role="search"
+        aria-hidden={!open}
+        inert={!open}
+        className={cn(
+          "relative w-56 min-w-0 overflow-hidden transition-[max-width,opacity] duration-300 ease-out motion-reduce:transition-none",
+          open ? "max-w-56 opacity-100" : "max-w-0 opacity-0",
+        )}
+      >
+        <div
+          className={cn(
+            "relative origin-right transition-transform duration-300 ease-out motion-reduce:transition-none",
+            open ? "scale-100" : "scale-x-75",
+          )}
+        >
+          <Input
+            ref={field}
+            type="search"
+            value={find}
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchLabel")}
+            autoComplete="off"
+            className="h-9 border-0 bg-transparent ps-2 pe-16 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
+            onChange={(event) => onFind(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                onNext();
+              }
+            }}
+          />
+          {find ? (
+            <span
+              className="text-text-2 absolute end-8 top-1/2 -translate-y-1/2 text-xs"
+              aria-live="polite"
+            >
+              {t("matches", { count: matchCount })}
+            </span>
+          ) : null}
+          {find ? (
+            <button
+              type="button"
+              aria-label={t("clearSearch")}
+              title={t("clearSearch")}
+              onClick={() => {
+                onFind("");
+                field.current?.focus();
+              }}
+              className="text-text-2 hover:text-text hover:bg-surface absolute end-1 top-1/2 -translate-y-1/2 rounded-md p-1"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+        {/* the line that draws itself under the field, from the icon towards the start */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "bg-brand absolute inset-x-1 bottom-0 h-0.5 origin-right rounded-full transition-transform duration-500 ease-out motion-reduce:transition-none",
+            open ? "scale-x-100 delay-100" : "scale-x-0",
+          )}
+        />
+      </div>
       <Button
         ref={button}
         type="button"
         variant="ghost"
         size="icon"
-        className={cn("size-11", (open || find) && "bg-surface-2 text-brand")}
+        className={cn(buttonClassName, (open || find) && "text-brand")}
         aria-expanded={open}
         aria-label={t("searchLabel")}
         title={t("searchLabel")}
@@ -174,53 +236,6 @@ export function SearchTool({ find, onFind, matchCount, onNext }: SearchToolProps
       >
         <Search aria-hidden="true" />
       </Button>
-      {open ? (
-        <div
-          role="search"
-          className="bg-surface border-border absolute end-0 top-full z-30 mt-1 w-[min(18rem,calc(100vw-2rem))] rounded-xl border p-2 shadow-lg"
-        >
-          <div className="relative">
-            <Search
-              className="text-text-3 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
-              aria-hidden="true"
-            />
-            <Input
-              type="search"
-              autoFocus
-              value={find}
-              placeholder={t("searchPlaceholder")}
-              aria-label={t("searchLabel")}
-              autoComplete="off"
-              className="min-h-10 ps-9 pe-20"
-              onChange={(event) => onFind(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  onNext();
-                }
-              }}
-            />
-            {find ? (
-              <span
-                className="text-text-2 absolute end-9 top-1/2 -translate-y-1/2 text-xs"
-                aria-live="polite"
-              >
-                {t("matches", { count: matchCount })}
-              </span>
-            ) : null}
-            {find ? (
-              <button
-                type="button"
-                aria-label={t("clearSearch")}
-                onClick={() => onFind("")}
-                className="text-text-2 hover:text-text absolute end-2 top-1/2 -translate-y-1/2 rounded p-1"
-              >
-                <X className="size-4" aria-hidden="true" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
