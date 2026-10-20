@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import { getSupabasePublicEnv } from "./env";
 
-export async function createSupabaseServerClient() {
+// One client per request: the layout, the header and the page share it (and its cached answers).
+export const createSupabaseServerClient = cache(async () => {
   const env = getSupabasePublicEnv();
   if (!env) throw new Error("Supabase is not configured");
 
@@ -23,4 +25,4 @@ export async function createSupabaseServerClient() {
       },
     },
   });
-}
+});

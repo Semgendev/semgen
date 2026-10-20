@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+// The animation is plain CSS: the hero is visible as soon as the page arrives, without waiting for JavaScript.
 import { useTranslations } from "next-intl";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -11,12 +11,7 @@ export function HomeHero() {
   const t = useTranslations("hero");
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="flex flex-col gap-6"
-    >
+    <section className="animate-in fade-in slide-in-from-bottom-3 flex flex-col gap-6 duration-500 motion-reduce:animate-none">
       <div>
         <h1 className="text-4xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2 text-lg">{t("subtitle")}</p>
@@ -32,6 +27,6 @@ export function HomeHero() {
           </Link>
         </CardContent>
       </Card>
-    </motion.section>
+    </section>
   );
 }

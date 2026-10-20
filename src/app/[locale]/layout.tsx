@@ -19,16 +19,18 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+// Rarely shown (timecodes in the labs): not preloaded, fetched only where it is used.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 // Headings: geometric and confident (docs/DESIGN.md). Both fonts are OFL 1.1, self-hosted by Next.
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700", "800"],
+  // a variable font: one file for every weight, instead of one per weight
 });
 
 // Arabic interface: Noto Sans Arabic (OFL 1.1), Arabic letters only (Google's version also has Latin

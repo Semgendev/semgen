@@ -346,7 +346,7 @@ function Word({
       style={{
         position: "relative",
         display: "inline-block",
-        fontFamily: fontFamily(look.font),
+        fontFamily: fontFamily(look),
         fontWeight: look.weight,
         // Arabic is never slanted: a fake italic of Cairo looks broken
         fontStyle: look.italic && !rtl ? "italic" : "normal",
@@ -507,7 +507,7 @@ function fitPage(
       if (!word) continue;
       const look = word.emphasis ? style.emphasis : style.base;
       const fontPx = (look.sizePct / 100) * height;
-      const font = `${look.italic && !ARABIC_TEXT.test(word.text) ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look.font)}`;
+      const font = `${look.italic && !ARABIC_TEXT.test(word.text) ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look)}`;
       const box = style.active?.box ?? look.box;
       // a converging word starts wider than it ends: it must fit in the zone from its first frame
       const entrance = word.emphasis

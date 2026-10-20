@@ -66,6 +66,24 @@ export function StyleStage({
     () => true,
     () => false,
   );
+  // The player (and its fonts) only start when the card is about to be seen: a gallery of twelve
+  // players would otherwise all hydrate at once, and the page would wait for the ones below the fold.
+  const stage = useRef<HTMLSpanElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const element = stage.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setNear(true);
+        observer.disconnect();
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const inputProps = useMemo<CaptionedVideoProps>(() => {
     const centered = { ...style, position: { ...style.position, y: 50 } };
     return { videoSrc: null, pages: paginate(words, centered), style: centered };
@@ -84,10 +102,11 @@ export function StyleStage({
       current.pause();
       if (!resume) current.seekTo(POSTER_FRAME);
     }
-  }, [playing, resume, mounted]);
+  }, [playing, resume, mounted, near]);
 
   return (
     <span
+      ref={stage}
       aria-hidden="true"
       className={cn("relative block aspect-[16/10] w-full overflow-hidden", className)}
       style={{ background: cardBackdrop(light) }}
@@ -96,7 +115,7 @@ export function StyleStage({
         className="absolute inset-x-0 top-1/2 block -translate-y-1/2"
         style={{ aspectRatio: `${CARD_WIDTH} / ${CARD_HEIGHT}` }}
       >
-        {mounted ? (
+        {mounted && near ? (
           <Player
             ref={player}
             component={CaptionedVideo}

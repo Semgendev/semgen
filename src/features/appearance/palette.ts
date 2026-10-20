@@ -1,11 +1,13 @@
-import { z } from "zod";
-
 import { locales } from "@/i18n/config";
 
 // D15: three identities, each in light and dark. Cobalt & Or is the default.
 export const PALETTES = ["cobalt", "etincelle", "teal"] as const;
-export const paletteSchema = z.enum(PALETTES);
-export type Palette = z.infer<typeof paletteSchema>;
+export type Palette = (typeof PALETTES)[number];
+
+// Plain check (no schema library): this file is part of every page's JavaScript.
+function isPalette(value: unknown): value is Palette {
+  return typeof value === "string" && (PALETTES as readonly string[]).includes(value);
+}
 
 export const DEFAULT_PALETTE: Palette = "cobalt";
 export const PALETTE_COOKIE = "sg-palette";
@@ -13,8 +15,7 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 // Unknown or tampered values fall back to the default instead of breaking the page.
 export function parsePalette(value: unknown): Palette {
-  const parsed = paletteSchema.safeParse(value);
-  return parsed.success ? parsed.data : DEFAULT_PALETTE;
+  return isPalette(value) ? value : DEFAULT_PALETTE;
 }
 
 // The landing page always shows the brand identity, whatever the visitor picked in the app.

@@ -1,7 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -51,12 +59,32 @@ export function CaptionStudio({
   const [, startSaving] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
+  // the change waiting for its save (they are grouped a moment after the last one)
+  const pending = useRef<{ preset: PresetId; colors: CaptionColors; tweaks: CaptionTweaks } | null>(
+    null,
   );
+
+  // Sends the waiting change now. Leaving the page or hiding the tab must not lose the last choice.
+  const flush = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    const waiting = pending.current;
+    pending.current = null;
+    if (waiting) void setCaptionStyle(projectId, waiting.preset, waiting.colors, waiting.tweaks);
+  }, [projectId]);
+
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, [flush]);
 
   function save(
     nextPreset: PresetId,
@@ -66,7 +94,10 @@ export function CaptionStudio({
   ) {
     setFailed(false);
     if (timer.current) clearTimeout(timer.current);
+    pending.current = { preset: nextPreset, colors: nextColors, tweaks: nextTweaks };
     timer.current = setTimeout(() => {
+      timer.current = null;
+      pending.current = null;
       startSaving(async () => {
         const result = await setCaptionStyle(projectId, nextPreset, nextColors, nextTweaks);
         if (!result.ok) setFailed(true);

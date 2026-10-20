@@ -5,6 +5,8 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  // a second build folder lets a production build run next to `npm run dev` (speed checks)
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,

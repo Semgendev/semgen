@@ -17,8 +17,8 @@ async function ProjectsContent({ locale }: { locale: string }) {
   const t = await getTranslations("projects");
   const format = await getFormatter();
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect(`/${locale}/login?next=/${locale}/projects`);
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) redirect(`/${locale}/login?next=/${locale}/projects`);
 
   const projects = await listProjects(supabase);
   const urls = await getVideoUrls(supabase, projects);

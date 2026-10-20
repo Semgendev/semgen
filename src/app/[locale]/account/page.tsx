@@ -14,15 +14,15 @@ async function AccountContent({ locale }: { locale: string }) {
   const tc = await getTranslations("credits");
   const tp = await getTranslations("projects");
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect(`/${locale}/login`);
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) redirect(`/${locale}/login`);
 
   return (
     <Card>
       <CardHeader>
         <h1 className="text-2xl leading-none font-semibold">{t("title")}</h1>
         <CardDescription>
-          {t("signedInAs")} <strong>{data.user.email}</strong>
+          {t("signedInAs")} <strong>{data.claims.email}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-3">

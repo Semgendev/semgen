@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionUserId } from "@/lib/supabase/session";
 
 import { isValidDraft, MAX_WORDS } from "./edit";
 import {
@@ -34,8 +35,8 @@ export async function saveTranscript(
   if (!parsed.success || !isValidDraft(parsed.data)) return { ok: false, code: "invalid" };
 
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unauthorized" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unauthorized" };
 
   // Read as the user: RLS returns the row only if it belongs to them.
   const { data: owned, error: readError } = await supabase
@@ -57,7 +58,7 @@ export async function saveTranscript(
       .from("transcripts")
       .select("words, segments, is_edited")
       .eq("id", owned.id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", userId)
       .single();
     if (rowError) return { ok: false, code: "unknown" };
 
@@ -72,7 +73,7 @@ export async function saveTranscript(
           : { original_words: row.words, original_segments: row.segments, is_edited: true }),
       })
       .eq("id", owned.id)
-      .eq("user_id", auth.user.id)
+      .eq("user_id", userId)
       .eq("is_edited", row.is_edited)
       .select("id");
     if (error) return { ok: false, code: "unknown" };
@@ -91,8 +92,8 @@ export async function revertTranscript(projectId: string): Promise<RevertTranscr
   if (!parsedId.success) return { ok: false, code: "invalid" };
 
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unauthorized" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unauthorized" };
 
   const { data: owned, error: readError } = await supabase
     .from("transcripts")
@@ -108,7 +109,7 @@ export async function revertTranscript(projectId: string): Promise<RevertTranscr
     .from("transcripts")
     .select("original_words, original_segments, is_edited")
     .eq("id", owned.id)
-    .eq("user_id", auth.user.id)
+    .eq("user_id", userId)
     .single();
   if (rowError) return { ok: false, code: "unknown" };
   if (!row.is_edited) return { ok: false, code: "nothing_to_revert" };
@@ -132,7 +133,7 @@ export async function revertTranscript(projectId: string): Promise<RevertTranscr
       is_edited: false,
     })
     .eq("id", owned.id)
-    .eq("user_id", auth.user.id);
+    .eq("user_id", userId);
   if (error) return { ok: false, code: "unknown" };
   return { ok: true, words: original.data.words, segments: original.data.segments };
 }

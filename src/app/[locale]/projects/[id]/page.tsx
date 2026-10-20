@@ -26,17 +26,18 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   setRequestLocale(locale);
   const t = await getTranslations("projects");
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect(`/${locale}/login?next=/${locale}/projects`);
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) redirect(`/${locale}/login?next=/${locale}/projects`);
 
-  const project = await getProject(supabase, id);
-  if (!project) notFound();
-  const [urls, transcript, job, balance] = await Promise.all([
-    getVideoUrls(supabase, [project]),
-    getTranscript(supabase, project.id),
-    getLatestTranscriptionJob(supabase, project.id),
+  // everything is asked at once: row-level security hides what is not the user's own
+  const [project, transcript, job, balance] = await Promise.all([
+    getProject(supabase, id),
+    getTranscript(supabase, id),
+    getLatestTranscriptionJob(supabase, id),
     getCreditBalance(supabase),
   ]);
+  if (!project) notFound();
+  const urls = await getVideoUrls(supabase, [project]);
   const videoUrl = urls[project.id];
 
   const title = <ProjectTitle projectId={project.id} title={project.title} />;
@@ -53,7 +54,7 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
 
   return (
     <PlayerProvider>
-      <CaptionFontPreload />
+      <CaptionFontPreload selected={resolveCaptionStyle(project.caption_style).presetId} />
       {/* Remounts when the transcript arrives, so the captions start from its words. */}
       <CaptionWordsProvider key={transcript?.id ?? "none"} initialWords={transcript?.words ?? []}>
         <Link

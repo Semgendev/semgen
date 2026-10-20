@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { cache } from "react";
 import { z } from "zod";
 
 export const creditEntrySchema = z.object({
@@ -16,11 +17,12 @@ export function parseCreditHistory(rows: unknown): CreditEntry[] {
   return z.array(creditEntrySchema).parse(rows);
 }
 
-export async function getCreditBalance(supabase: SupabaseClient): Promise<number> {
+// Cached per request (per Supabase client): the header and the page both show the balance.
+export const getCreditBalance = cache(async (supabase: SupabaseClient): Promise<number> => {
   const { data, error } = await supabase.rpc("get_my_credit_balance");
   if (error) throw error;
   return balanceSchema.parse(data);
-}
+});
 
 export async function getCreditHistory(supabase: SupabaseClient, limit = 50) {
   const { data, error } = await supabase

@@ -8,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useSyncExternalStore,
+  Suspense,
   type ReactNode,
 } from "react";
 
@@ -34,19 +35,24 @@ function subscribe(onChange: () => void) {
   return () => window.removeEventListener(CHANGE_EVENT, onChange);
 }
 
-// Keeps <html data-palette> in sync with the user's choice (cookie) and the current page:
-// the inline head script handles the first paint, this handles client-side navigation and changes.
-export function PaletteProvider({ children }: { children: ReactNode }) {
+// Keeps <html data-palette> in sync with the current page. It renders nothing and sits in its own
+// Suspense boundary: the page address is only known at request time, and must not hold back the page.
+function PaletteSync({ palette }: { palette: Palette }) {
   const pathname = usePathname();
+  useEffect(() => {
+    document.documentElement.setAttribute("data-palette", paletteForPath(pathname, palette));
+  }, [pathname, palette]);
+  return null;
+}
+
+// Holds the user's choice (cookie): the inline head script handles the first paint, PaletteSync
+// handles client-side navigation and changes.
+export function PaletteProvider({ children }: { children: ReactNode }) {
   const palette = useSyncExternalStore(
     subscribe,
     () => readPaletteCookie(document.cookie),
     () => DEFAULT_PALETTE,
   );
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-palette", paletteForPath(pathname, palette));
-  }, [pathname, palette]);
 
   const setPalette = useCallback((next: Palette) => {
     document.cookie = paletteCookie(next);
@@ -54,7 +60,14 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({ palette, setPalette }), [palette, setPalette]);
-  return <PaletteContext.Provider value={value}>{children}</PaletteContext.Provider>;
+  return (
+    <PaletteContext.Provider value={value}>
+      <Suspense fallback={null}>
+        <PaletteSync palette={palette} />
+      </Suspense>
+      {children}
+    </PaletteContext.Provider>
+  );
 }
 
 export function usePalette(): PaletteContextValue {

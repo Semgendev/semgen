@@ -3,6 +3,7 @@
 import { tasks } from "@trigger.dev/sdk";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSessionUserId } from "@/lib/supabase/session";
 
 import { projectIdSchema, projectTitleSchema } from "./schemas";
 import { deleteProjectWithFiles, renameProject, type MutationResult } from "./service";
@@ -15,8 +16,8 @@ export async function createProject(title: string): Promise<CreateProjectResult>
   if (!parsed.success) return { ok: false, code: "invalid_title" };
 
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unauthorized" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unauthorized" };
 
   const { data, error } = await supabase
     .from("projects")
@@ -35,8 +36,8 @@ export async function completeUpload(projectId: string): Promise<CompleteUploadR
   if (!parsed.success) return { ok: false, code: "unknown" };
 
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unauthorized" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unauthorized" };
 
   const { error } = await supabase.rpc("mark_project_uploaded", { p_project_id: parsed.data });
   if (error) return { ok: false, code: "unknown" };
@@ -59,8 +60,8 @@ export async function requestPreview(projectId: string): Promise<RequestPreviewR
   if (!parsed.success) return { ok: false, code: "unknown" };
 
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unauthorized" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unauthorized" };
 
   // Ownership check through RLS: a foreign or missing project returns nothing.
   const { data: project } = await supabase
@@ -86,14 +87,14 @@ export async function renameProjectAction(
   title: string,
 ): Promise<MutationResult> {
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unknown" };
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unknown" };
   return renameProject(supabase, projectId, title);
 }
 
 export async function deleteProjectAction(projectId: string): Promise<MutationResult> {
   const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, code: "unknown" };
-  return deleteProjectWithFiles(supabase, auth.user.id, projectId);
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, code: "unknown" };
+  return deleteProjectWithFiles(supabase, userId, projectId);
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { locales, type Locale } from "@/i18n/config";
-import { useRouter, usePathname } from "@/i18n/routing";
+import { LOCALE_PATTERN, locales, type Locale } from "@/i18n/config";
+import { useRouter } from "@/i18n/routing";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,6 @@ export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useTranslations("language");
   const router = useRouter();
-  const pathname = usePathname();
 
   // every language in its own name (Español, Deutsch…), whatever the current one
   const languages = locales.map((value) => ({
@@ -33,7 +32,11 @@ export function LanguageSwitcher() {
     label: nativeName(value) ?? value.toUpperCase(),
   }));
 
+  // The page address is read when a language is chosen, not while rendering: reading it while
+  // rendering (usePathname) would stop Next.js from preparing the page in advance.
   const handleChangeLanguage = (newLocale: Locale) => {
+    const pathname =
+      window.location.pathname.replace(new RegExp(`^/(${LOCALE_PATTERN})(?=/|$)`), "") || "/";
     router.replace(pathname, { locale: newLocale });
   };
 

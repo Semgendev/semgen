@@ -1,6 +1,19 @@
+import { setRequestLocale } from "next-intl/server";
+
 import { AppHeader } from "@/components/app-header";
 
-export default function AccountLayout({ children }: { children: React.ReactNode }) {
+// The language is set here, before the header asks for its texts: otherwise Next.js has to wait for
+// the request and cannot prepare the page in advance.
+export default async function AccountLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <>
       <AppHeader />

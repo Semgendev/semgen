@@ -12,8 +12,8 @@ async function CreditsContent({ locale }: { locale: string }) {
   const t = await getTranslations("credits");
   const format = await getFormatter();
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect(`/${locale}/login?next=/${locale}/account/credits`);
+  const { data } = await supabase.auth.getClaims();
+  if (!data?.claims) redirect(`/${locale}/login?next=/${locale}/account/credits`);
 
   const [balance, history] = await Promise.all([
     getCreditBalance(supabase),
