@@ -36,7 +36,7 @@ export type PresetId = (typeof PRESET_IDS)[number];
 
 // Styles still being reviewed: shown in the animation lab only, until Ashanti validates them (then
 // they move into PRESET_IDS, with their names in every language). Empty between two waves.
-export const NEW_PRESET_IDS = ["acid", "circle"] as const;
+export const NEW_PRESET_IDS = ["acid", "circle", "blend", "initials"] as const;
 export type NewPresetId = (typeof NEW_PRESET_IDS)[number];
 export type LabPresetId = PresetId | NewPresetId;
 
@@ -1339,7 +1339,102 @@ const CIRCLE: CaptionStyle = {
   animation: { in: "blurRise", inMs: 320, staggerMs: 0, out: "blur", outMs: 220 },
 };
 
-export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = { acid: ACID, circle: CIRCLE };
+// Blend: huge lowercase words, tight as print, stacked from the left; the caption is mixed with the
+// video: powder pink over dark footage, deep fir green over light footage, the image showing through.
+const BLEND: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  align: "left",
+  grouping: "phrase",
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 12,
+  textCase: "lower",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 84,
+  lineGapEm: -0.32,
+  lineBox: null,
+  blend: "difference",
+  base: {
+    ...plain,
+    font: "outfit",
+    weight: 700,
+    sizePct: 4.4,
+    letterSpacingEm: -0.05,
+    fill: { type: "solid", color: "#F2C4CB" },
+  },
+  emphasis: {
+    ...plain,
+    font: "outfit",
+    weight: 800,
+    sizePct: 14,
+    letterSpacingEm: -0.06,
+    fill: { type: "solid", color: "#F2C4CB" },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "rise",
+    inMs: 260,
+    staggerMs: 0,
+    out: "fade",
+    outMs: 200,
+    emphasis: { in: "slam", inMs: 380 },
+    motionBlur: true,
+  },
+};
+
+// Boxed initials: small white words; the key word is spelled out from its first letter, which locks
+// into a fine gold box before the rest of the word unrolls from it (like an acronym).
+const INITIALS: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 18,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 86,
+  lineGapEm: 0.1,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 500,
+    sizePct: 3,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "montserrat",
+    weight: 800,
+    sizePct: 6.6,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+    initialBox: { color: "#E8AE2C", widthEm: 0.045 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blurRise",
+    inMs: 320,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 220,
+    emphasis: { in: "fade", inMs: 120 },
+  },
+};
+
+export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = {
+  acid: ACID,
+  circle: CIRCLE,
+  blend: BLEND,
+  initials: INITIALS,
+};
 
 // The styles of the 2026-10 waves (taken from Ashanti's reference videos), validated.
 const WAVE_PRESETS = {
@@ -1396,6 +1491,8 @@ export const LAB_BACKDROP = "linear-gradient(160deg, #23262E 0%, #101216 55%, #1
 export const CARD_LIGHTS: Record<LabPresetId, string> = {
   acid: "#B6FF00",
   circle: "#F03FD6",
+  blend: "#F2C4CB",
+  initials: "#E8AE2C",
   poster: "#E8E3DA",
   newsprint: "#FAFAF7",
   number: "#C9D0DC",

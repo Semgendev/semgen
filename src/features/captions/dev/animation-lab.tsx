@@ -28,6 +28,8 @@ import { demoWords } from "./demo-words";
 const LABELS: Record<LabPresetId, string> = {
   acid: "Néon acide (vague 3)",
   circle: "Cercle tracé (vague 3)",
+  blend: "Fondu (vague 3)",
+  initials: "Lettres encadrées (vague 3)",
   poster: "Affiche",
   newsprint: "Journal",
   number: "Chiffre géant",

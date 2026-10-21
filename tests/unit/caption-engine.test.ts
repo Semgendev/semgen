@@ -15,6 +15,7 @@ import { paginate } from "@/features/captions/paginate";
 import {
   closingIndex,
   countedText,
+  initialOf,
   ringPath,
   vignetteAmount,
 } from "@/features/captions/remotion/captioned-video";
@@ -318,5 +319,31 @@ describe("third wave", () => {
     expect(NEW_PRESETS.acid.emphasis.textCase).toBe("upper");
     expect(captionStyleSchema.safeParse(NEW_PRESETS.acid).success).toBe(true);
     expect(captionStyleSchema.safeParse(NEW_PRESETS.circle).success).toBe(true);
+  });
+});
+
+describe("third wave, second step", () => {
+  it("spells a key word out from its boxed capital", () => {
+    const look = NEW_PRESETS.initials.emphasis;
+    const start = initialOf(look, "demain", 1000, 900);
+    expect(start?.first).toBe("D");
+    expect(start?.others).toBe("emain");
+    expect(start?.lock).toBe(0);
+    const done = initialOf(look, "demain", 1000, 2000);
+    expect(done?.lock).toBeCloseTo(1);
+    expect(done?.rest).toBeCloseTo(1);
+  });
+
+  it("keeps joined scripts and words without letters whole", () => {
+    const look = NEW_PRESETS.initials.emphasis;
+    expect(initialOf(look, "مرحبًا", 0, 500)).toBeNull();
+    expect(initialOf(look, "!", 0, 500)).toBeNull();
+    expect(initialOf(CAPTION_PRESETS.cinema.emphasis, "demain", 0, 500)).toBeNull();
+  });
+
+  it("mixes the blend style with the video", () => {
+    expect(NEW_PRESETS.blend.blend).toBe("difference");
+    expect(captionStyleSchema.safeParse(NEW_PRESETS.blend).success).toBe(true);
+    expect(captionStyleSchema.safeParse(NEW_PRESETS.initials).success).toBe(true);
   });
 });

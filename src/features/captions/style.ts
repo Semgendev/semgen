@@ -175,6 +175,12 @@ export const textLookSchema = z.object({
     })
     .nullable()
     .optional(),
+  // the first letter in capitals inside an outlined box that locks into place, then the rest of the
+  // word unrolls from it (an acronym spelled out)
+  initialBox: z
+    .object({ color: colorSchema, widthEm: z.number().min(0.01).max(0.2) })
+    .nullable()
+    .optional(),
 });
 export type TextLook = z.infer<typeof textLookSchema>;
 
@@ -308,6 +314,9 @@ export const captionStyleSchema = z.object({
   firstLineScale: z.number().min(1).max(2).optional(),
   // the edges of the video darken while a key word is on screen, so its light shines (0 = off)
   vignette: z.number().min(0).max(1).optional(),
+  // the caption is mixed with the video: "difference" turns a light colour dark on light footage
+  // and keeps it light on dark footage (the text seems to belong to the scene)
+  blend: z.enum(["difference", "overlay", "screen", "soft-light"]).optional(),
   // makes every "random" detail (neon flicker...) identical in the preview and the export
   seed: z.number().int().optional(),
 });

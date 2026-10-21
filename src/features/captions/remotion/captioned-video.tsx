@@ -420,6 +420,47 @@ function Haze({
   );
 }
 
+const INITIAL_LOCK_MS = 260;
+const INITIAL_REST_AFTER_MS = 200;
+const INITIAL_REST_MS = 420;
+
+// A word spelled out from its first letter: the letter (in capitals) locks into its box, then the
+// rest of the word unrolls from it. Joined scripts (Arabic, Devanagari...) keep their word whole.
+export function initialOf(
+  look: TextLook,
+  text: string,
+  startMs: number,
+  timeMs: number,
+): {
+  box: NonNullable<TextLook["initialBox"]>;
+  first: string;
+  others: string;
+  lock: number;
+  rest: number;
+} | null {
+  const box = look.initialBox;
+  if (!box || JOINED_SCRIPTS.test(text)) return null;
+  const letters = Array.from(graphemes.segment(text), (part) => part.segment);
+  const first = letters[0];
+  if (!first || !/\p{L}|\p{N}/u.test(first)) return null;
+  const at = startMs - ACTIVE_LEAD_MS;
+  return {
+    box,
+    first: first.toLocaleUpperCase(),
+    others: letters.slice(1).join(""),
+    lock: interpolate(timeMs, [at, at + INITIAL_LOCK_MS], [0, 1], {
+      ...clampOpts,
+      easing: Easing.out(Easing.back(2)),
+    }),
+    rest: interpolate(
+      timeMs,
+      [at + INITIAL_REST_AFTER_MS, at + INITIAL_REST_AFTER_MS + INITIAL_REST_MS],
+      [0, 1],
+      { ...clampOpts, easing: Easing.out(Easing.cubic) },
+    ),
+  };
+}
+
 // The ring waits for the word to land before it is drawn around it.
 const RING_DELAY_MS = 120;
 const RING_POINTS = 56;
@@ -595,6 +636,7 @@ function Word({
       )
     : 1;
   const text = countedText(applyCase(word.text, look.textCase ?? style.textCase), counting);
+  const initial = initialOf(look, text, word.start, timeMs);
   const ringDrawn = look.ring
     ? interpolate(
         timeMs,
@@ -784,14 +826,42 @@ function Word({
           paintOrder: "stroke fill",
         }}
       >
-        <Glyphs
-          text={text}
-          spreadEm={motion.spreadEm}
-          rise={motion.letters}
-          soft={motion.soft}
-          place={place}
-          paint={mainPaint}
-        />
+        {initial ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                border: `${initial.box.widthEm}em solid ${initial.box.color}`,
+                borderRadius: "0.08em",
+                padding: "0 0.1em",
+                marginInlineEnd: "0.06em",
+                color: initial.box.color,
+                WebkitTextFillColor: initial.box.color,
+                opacity: initial.lock,
+                transform: `scale(${1.35 - 0.35 * initial.lock})`,
+              }}
+            >
+              {initial.first}
+            </span>
+            <span
+              style={{
+                display: "inline-block",
+                clipPath: `inset(-30% ${(1 - initial.rest) * 100}% -30% -5%)`,
+              }}
+            >
+              {initial.others}
+            </span>
+          </>
+        ) : (
+          <Glyphs
+            text={text}
+            spreadEm={motion.spreadEm}
+            rise={motion.letters}
+            soft={motion.soft}
+            place={place}
+            paint={mainPaint}
+          />
+        )}
       </span>
       {look.cursor && started && motion.reveal < 0.999 ? (
         // a block cursor waits in the empty box, then rides the edge of the letters being typed
@@ -940,7 +1010,10 @@ function fitPage(
           applyCase(word.text, look.textCase ?? style.textCase),
           font,
           look.letterSpacingEm * fontPx,
-        ) + (box ? box.paddingXEm * fontPx : 0);
+        ) +
+        (box ? box.paddingXEm * fontPx : 0) +
+        // the box around the first letter (its border, its padding, the gap after it)
+        (look.initialBox ? 0.42 * fontPx : 0);
       lineHeight = Math.max(lineHeight, fontPx * LINE_HEIGHT);
     }
     blockWidth = Math.max(blockWidth, lineWidth);
@@ -1108,6 +1181,8 @@ function PageBlock({
         justifyContent: left ? "flex-start" : "center",
         // only the block itself can be touched, not the empty sides around it
         pointerEvents: editor ? "none" : undefined,
+        // a block being moved is shown plainly, so its frame and its badges stay readable
+        mixBlendMode: picked ? undefined : style.blend,
       }}
     >
       <div
