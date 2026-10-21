@@ -12,9 +12,14 @@ import {
   wordMotionAt,
 } from "@/features/captions/motion";
 import { paginate } from "@/features/captions/paginate";
-import { closingIndex, countedText } from "@/features/captions/remotion/captioned-video";
+import {
+  closingIndex,
+  countedText,
+  ringPath,
+  vignetteAmount,
+} from "@/features/captions/remotion/captioned-video";
 import { applyTweaks, hasEcho, hasLight } from "@/features/captions/tweaks";
-import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
+import { CAPTION_PRESETS, NEW_PRESETS, PRESET_IDS } from "@/features/captions/presets";
 import { captionStyleSchema, type CaptionStyle } from "@/features/captions/style";
 
 // Counts flashes the WCAG way: a flash is a pair of opposing changes (down then up) of at least
@@ -285,5 +290,33 @@ describe("second wave", () => {
     const style = CAPTION_PRESETS.burst;
     const kinds = new Set(paginate(demoWords(), style).map((page) => entranceOf(page, style)));
     expect(kinds.size).toBeGreaterThan(2);
+  });
+});
+
+describe("third wave", () => {
+  it("draws the ring of a word little by little, always the same for the same word", () => {
+    const empty = ringPath(1200, 0);
+    const half = ringPath(1200, 0.5);
+    const full = ringPath(1200, 1);
+    expect(empty.split("L")).toHaveLength(1);
+    expect(half.split("L").length).toBeLessThan(full.split("L").length);
+    expect(full).toBe(ringPath(1200, 1));
+    expect(full).not.toBe(ringPath(4800, 1));
+  });
+
+  it("darkens the edges only while a key word is on screen", () => {
+    const style = NEW_PRESETS.acid;
+    const pages = paginate(demoWords(), style);
+    const page = pages.find((one) => one.words.some((word) => word.emphasis))!;
+    const key = page.words.find((word) => word.emphasis)!;
+    expect(vignetteAmount(pages, style, key.start + 600)).toBeCloseTo(style.vignette ?? 0, 2);
+    expect(vignetteAmount(pages, style, 0)).toBe(0);
+    expect(vignetteAmount(pages, CAPTION_PRESETS.cinema, key.start + 600)).toBe(0);
+  });
+
+  it("writes the key word in capitals when its own case says so", () => {
+    expect(NEW_PRESETS.acid.emphasis.textCase).toBe("upper");
+    expect(captionStyleSchema.safeParse(NEW_PRESETS.acid).success).toBe(true);
+    expect(captionStyleSchema.safeParse(NEW_PRESETS.circle).success).toBe(true);
   });
 });

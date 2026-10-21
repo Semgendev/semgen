@@ -36,7 +36,7 @@ export type PresetId = (typeof PRESET_IDS)[number];
 
 // Styles still being reviewed: shown in the animation lab only, until Ashanti validates them (then
 // they move into PRESET_IDS, with their names in every language). Empty between two waves.
-export const NEW_PRESET_IDS = [] as const;
+export const NEW_PRESET_IDS = ["acid", "circle"] as const;
 export type NewPresetId = (typeof NEW_PRESET_IDS)[number];
 export type LabPresetId = PresetId | NewPresetId;
 
@@ -1250,7 +1250,96 @@ const NUMBER: CaptionStyle = {
   },
 };
 
-export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = {};
+// Acid neon: a thin white sentence, then the key word huge, condensed and in capitals, acid green
+// with a neon glow; the edges of the video darken while it is on screen so the light shines.
+const ACID: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 18,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 86,
+  lineGapEm: -0.06,
+  lineBox: null,
+  vignette: 0.75,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 400,
+    sizePct: 2.7,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "anton",
+    weight: 400,
+    sizePct: 11,
+    letterSpacingEm: 0.005,
+    textCase: "upper",
+    fill: { type: "solid", color: "#CBFF1F" },
+    stroke: { color: "#5E7A00", widthEm: 0.012 },
+    shadow: { color: "#00000080", blurEm: 0.1, offsetYEm: 0.04 },
+    glow: { color: "#B6FF0099", blurEm: 0.09 },
+    deepGlow: { color: "#9DFF00", radiusEm: 0.3, intensity: 0.55, chromatic: null },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blurRise",
+    inMs: 300,
+    staggerMs: 0,
+    out: "fade",
+    outMs: 200,
+    emphasis: { in: "focus", inMs: 460 },
+  },
+};
+
+// Circled: a small light lowercase line, the key word in a heavy italic, and a magenta ring drawn by
+// hand around it once it is said, like a marker on paper.
+const CIRCLE: CaptionStyle = {
+  version: 1,
+  layout: "line",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 22,
+  textCase: "lower",
+  position: { x: 50, y: 66 },
+  maxWidthPct: 86,
+  // room for the ring between the lines
+  lineGapEm: 0.5,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 400,
+    sizePct: 3.3,
+    letterSpacingEm: -0.015,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "figtree",
+    weight: 800,
+    italic: true,
+    sizePct: 3.9,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+    ring: { color: "#F03FD6", widthEm: 0.07, drawMs: 520 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: { in: "blurRise", inMs: 320, staggerMs: 0, out: "blur", outMs: 220 },
+};
+
+export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = { acid: ACID, circle: CIRCLE };
 
 // The styles of the 2026-10 waves (taken from Ashanti's reference videos), validated.
 const WAVE_PRESETS = {
@@ -1297,11 +1386,16 @@ export const ACCENT_SWATCHES = [
 export const MIX_WHITE = "#FFFFFF";
 export const MIX_BLACK = "#000000";
 
+// Shade of the darkened edges of the video (vignette of the neon styles).
+export const VIGNETTE_COLOR = "#000000";
+
 // Neutral backdrop of the animation lab when no video is loaded (video content, like the styles).
 export const LAB_BACKDROP = "linear-gradient(160deg, #23262E 0%, #101216 55%, #1B1420 100%)";
 
 // Light that sets the mood of each style card in the gallery (its key colour, softened).
 export const CARD_LIGHTS: Record<LabPresetId, string> = {
+  acid: "#B6FF00",
+  circle: "#F03FD6",
   poster: "#E8E3DA",
   newsprint: "#FAFAF7",
   number: "#C9D0DC",

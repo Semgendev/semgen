@@ -163,6 +163,18 @@ export const textLookSchema = z.object({
     .optional(),
   // a number counts up to its value while the word comes in ("0 → 15 000")
   countUp: z.boolean().optional(),
+  // its own case (a key word in capitals while the rest of the caption keeps its case)
+  textCase: z.enum(["none", "upper", "lower"]).optional(),
+  // a ring drawn by hand around the word once it is said, like a marker circling it on paper
+  ring: z
+    .object({
+      color: colorSchema,
+      // thickness of the stroke, in em of the word
+      widthEm: z.number().min(0.01).max(0.2),
+      drawMs: z.number().int().min(100).max(1500),
+    })
+    .nullable()
+    .optional(),
 });
 export type TextLook = z.infer<typeof textLookSchema>;
 
@@ -294,6 +306,8 @@ export const captionStyleSchema = z.object({
   soloEmphasis: z.boolean().optional(),
   // the first line of a caption is drawn this much bigger than the others (book titles)
   firstLineScale: z.number().min(1).max(2).optional(),
+  // the edges of the video darken while a key word is on screen, so its light shines (0 = off)
+  vignette: z.number().min(0).max(1).optional(),
   // makes every "random" detail (neon flicker...) identical in the preview and the export
   seed: z.number().int().optional(),
 });

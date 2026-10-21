@@ -58,6 +58,7 @@ import {
   type StyleMoves,
 } from "../moves";
 import { visiblePageIndices, type CaptionPage, type CaptionWord } from "../paginate";
+import { VIGNETTE_COLOR } from "../presets";
 import type { CaptionFill, CaptionStyle, TextLook } from "../style";
 
 // The one composition used both by the in-app preview (@remotion/player) and by the final export
@@ -419,6 +420,76 @@ function Haze({
   );
 }
 
+// The ring waits for the word to land before it is drawn around it.
+const RING_DELAY_MS = 120;
+const RING_POINTS = 56;
+
+// A ring drawn by hand around a word (in a 100 × 100 box stretched over it): a little more than one
+// turn, starting at the top left, its two ends crossing slightly apart, its edge never quite even.
+// The same word always gets the same ring (preview = export). Only the part drawn so far is given
+// (drawn from 0 to 1): a dashed stroke would be simpler, but browsers measure dashes wrongly on a
+// stretched drawing.
+export function ringPath(seed: number, drawn: number): string {
+  const wobble = seeded(Math.round(seed), 3) * Math.PI * 2;
+  const turn = 1.12;
+  const pointAt = (t: number) => {
+    const angle = Math.PI * 1.15 + t * turn * Math.PI * 2;
+    // the end of the stroke closes in a little: the ends overlap without meeting
+    const shrink = 1 - 0.07 * t;
+    const uneven = 1 + 0.035 * Math.sin(angle * 3 + wobble);
+    const x = 50 + Math.cos(angle) * 48 * shrink * uneven;
+    const y = 50 + Math.sin(angle) * 46 * shrink * uneven - 3 * t;
+    return `${x.toFixed(2)} ${y.toFixed(2)}`;
+  };
+  const end = Math.min(1, Math.max(0, drawn)) * RING_POINTS;
+  const points = [`M${pointAt(0)}`];
+  for (let index = 1; index <= Math.floor(end); index++)
+    points.push(`L${pointAt(index / RING_POINTS)}`);
+  if (end % 1 > 0) points.push(`L${pointAt(end / RING_POINTS)}`);
+  return points.join(" ");
+}
+
+function Ring({
+  ring,
+  drawn,
+  fontPx,
+  seed,
+}: {
+  ring: NonNullable<TextLook["ring"]>;
+  drawn: number;
+  fontPx: number;
+  seed: number;
+}) {
+  const path = ringPath(seed, drawn);
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      style={{
+        position: "absolute",
+        left: "-0.36em",
+        top: "-0.34em",
+        width: "calc(100% + 0.72em)",
+        height: "calc(100% + 0.62em)",
+        overflow: "visible",
+        pointerEvents: "none",
+        transform: "rotate(-3deg)",
+      }}
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={ring.color}
+        strokeWidth={ring.widthEm * fontPx}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 // A number counting up to its value while the word comes in: "15 000" shows 0, 2 400, 9 800...
 // The text around the number ("$", "%", "K") and its way of grouping digits stay as they are.
 const NUMBER_PARTS = /^(\D*?)(\d[\d\s.,\u00A0\u202F]*\d|\d)(\D*)$/;
@@ -523,7 +594,15 @@ function Word({
         },
       )
     : 1;
-  const text = countedText(applyCase(word.text, style.textCase), counting);
+  const text = countedText(applyCase(word.text, look.textCase ?? style.textCase), counting);
+  const ringDrawn = look.ring
+    ? interpolate(
+        timeMs,
+        [word.start + RING_DELAY_MS, word.start + RING_DELAY_MS + look.ring.drawMs],
+        [0, 1],
+        { ...clampOpts, easing: Easing.inOut(Easing.cubic) },
+      )
+    : 0;
   const padding = box ? `${box.paddingYEm}em ${box.paddingXEm}em` : undefined;
   // Letters rising from under the baseline stay hidden below it until they reach their place.
   const rising = motion.letters < 1;
@@ -737,6 +816,9 @@ function Word({
             filter: `drop-shadow(0 0 0.12em ${liquid.glow})`,
           })
         : null}
+      {look.ring && ringDrawn > 0 ? (
+        <Ring ring={look.ring} drawn={ringDrawn} fontPx={fontPx} seed={word.start} />
+      ) : null}
       {splitColors && motion.splitEm > 0.001
         ? splitColors.map((color, index) => {
             const side = index === 0 ? -1 : 1;
@@ -854,8 +936,11 @@ function fitPage(
         lineWidth += (Array.from(word.text).length - 1) * spread * fontPx;
       }
       lineWidth +=
-        measureText(applyCase(word.text, style.textCase), font, look.letterSpacingEm * fontPx) +
-        (box ? box.paddingXEm * fontPx : 0);
+        measureText(
+          applyCase(word.text, look.textCase ?? style.textCase),
+          font,
+          look.letterSpacingEm * fontPx,
+        ) + (box ? box.paddingXEm * fontPx : 0);
       lineHeight = Math.max(lineHeight, fontPx * LINE_HEIGHT);
     }
     blockWidth = Math.max(blockWidth, lineWidth);
@@ -1254,6 +1339,31 @@ function targetOf(event: PointerEvent | MouseEvent | KeyboardEvent): HTMLElement
 }
 
 // The current caption, plus the previous one while it is leaving: they cross over smoothly.
+const VIGNETTE_IN_MS = 350;
+
+// How dark the edges of the video are (0 to the style's vignette): they darken as the key word of a
+// caption lands and come back when the caption leaves.
+export function vignetteAmount(pages: CaptionPage[], style: CaptionStyle, timeMs: number): number {
+  if (!style.vignette) return 0;
+  const outMs = exitMs(style);
+  let amount = 0;
+  for (const index of visiblePageIndices(pages, timeMs, outMs)) {
+    const page = pages[index];
+    if (!page) continue;
+    const key = page.words.find((_, wordIndex) => standsOut(page, wordIndex, style));
+    if (!key) continue;
+    const rise = interpolate(
+      timeMs,
+      [key.start - ACTIVE_LEAD_MS - 80, key.start + VIGNETTE_IN_MS],
+      [0, 1],
+      clampOpts,
+    );
+    const fall = interpolate(timeMs, [page.end, page.end + outMs + 200], [1, 0], clampOpts);
+    amount = Math.max(amount, Math.min(rise, fall));
+  }
+  return amount * style.vignette;
+}
+
 export function CaptionLayer({
   pages,
   style,
@@ -1289,7 +1399,25 @@ export function CaptionLayer({
       />
     ) : null;
   });
-  if (!editor) return <>{blocks}</>;
+  const vignette = vignetteAmount(pages, style, timeMs);
+  const shade =
+    vignette > 0.001 ? (
+      <AbsoluteFill
+        aria-hidden
+        style={{
+          pointerEvents: "none",
+          backgroundImage: `radial-gradient(ellipse 72% 68% at 50% 50%, ${transparent(VIGNETTE_COLOR)} 38%, ${VIGNETTE_COLOR} 100%)`,
+          opacity: vignette,
+        }}
+      />
+    ) : null;
+  if (!editor)
+    return (
+      <>
+        {shade}
+        {blocks}
+      </>
+    );
 
   // in % of the frame as it is shown on screen
   const delta = (event: PointerEvent, start: Drag) => {
@@ -1384,6 +1512,7 @@ export function CaptionLayer({
         }
       }}
     >
+      {shade}
       {blocks}
     </AbsoluteFill>
   );
