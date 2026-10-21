@@ -16,6 +16,13 @@ export type CaptionPage = {
   words: CaptionWord[];
 };
 
+// A moment where the whole block is on screen, entry animations done: a little after its last word
+// is said, while it is still held. Used to show every word when a block is selected to be moved.
+export function blockShownAtMs(page: Pick<CaptionPage, "start" | "end" | "speechEnd">): number {
+  const after = Math.min(350, Math.max(0, (page.end - page.speechEnd) / 2));
+  return Math.round(Math.max(page.start, page.speechEnd + after));
+}
+
 // Timing rules of professional subtitles:
 // - the text shows up slightly before the voice, so it is readable when the word is heard;
 export const TEXT_LEAD_MS = 120;

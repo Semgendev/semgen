@@ -85,11 +85,15 @@ function pickable(
   key: string,
   element: ElementId | null,
   height: number,
+  // false while the caption is mounted but not on screen yet: it cannot be touched
+  shown = true,
 ): CSSProperties {
   if (!editor || !element) return {};
   const selected = editor.selected?.key === key && editor.selected.element === element;
   return {
-    pointerEvents: "auto",
+    // while another text is selected, this one (maybe still hidden, at the same place) cannot catch
+    // the touch meant for the selected one
+    pointerEvents: !shown || (editor.selected && !selected) ? "none" : "auto",
     cursor: selected ? "grab" : "default",
     touchAction: "none",
     outline: selected ? `${Math.max(2, height * 0.003)}px dashed var(--color-brand)` : undefined,
@@ -655,7 +659,7 @@ function PageBlock({
         tabIndex={editor ? 0 : undefined}
         role={editor ? "button" : undefined}
         style={{
-          ...pickable(editor, key, "block", height),
+          ...pickable(editor, key, "block", height, timeMs >= page.start),
           position: "relative",
           width: "max-content",
           maxWidth: "100%",

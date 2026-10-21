@@ -6,8 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { MIN_TIME_STEP_MS, usePlayerBridge, type PlayerController } from "../projects/player";
-import type { StyleMoves } from "./moves";
-import type { CaptionPage } from "./paginate";
+import { blockKey, type StyleMoves } from "./moves";
+import { blockShownAtMs, type CaptionPage } from "./paginate";
 import {
   CaptionedVideo,
   type CaptionedVideoProps,
@@ -101,11 +101,17 @@ export function CaptionPlayer({
       editor && {
         ...editor,
         onPick: (key, element) => {
-          player.current?.pause();
+          const current = player.current;
+          current?.pause();
+          // a block picked mid-animation is shown whole, so every word can be seen and moved
+          const page = element === "block" ? pages.find((one) => blockKey(one) === key) : undefined;
+          if (current && page) {
+            current.seekTo(Math.round((blockShownAtMs(page) / 1000) * CAPTION_FPS));
+          }
           editor.onPick(key, element);
         },
       },
-    [editor],
+    [editor, pages],
   );
   const inputProps = useMemo<CaptionedVideoProps>(
     () => ({ videoSrc: src, pages, style, moves, editor: pausingEditor }),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { createPortal } from "react-dom";
 import {
   useCallback,
   useEffect,
@@ -391,6 +392,42 @@ export function CaptionStudio({
 
   const placement = picked ? placementOf(styleMoves, picked.key, picked.element) : null;
 
+  // On the transcript tab, the move window sits in the top right corner of the list (small, the
+  // lines stay readable); on the styles tab it takes the place of the panel, as before.
+  const moveSlot =
+    picked && tab === "transcription" && typeof document !== "undefined"
+      ? document.querySelector<HTMLElement>("[data-move-slot]")
+      : null;
+
+  // The content of the move window. On a phone it is a sheet at the bottom of the screen (the video
+  // stays in view above it); on a desktop, in place of the panel or in the corner of the list.
+  const moveContent =
+    picked && target && pickedInfo && placement ? (
+      <MovePanel
+        text={pickedInfo.text}
+        isKeyWord={pickedInfo.isKeyWord}
+        isBlock={pickedInfo.isBlock}
+        canReset={placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined}
+        everyBlock={everyBlock}
+        apart={isApart(styleMoves, picked.key)}
+        // shown while the block is apart, even once nothing is moved for every block any more
+        showApart={hasSharedMoves(styleMoves) || isApart(styleMoves, picked.key)}
+        onShift={(dx, dy) => updateMoves(shiftElement(freshMoves(), target, dx, dy), 400)}
+        onReset={() => {
+          // back to the base place: this block's own move, and the shared one if it is on
+          let next = resetElement(freshMoves(), { ...target, everyBlock: false });
+          if (target.everyBlock) next = resetElement(next, target);
+          updateMoves(next, 0);
+        }}
+        onDelete={() => deleteBlock(picked.key)}
+        onEveryBlock={setEveryBlock}
+        onApart={(apart) => updateMoves(setApart(freshMoves(), picked.key, apart), 0)}
+        onDone={() => setPicked(null)}
+      />
+    ) : null;
+  const MOVE_SHEET =
+    "bg-surface border-border fixed inset-x-0 bottom-0 z-40 max-h-[60dvh] overflow-y-auto overscroll-contain rounded-t-2xl border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg lg:static lg:z-auto lg:max-h-none";
+
   // no text yet: the video shows no caption, say why and where to start
   const needsText = words.length === 0 && transcriptionSlot !== null;
 
@@ -419,36 +456,31 @@ export function CaptionStudio({
           />
           {/* A text touched on the video: its controls take the place of the panel (on a phone, a
               sheet at the bottom of the screen, so the video stays in view above it). */}
-          {picked && target && pickedInfo && placement ? (
-            <div className="bg-surface border-border fixed inset-x-0 bottom-0 z-40 max-h-[60dvh] overflow-y-auto overscroll-contain rounded-t-2xl border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg lg:static lg:z-auto lg:max-h-none lg:flex-1 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-4 lg:shadow-none">
-              <MovePanel
-                text={pickedInfo.text}
-                isKeyWord={pickedInfo.isKeyWord}
-                isBlock={pickedInfo.isBlock}
-                canReset={placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined}
-                everyBlock={everyBlock}
-                apart={isApart(styleMoves, picked.key)}
-                // shown while the block is apart, even once nothing is moved for every block any more
-                showApart={hasSharedMoves(styleMoves) || isApart(styleMoves, picked.key)}
-                onShift={(dx, dy) => updateMoves(shiftElement(freshMoves(), target, dx, dy), 400)}
-                onReset={() => {
-                  // back to the base place: this block's own move, and the shared one if it is on
-                  let next = resetElement(freshMoves(), { ...target, everyBlock: false });
-                  if (target.everyBlock) next = resetElement(next, target);
-                  updateMoves(next, 0);
-                }}
-                onDelete={() => deleteBlock(picked.key)}
-                onEveryBlock={setEveryBlock}
-                onApart={(apart) => updateMoves(setApart(freshMoves(), picked.key, apart), 0)}
-                onDone={() => setPicked(null)}
-              />
+          {moveContent && !moveSlot ? (
+            <div
+              className={cn(
+                MOVE_SHEET,
+                "lg:flex-1 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-4 lg:shadow-none",
+              )}
+            >
+              {moveContent}
             </div>
           ) : null}
+          {moveContent && moveSlot
+            ? createPortal(
+                <div
+                  className={cn(MOVE_SHEET, "lg:w-80 lg:rounded-xl lg:border lg:p-3 lg:shadow-lg")}
+                >
+                  {moveContent}
+                </div>,
+                moveSlot,
+              )
+            : null}
           {/* Kept mounted while hidden: the text being corrected, its undo history and its
               automatic save survive a visit to the styles. */}
           {transcriptionSlot ? (
             <div
-              hidden={tab !== "transcription" || picked !== null}
+              hidden={tab !== "transcription"}
               className="min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 lg:overflow-hidden [&:not([hidden])]:flex"
             >
               {transcriptionSlot}

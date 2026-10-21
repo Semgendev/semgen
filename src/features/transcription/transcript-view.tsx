@@ -46,7 +46,7 @@ import {
   useRequestBlock,
   useTranscriptVisible,
 } from "../captions/caption-words";
-import { paginate } from "../captions/paginate";
+import { blockShownAtMs, paginate } from "../captions/paginate";
 import { CAPTION_PRESETS } from "../captions/presets";
 import { usePlayerControls, usePlayerTime } from "../projects/player";
 import { revertTranscript, saveTranscript } from "./actions";
@@ -530,7 +530,9 @@ export function TranscriptView({
   // The icon of a line: its block is selected on the video (which goes to it) to be moved there.
   const requestBlock = useRequestBlock();
   const moveBlock = useStable((firstWord: number, startMs: number) => {
-    seek(startMs, false);
+    // the video goes to a moment where the whole block is on screen
+    const page = pages.find((one) => one.firstWord >= firstWord);
+    seek(page ? blockShownAtMs(page) : startMs, false);
     requestBlock?.("select", firstWord);
   });
 
@@ -850,12 +852,16 @@ export function TranscriptView({
         ) : null}
       </div>
 
-      <div
-        ref={container}
-        // Extra room on top and between lines: the icons above a word never hide the line above it.
-        className="bg-card relative flex max-h-[60vh] min-h-0 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border p-4 pt-9 lg:max-h-none lg:flex-1"
-      >
-        {lineList}
+      {/* the list, and in its top right corner the place of the "move a block" window */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div
+          ref={container}
+          // Extra room on top and between lines: the icons above a word never hide the line above it.
+          className="bg-card relative flex max-h-[60vh] min-h-0 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border p-4 pt-9 lg:max-h-none lg:flex-1 lg:[[data-moving=true]_&]:pe-[21rem]"
+        >
+          {lineList}
+        </div>
+        <div data-move-slot className="absolute end-5 top-3 z-20" />
       </div>
 
       <Dialog
