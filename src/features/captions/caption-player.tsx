@@ -144,7 +144,8 @@ export function CaptionPlayer({
         for (const attribute of ["aria-label", "title"]) {
           const text = labels[element.getAttribute(attribute) ?? ""];
           // only when it differs: writing the same text again would wake the observer forever (English)
-          if (text && text !== element.getAttribute(attribute)) element.setAttribute(attribute, text);
+          if (text && text !== element.getAttribute(attribute))
+            element.setAttribute(attribute, text);
         }
       }
       working = false;
@@ -164,7 +165,8 @@ export function CaptionPlayer({
     const onClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       const button = event.target.closest("button");
-      if (button && fullscreenLabels.includes(button.getAttribute("aria-label") ?? "")) button.blur();
+      if (button && fullscreenLabels.includes(button.getAttribute("aria-label") ?? ""))
+        button.blur();
     };
     root.addEventListener("click", onClick);
     return () => {

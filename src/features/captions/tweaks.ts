@@ -19,6 +19,11 @@ export const SIZE_MAX = 160;
 export const SIZE_STEP = 5;
 export const SIZE_DEFAULT = 100;
 
+// Strength of the light of a style (glow, rays, flame), in % of what the style defines.
+export const GLOW_MIN = 0;
+export const GLOW_MAX = 200;
+export const GLOW_STEP = 10;
+
 const hex6 = z.string().regex(/^#[0-9a-fA-F]{6}$/, "6 digit hex");
 const fontId = z.enum(FONT_IDS);
 const sizePct = z.number().int().min(SIZE_MIN).max(SIZE_MAX);
@@ -32,6 +37,9 @@ export const captionTweaksSchema = z.object({
   animation: z.enum(TWEAK_ANIMATIONS).optional(),
   position: z.enum(TWEAK_POSITIONS).optional(),
   outline: z.object({ size: z.enum(OUTLINE_SIZES), color: hex6 }).optional(),
+  glow: z.number().int().min(GLOW_MIN).max(GLOW_MAX).optional(),
+  // how visible the copies of an echo column are, in % of the style
+  echo: z.number().int().min(GLOW_MIN).max(GLOW_MAX).optional(),
 });
 export type CaptionTweaks = z.infer<typeof captionTweaksSchema>;
 
@@ -54,8 +62,45 @@ export function hasTweaks(tweaks: CaptionTweaks | undefined): boolean {
     tweaks.sizes?.emphasis ||
     tweaks.animation ||
     tweaks.position ||
-    tweaks.outline,
+    tweaks.outline ||
+    tweaks.glow !== undefined ||
+    tweaks.echo !== undefined,
   );
+}
+
+// True when the key word of the style unrolls an echo column.
+export function hasEcho(style: CaptionStyle): boolean {
+  return Boolean(style.emphasis.echo);
+}
+
+// True when the style has a light the user can make softer or stronger.
+export function hasLight(style: CaptionStyle): boolean {
+  return [style.base, style.emphasis].some(
+    (look) =>
+      Boolean(look.deepGlow) || Boolean(look.rays) || Boolean(look.haze) || Boolean(look.glow),
+  );
+}
+
+// "#RRGGBBAA" (or "#RRGGBB") with its opacity multiplied.
+function scaleAlpha(color: string, factor: number): string {
+  const alpha = color.length === 9 ? parseInt(color.slice(7), 16) : 255;
+  const next = Math.round(Math.min(255, Math.max(0, alpha * factor)));
+  return `${color.slice(0, 7)}${next.toString(16).padStart(2, "0").toUpperCase()}`;
+}
+
+function withLight(look: TextLook, percent: number): TextLook {
+  const factor = percent / 100;
+  return {
+    ...look,
+    glow: look.glow ? { ...look.glow, color: scaleAlpha(look.glow.color, factor) } : look.glow,
+    deepGlow: look.deepGlow
+      ? { ...look.deepGlow, intensity: Math.min(2, look.deepGlow.intensity * factor) }
+      : look.deepGlow,
+    rays: look.rays ? { ...look.rays, color: scaleAlpha(look.rays.color, factor) } : look.rays,
+    haze: look.haze
+      ? { ...look.haze, opacity: Math.min(1, look.haze.opacity * factor) }
+      : look.haze,
+  };
 }
 
 // The font chosen for each look (the old single `font` counts for both).
@@ -123,6 +168,22 @@ export function applyTweaks(style: CaptionStyle, tweaks: CaptionTweaks | undefin
       ...next,
       base: withOutline(next.base, tweaks.outline),
       emphasis: withOutline(next.emphasis, tweaks.outline),
+    };
+  }
+  if (tweaks.glow !== undefined) {
+    next = {
+      ...next,
+      base: withLight(next.base, tweaks.glow),
+      emphasis: withLight(next.emphasis, tweaks.glow),
+    };
+  }
+  if (tweaks.echo !== undefined && next.emphasis.echo) {
+    next = {
+      ...next,
+      emphasis: {
+        ...next.emphasis,
+        echo: { ...next.emphasis.echo, opacity: tweaks.echo / 100 },
+      },
     };
   }
   if (tweaks.position) {

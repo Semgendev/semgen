@@ -5,7 +5,7 @@ import type { TranscriptWord } from "../../transcription/types";
 const SCRIPT =
   "Salut, je viendrai chez toi demain ! " +
   "Tout ce temps, on a cru que c'était impossible. Regarde bien ce qui arrive maintenant ! " +
-  "Trois secondes suffisent pour capter l'attention. Et ça, ça change absolument tout.";
+  "3 secondes suffisent pour capter l'attention. Et ça, ça change absolument tout.";
 
 // Two short captions looped on each style card of the gallery, in the language of the interface.
 const PREVIEW_SCRIPTS: Record<string, string> = {

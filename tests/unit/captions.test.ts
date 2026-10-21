@@ -34,7 +34,12 @@ function word(
   return { text, start, end, confidence: 0.9, speaker };
 }
 
-const line = { maxWordsPerPage: 4, maxCharsPerLine: 16, layout: "line" as const, grouping: "phrase" as const };
+const line = {
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 16,
+  layout: "line" as const,
+  grouping: "phrase" as const,
+};
 
 describe("presets", () => {
   it("are all valid styles", () => {

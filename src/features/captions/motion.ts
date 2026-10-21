@@ -8,6 +8,8 @@ import { TEXT_LEAD_MS, type CaptionPage, type CaptionWord } from "./paginate";
 // makes the preview and the exported video identical.
 export type WordMotion = {
   opacity: number;
+  // sideways shift (whip), in em
+  translateXEm: number;
   translateYEm: number;
   scale: number;
   blurEm: number;
@@ -23,10 +25,17 @@ export type WordMotion = {
   wipe: number;
   // progress of the letters rising one by one from behind a mask (1 = all in place)
   letters: number;
+  // how open the copies of an echo column are (0 = folded into the word)
+  echo: number;
+  // entrance progress of the decorations drawn around the word (rays opening), 1 = in place
+  grow: number;
+  // progress of the letters coming out of a blur one after the other (drift), 1 = all sharp
+  soft: number;
 };
 
 export const RESTING: WordMotion = {
   opacity: 1,
+  translateXEm: 0,
   translateYEm: 0,
   scale: 1,
   blurEm: 0,
@@ -36,6 +45,9 @@ export const RESTING: WordMotion = {
   light: 1,
   wipe: 1,
   letters: 1,
+  echo: 0,
+  grow: 1,
+  soft: 1,
 };
 
 type SpringConfig = { stiffness: number; damping: number; mass: number };
@@ -45,6 +57,9 @@ export const SPRINGS = {
   soft: { stiffness: 120, damping: 18, mass: 1 },
   snap: { stiffness: 300, damping: 12, mass: 0.5 },
 } satisfies Record<string, SpringConfig>;
+
+// a light overshoot (about 6 %) that settles without bouncing back
+const FLY_SPRING: SpringConfig = { stiffness: 170, damping: 15, mass: 0.8 };
 
 export type MotionOptions = { spring?: SpringConfig; seed?: number; index?: number };
 
@@ -99,6 +114,8 @@ function quickOpacity(t: number, durationMs: number): number {
 
 // How far apart (em, between two letters) a converging word starts.
 export const CONVERGE_SPREAD_EM = 0.28;
+// How far apart the letters of a "spread" word start (much wider: a title opening up).
+export const SPREAD_START_EM = 0.6;
 
 // `t` = time since the word started to appear, in ms.
 export function motionIn(
@@ -108,7 +125,7 @@ export function motionIn(
   options: MotionOptions = {},
 ): WordMotion {
   if (kind === "none" || durationMs <= 0) return t < 0 ? { ...RESTING, opacity: 0 } : RESTING;
-  if (t < 0) return { ...RESTING, opacity: 0, reveal: 0, wipe: 0, letters: 0 };
+  if (t < 0) return { ...RESTING, opacity: 0, reveal: 0, wipe: 0, letters: 0, grow: 0, soft: 0 };
   const p = interpolate(t, [0, durationMs], [0, 1], clamp);
   switch (kind) {
     case "fade":
@@ -203,6 +220,93 @@ export function motionIn(
     case "riseLetters":
       // the letters are hidden under the baseline and rise one after the other (letterRiseEm)
       return { ...RESTING, letters: p };
+    case "slam": {
+      // rises from a little below into place, then its light swells and calms down
+      const rise = easeSilk(interpolate(t, [0, Math.min(durationMs, 320)], [0, 1], clamp));
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        translateYEm: (1 - rise) * 0.45,
+        light: interpolate(
+          t,
+          [durationMs * 0.25, durationMs * 0.5, durationMs],
+          [1, 1.8, 1],
+          clamp,
+        ),
+        grow: interpolate(t, [durationMs * 0.2, durationMs * 0.7], [0, 1], {
+          ...clamp,
+          easing: easeSilk,
+        }),
+      };
+    }
+    case "echo": {
+      // the word settles quickly and its copies unroll in a column that stays until the caption goes
+      const settle = easeOutExpo(interpolate(t, [0, durationMs * 0.5], [0, 1], clamp));
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        scale: 1.08 - 0.08 * settle,
+        echo: easeSilk(p),
+      };
+    }
+    case "whip": {
+      // shoots in from the left, out of focus and a bit small, and snaps sharp in its place
+      const eased = easeSilk(p);
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        translateXEm: -(1 - eased) * 0.55,
+        scale: 0.85 + 0.15 * eased,
+        blurEm: (1 - eased) * 0.1,
+      };
+    }
+    case "fly": {
+      // the small words come from the left, from the right or from below; a soft
+      // spring carries each one a hair past its place, onto its neighbour, before it settles
+      const s = springAt(t, durationMs, options.spring ?? FLY_SPRING);
+      // each caption starts from another side (left, right, below), then its words take turns
+      const side = ((options.index ?? 0) + Math.floor(seeded(options.seed ?? 1, 11) * 3)) % 3;
+      const away = 1 - s;
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        translateXEm: side === 0 ? -away * 1.6 : side === 1 ? away * 1.6 : 0,
+        translateYEm: side === 2 ? away * 1.1 : 0,
+        blurEm: Math.max(0, away) * 0.16,
+      };
+    }
+    case "rack": {
+      // a focus pull: deep blur and a little small, then sharp at its size
+      const eased = easeSilk(p);
+      return {
+        ...RESTING,
+        opacity: interpolate(t, [0, durationMs * 0.5], [0, 1], clamp),
+        scale: 0.9 + 0.1 * eased,
+        blurEm: (1 - eased) * 0.3,
+      };
+    }
+    case "spread": {
+      // letters far apart close in on a soft spring while they come into focus
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.soft);
+      return {
+        ...RESTING,
+        opacity: interpolate(t, [0, durationMs * 0.4], [0, 1], clamp),
+        spreadEm: (1 - s) * SPREAD_START_EM,
+        blurEm: Math.max(0, 1 - s) * 0.08,
+      };
+    }
+    case "drift":
+      return { ...RESTING, soft: p };
+    case "focus": {
+      // out of a light blur, zooming back from 112 % with a small settle
+      const s = springAt(t, durationMs, options.spring ?? SPRINGS.soft);
+      return {
+        ...RESTING,
+        opacity: quickOpacity(t, durationMs),
+        scale: 1.12 - 0.12 * s,
+        blurEm: Math.max(0, 1 - s) * 0.08,
+      };
+    }
   }
 }
 
@@ -216,6 +320,14 @@ export function letterRiseEm(progress: number, index: number, count: number): nu
   const start = count > 1 ? (index / (count - 1)) * (1 - LETTER_SHARE) : 0;
   const local = Math.min(1, Math.max(0, (progress - start) / LETTER_SHARE));
   return (1 - easeSilk(local)) * 1.1;
+}
+
+// How far one letter of a "drift" word has come out of its blur (0 → 1): the letters start one
+// after the other over the first 60 % of the entrance and each takes 40 % of it.
+export function letterSoftness(progress: number, index: number, count: number): number {
+  if (progress >= 1) return 1;
+  const start = count > 1 ? (index / (count - 1)) * 0.6 : 0;
+  return easeSilk(Math.min(1, Math.max(0, (progress - start) / 0.4)));
 }
 
 // `t` = time since the caption started to leave, in ms.
@@ -237,6 +349,7 @@ export function motionOut(kind: AnimationOut, t: number, durationMs: number): Wo
 export function combine(a: WordMotion, b: WordMotion): WordMotion {
   return {
     opacity: a.opacity * b.opacity,
+    translateXEm: a.translateXEm + b.translateXEm,
     translateYEm: a.translateYEm + b.translateYEm,
     scale: a.scale * b.scale,
     blurEm: a.blurEm + b.blurEm,
@@ -246,6 +359,9 @@ export function combine(a: WordMotion, b: WordMotion): WordMotion {
     light: a.light * b.light,
     wipe: Math.min(a.wipe, b.wipe),
     letters: Math.min(a.letters, b.letters),
+    echo: a.echo + b.echo,
+    grow: Math.min(a.grow, b.grow),
+    soft: Math.min(a.soft, b.soft),
   };
 }
 
@@ -277,6 +393,18 @@ function leaveWindow(page: CaptionPage, outMs: number): { at: number; duration: 
   return { at, duration: Math.max(0, page.end + outMs * (1 - EXIT_LEAD_SHARE) - at) };
 }
 
+// The entrance of a caption: the style's, or one of its variants (chosen from the caption itself,
+// so the preview and the export always agree).
+export function entranceOf(
+  page: Pick<CaptionPage, "start">,
+  style: Pick<CaptionStyle, "animation" | "seed">,
+): AnimationIn {
+  const variants = style.animation.variants;
+  if (!variants || variants.length === 0) return style.animation.in;
+  const slot = Math.floor(seeded(style.seed ?? 3, Math.round(page.start / 7)) * variants.length);
+  return variants[slot] ?? style.animation.in;
+}
+
 // Full motion of one word at `timeMs`.
 export function wordMotionAt(
   page: CaptionPage,
@@ -284,10 +412,10 @@ export function wordMotionAt(
   timeMs: number,
   style: Pick<CaptionStyle, "reveal" | "animation" | "seed">,
 ): WordMotion {
-  // the key word may have its own entrance
+  // the key word may have its own entrance; styles with variants give each caption its own
   const own = page.words[wordIndex]?.emphasis ? style.animation.emphasis : undefined;
   const appear = motionIn(
-    own?.in ?? style.animation.in,
+    own?.in ?? entranceOf(page, style),
     timeMs - wordAppearAt(page, wordIndex, style) - (own?.delayMs ?? 0),
     own?.inMs ?? style.animation.inMs,
     { spring: style.animation.spring, seed: (style.seed ?? 1) + page.start, index: wordIndex },
@@ -372,6 +500,7 @@ export function blurSamples(
   const before = wordMotionAt(page, wordIndex, timeMs - shutter, style);
   const moved =
     Math.abs(now.scale - before.scale) +
+    Math.abs(now.translateXEm - before.translateXEm) +
     Math.abs(now.translateYEm - before.translateYEm) +
     Math.abs(now.spreadEm - before.spreadEm) +
     Math.abs(now.splitEm - before.splitEm);

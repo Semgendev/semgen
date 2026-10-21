@@ -252,7 +252,20 @@
       "impact": "Impacto rojo",
       "gold": "Oro líquido",
       "glass": "Cristal",
-      "liquid": "Relleno líquido"
+      "liquid": "Relleno líquido",
+      "spotlight": "Foco",
+      "echo": "Eco",
+      "prism": "Prisma",
+      "anchor": "Ancla",
+      "duo": "Dúo dorado",
+      "whisper": "Susurro",
+      "quill": "Pluma",
+      "burst": "Ráfaga",
+      "halo": "Halo suave",
+      "spread": "Letras abiertas",
+      "poster": "Póster",
+      "newsprint": "Periódico",
+      "number": "Número gigante"
     },
     "personalize": "Personalizar el estilo",
     "colorsHelp": "Cambia el color del texto y el de la palabra clave.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Tamaño",
       "sizeHelp": "Agranda o reduce el texto o la palabra clave. 100 % es el estilo original.",
       "sizeText": "Tamaño del texto",
-      "sizeEmphasis": "Tamaño de la palabra clave"
+      "sizeEmphasis": "Tamaño de la palabra clave",
+      "glowTitle": "Brillo",
+      "glowHelp": "La luz alrededor del texto: más suave o más fuerte.",
+      "glowLabel": "Intensidad del brillo",
+      "echoTitle": "Eco",
+      "echoHelp": "Las copias de la palabra clave que forman una columna: más discretas o más visibles.",
+      "echoLabel": "Visibilidad de las copias"
     },
     "colors": {
       "swatch": "Color {color}",

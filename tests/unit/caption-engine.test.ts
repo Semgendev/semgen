@@ -5,13 +5,17 @@ import {
   blurSamples,
   fillProgress,
   flickerAt,
+  entranceOf,
+  letterSoftness,
   motionIn,
   seeded,
   wordMotionAt,
 } from "@/features/captions/motion";
 import { paginate } from "@/features/captions/paginate";
+import { closingIndex, countedText } from "@/features/captions/remotion/captioned-video";
+import { applyTweaks, hasEcho, hasLight } from "@/features/captions/tweaks";
 import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
-import type { CaptionStyle } from "@/features/captions/style";
+import { captionStyleSchema, type CaptionStyle } from "@/features/captions/style";
 
 // Counts flashes the WCAG way: a flash is a pair of opposing changes (down then up) of at least
 // 20 % of the light, inside one second.
@@ -146,5 +150,140 @@ describe("motion blur", () => {
     expect(blurSamples(page, 0, appear + 40, 60, style).length).toBeGreaterThan(0);
     expect(blurSamples(page, 0, appear + 600, 60, style)).toEqual([]);
     expect(blurSamples(page, 0, appear + 40, 60, CAPTION_PRESETS.minimal)).toEqual([]);
+  });
+});
+
+describe("styles of the reference videos", () => {
+  it("are valid styles", () => {
+    for (const id of PRESET_IDS) {
+      expect(captionStyleSchema.safeParse(CAPTION_PRESETS[id]).success, id).toBe(true);
+    }
+  });
+
+  it("end the new entrances exactly at rest", () => {
+    for (const kind of ["slam", "echo", "whip", "focus"] as const) {
+      const end = motionIn(kind, 1000, 1000);
+      expect(end.opacity, kind).toBeCloseTo(1);
+      expect(end.scale, kind).toBeCloseTo(1);
+      expect(end.translateXEm, kind).toBeCloseTo(0);
+      expect(end.blurEm, kind).toBeCloseTo(0);
+      expect(end.echo, kind).toBeCloseTo(kind === "echo" ? 1 : 0);
+      expect(end.light, kind).toBeCloseTo(1);
+      expect(end.grow, kind).toBeCloseTo(1);
+    }
+  });
+
+  it("slam rises into place, then its light swells and calms down", () => {
+    expect(motionIn("slam", 20, 560).translateYEm).toBeGreaterThan(0.3);
+    expect(motionIn("slam", 280, 560).light).toBeGreaterThan(1.7);
+    expect(motionIn("slam", 560, 560).light).toBeCloseTo(1);
+  });
+
+  it("echo unrolls its column and keeps it", () => {
+    expect(motionIn("echo", 30, 420).echo).toBeLessThan(0.5);
+    expect(motionIn("echo", 420, 420).echo).toBeCloseTo(1);
+  });
+
+  it("whip comes in from the left", () => {
+    expect(motionIn("whip", 10, 400).translateXEm).toBeLessThan(-0.4);
+  });
+
+  it("draws every frame identically twice", () => {
+    for (const id of PRESET_IDS) {
+      const style = CAPTION_PRESETS[id];
+      const page = paginate(demoWords(), style)[1]!;
+      for (const t of [page.start, page.start + 50, page.start + 200, page.end + 60]) {
+        expect(wordMotionAt(page, 0, t, style), id).toEqual(wordMotionAt(page, 0, t, style));
+      }
+    }
+  });
+});
+
+describe("second round of the new styles", () => {
+  it("fly brings the small words from the left, the right and below", () => {
+    const at = (index: number) => motionIn("fly", 10, 500, { index, seed: 4 });
+    const sides = [0, 1, 2].map((index) => {
+      const m = at(index);
+      return m.translateXEm < -0.6
+        ? "left"
+        : m.translateXEm > 0.6
+          ? "right"
+          : m.translateYEm > 0.4
+            ? "below"
+            : "?";
+    });
+    expect(new Set(sides)).toEqual(new Set(["left", "right", "below"]));
+    expect(motionIn("fly", 500, 500, { index: 2, seed: 4 }).translateXEm).toBeCloseTo(0);
+  });
+
+  it("drift sharpens the letters one after the other", () => {
+    expect(letterSoftness(0.3, 0, 6)).toBeGreaterThan(letterSoftness(0.3, 5, 6));
+    expect(letterSoftness(1, 5, 6)).toBe(1);
+    expect(motionIn("drift", 900, 900).soft).toBeCloseTo(1);
+  });
+
+  it("the glow setting makes the light softer or stronger", () => {
+    const spotlight = CAPTION_PRESETS.spotlight;
+    const soft = applyTweaks(spotlight, { glow: 50 });
+    const strong = applyTweaks(spotlight, { glow: 200 });
+    expect(soft.emphasis.deepGlow?.intensity).toBeCloseTo(
+      (spotlight.emphasis.deepGlow?.intensity ?? 0) / 2,
+    );
+    expect(strong.emphasis.deepGlow?.intensity).toBeGreaterThan(
+      spotlight.emphasis.deepGlow?.intensity ?? 0,
+    );
+    expect(applyTweaks(spotlight, { glow: 0 }).emphasis.rays?.color.endsWith("00")).toBe(true);
+    expect(hasLight(spotlight)).toBe(true);
+    expect(hasLight(CAPTION_PRESETS.whisper)).toBe(false);
+  });
+});
+
+describe("echo column", () => {
+  it("lets the user make the copies more or less visible", () => {
+    expect(applyTweaks(CAPTION_PRESETS.echo, { echo: 40 }).emphasis.echo?.opacity).toBeCloseTo(0.4);
+    expect(hasEcho(CAPTION_PRESETS.echo)).toBe(true);
+    expect(hasEcho(CAPTION_PRESETS.duo)).toBe(false);
+  });
+});
+
+describe("second wave", () => {
+  it("counts a number up to its value, keeping what is around it", () => {
+    expect(countedText("15 000", 0.5)).toBe("7 500");
+    expect(countedText("$100", 0)).toBe("$0");
+    expect(countedText("4%", 1)).toBe("4%");
+    expect(countedText("demain", 0.3)).toBe("demain");
+  });
+
+  it("gives the third family to a weighty last word only", () => {
+    const page = (texts: string[]) => ({
+      words: texts.map((text, index) => ({
+        text,
+        start: index,
+        end: index,
+        emphasis: index === 1,
+      })),
+    });
+    const poster = CAPTION_PRESETS.poster;
+    expect(closingIndex(page(["meet", "people", "behind", "shoes"]), poster)).toBe(3);
+    expect(closingIndex(page(["bien", "regarde", "ce", "qui"]), poster)).toBe(-1);
+    expect(closingIndex(page(["meet", "people", "shoes"]), CAPTION_PRESETS.duo)).toBe(-1);
+  });
+
+  it("keeps single words on their own for rapid styles", () => {
+    const pages = paginate(demoWords(), CAPTION_PRESETS.burst);
+    expect(pages.every((page) => page.words.length <= 2)).toBe(true);
+    expect(pages.some((page) => page.words.length === 1)).toBe(true);
+  });
+
+  it("makes the number the key word when the style asks for it", () => {
+    const pages = paginate(demoWords(), CAPTION_PRESETS.number);
+    const withNumber = pages.find((page) => page.words.some((word) => /\d/.test(word.text)))!;
+    expect(withNumber.words.find((word) => word.emphasis)?.text).toMatch(/\d/);
+  });
+
+  it("gives each caption one of the style's entrances", () => {
+    const style = CAPTION_PRESETS.burst;
+    const kinds = new Set(paginate(demoWords(), style).map((page) => entranceOf(page, style)));
+    expect(kinds.size).toBeGreaterThan(2);
   });
 });

@@ -153,7 +153,10 @@ function mergeOrphans(groups: Kept[][], maxWords: number, maxChars: number): Kep
 // cuts are ignored (style cards, demos).
 export function paginate(
   words: TranscriptWord[],
-  style: Pick<CaptionStyle, "maxWordsPerPage" | "maxCharsPerLine" | "layout" | "grouping">,
+  style: Pick<
+    CaptionStyle,
+    "maxWordsPerPage" | "maxCharsPerLine" | "layout" | "grouping" | "keyWord" | "singleWords"
+  >,
   cutsFor?: string,
 ): CaptionPage[] {
   const kept = keptWords(words, cutsFor);
@@ -201,7 +204,9 @@ export function paginate(
     }
   });
 
-  const merged = joinByHand(mergeOrphans(groups, style.maxWordsPerPage, maxChars));
+  const merged = joinByHand(
+    style.singleWords ? groups : mergeOrphans(groups, style.maxWordsPerPage, maxChars),
+  );
   const starts: number[] = [];
   merged.forEach((group, index) => {
     const lead = (group[0]?.start ?? 0) - TEXT_LEAD_MS;
@@ -211,7 +216,16 @@ export function paginate(
   });
 
   return merged.map((group, index) => {
-    const emphasis = pickEmphasis(group);
+    const number =
+      style.keyWord === "number" ? group.findIndex((word) => /\p{N}/u.test(word.text)) : -1;
+    const emphasis =
+      style.keyWord === "first"
+        ? 0
+        : number >= 0
+          ? number
+          : style.keyWord === "notLast" && group.length >= 3
+            ? pickEmphasis(group.slice(0, -1))
+            : pickEmphasis(group);
     const start = starts[index] ?? 0;
     const lastEnd = group[group.length - 1]?.end ?? 0;
     const nextStart = starts[index + 1] ?? Infinity;

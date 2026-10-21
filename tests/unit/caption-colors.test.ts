@@ -74,3 +74,11 @@ describe("new entrances", () => {
     expect(liquidLevel(word, 1700, 700)).toBe(1);
   });
 });
+
+describe("colour per idea", () => {
+  it("is replaced by the user's own key word colour", () => {
+    const prism = CAPTION_PRESETS.prism;
+    expect(applyColors(prism, {}).emphasisFills).toBe(prism.emphasisFills);
+    expect(applyColors(prism, { accent: "#2F6BFF" }).emphasisFills).toBeUndefined();
+  });
+});

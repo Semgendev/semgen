@@ -22,8 +22,13 @@ const FONTS = [
   ["syne", "Syne", { normal: ["600", "700", "800"] }],
   ["sora", "Sora", { normal: ["600", "700", "800"] }],
   ["dm-serif", "DMSerifDisplay", { italic: ["400"], normal: ["400"] }],
-  ["outfit", "Outfit", { normal: ["500", "600", "700"] }],
+  ["outfit", "Outfit", { normal: ["300", "500", "600", "700", "800"] }],
   ["anybody", "Anybody", { normal: ["700", "800"] }],
+  ["inter", "Inter", { normal: ["300", "400", "500", "700", "800", "900"] }],
+  ["figtree", "Figtree", { normal: ["700", "900"], italic: ["300", "400", "800", "900"] }],
+  ["newsreader", "Newsreader", { normal: ["400", "500"], italic: ["400"] }],
+  ["great-vibes", "GreatVibes", { normal: ["400"] }],
+  ["bodoni", "BodoniModa", { normal: ["400", "700"], italic: ["500", "700", "900"] }],
   // Arabic letters of every style (variable font: one file for all the weights)
   ["cairo", "Cairo", { normal: ["500", "600", "700", "800", "900"] }, ["arabic"]],
   // Devanagari letters (Hindi, Marathi, Nepali) of every style

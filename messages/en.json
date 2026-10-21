@@ -252,7 +252,20 @@
       "impact": "Red impact",
       "gold": "Liquid gold",
       "glass": "Glass",
-      "liquid": "Liquid fill"
+      "liquid": "Liquid fill",
+      "spotlight": "Spotlight",
+      "echo": "Echo",
+      "prism": "Prism",
+      "anchor": "Anchor",
+      "duo": "Golden duo",
+      "whisper": "Whisper",
+      "quill": "Quill",
+      "burst": "Burst",
+      "halo": "Soft halo",
+      "spread": "Open letters",
+      "poster": "Poster",
+      "newsprint": "Newsprint",
+      "number": "Giant number"
     },
     "personalize": "Customize the style",
     "colorsHelp": "Change the colour of the text and of the key word.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Size",
       "sizeHelp": "Make the text or the key word bigger or smaller. 100 % is the style as designed.",
       "sizeText": "Text size",
-      "sizeEmphasis": "Key word size"
+      "sizeEmphasis": "Key word size",
+      "glowTitle": "Glow",
+      "glowHelp": "The light around the text: softer or stronger.",
+      "glowLabel": "Glow strength",
+      "echoTitle": "Echo",
+      "echoHelp": "The copies of the key word that form a column: more discreet or more visible.",
+      "echoLabel": "Visibility of the copies"
     },
     "colors": {
       "swatch": "Colour {color}",

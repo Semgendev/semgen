@@ -252,7 +252,20 @@
       "impact": "Impatto rosso",
       "gold": "Oro liquido",
       "glass": "Vetro",
-      "liquid": "Riempimento liquido"
+      "liquid": "Riempimento liquido",
+      "spotlight": "Riflettore",
+      "echo": "Eco",
+      "prism": "Prisma",
+      "anchor": "Àncora",
+      "duo": "Duo dorato",
+      "whisper": "Sussurro",
+      "quill": "Piuma",
+      "burst": "Raffica",
+      "halo": "Alone morbido",
+      "spread": "Lettere aperte",
+      "poster": "Manifesto",
+      "newsprint": "Giornale",
+      "number": "Numero gigante"
     },
     "personalize": "Personalizza lo stile",
     "colorsHelp": "Cambia il colore del testo e quello della parola chiave.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Dimensione",
       "sizeHelp": "Ingrandisci o riduci il testo o la parola chiave. 100 % è lo stile originale.",
       "sizeText": "Dimensione del testo",
-      "sizeEmphasis": "Dimensione della parola chiave"
+      "sizeEmphasis": "Dimensione della parola chiave",
+      "glowTitle": "Bagliore",
+      "glowHelp": "La luce intorno al testo: più morbida o più forte.",
+      "glowLabel": "Intensità del bagliore",
+      "echoTitle": "Eco",
+      "echoHelp": "Le copie della parola chiave che formano una colonna: più discrete o più visibili.",
+      "echoLabel": "Visibilità delle copie"
     },
     "colors": {
       "swatch": "Colore {color}",

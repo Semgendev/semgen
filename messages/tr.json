@@ -252,7 +252,20 @@
       "impact": "Kırmızı etki",
       "gold": "Sıvı altın",
       "glass": "Cam",
-      "liquid": "Sıvı dolgu"
+      "liquid": "Sıvı dolgu",
+      "spotlight": "Spot ışığı",
+      "echo": "Yankı",
+      "prism": "Prizma",
+      "anchor": "Çapa",
+      "duo": "Altın ikili",
+      "whisper": "Fısıltı",
+      "quill": "Tüy kalem",
+      "burst": "Seri",
+      "halo": "Yumuşak hale",
+      "spread": "Açık harfler",
+      "poster": "Afiş",
+      "newsprint": "Gazete",
+      "number": "Dev sayı"
     },
     "personalize": "Stili özelleştir",
     "colorsHelp": "Metnin ve anahtar kelimenin rengini değiştir.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Boyut",
       "sizeHelp": "Metni veya anahtar kelimeyi büyüt ya da küçült. %100 özgün stildir.",
       "sizeText": "Metin boyutu",
-      "sizeEmphasis": "Anahtar kelime boyutu"
+      "sizeEmphasis": "Anahtar kelime boyutu",
+      "glowTitle": "Parıltı",
+      "glowHelp": "Metnin etrafındaki ışık: daha yumuşak ya da daha güçlü.",
+      "glowLabel": "Parıltı yoğunluğu",
+      "echoTitle": "Yankı",
+      "echoHelp": "Anahtar kelimenin sütun oluşturan kopyaları: daha belirsiz ya da daha görünür.",
+      "echoLabel": "Kopyaların görünürlüğü"
     },
     "colors": {
       "swatch": "{color} rengi",

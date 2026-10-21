@@ -252,7 +252,20 @@
       "impact": "Athari nyekundu",
       "gold": "Dhahabu ya kimiminika",
       "glass": "Kioo",
-      "liquid": "Kujaza kimiminika"
+      "liquid": "Kujaza kimiminika",
+      "spotlight": "Mwangaza",
+      "echo": "Mwangwi",
+      "prism": "Prizimu",
+      "anchor": "Nanga",
+      "duo": "Jozi ya dhahabu",
+      "whisper": "Mnong'ono",
+      "quill": "Kalamu",
+      "burst": "Mlipuko",
+      "halo": "Mwanga laini",
+      "spread": "Herufi wazi",
+      "poster": "Bango",
+      "newsprint": "Gazeti",
+      "number": "Nambari kubwa"
     },
     "personalize": "Badilisha mtindo",
     "colorsHelp": "Badilisha rangi ya maandishi na ya neno kuu.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Ukubwa",
       "sizeHelp": "Kuza au punguza maandishi au neno kuu. 100 % ni mtindo wa awali.",
       "sizeText": "Ukubwa wa maandishi",
-      "sizeEmphasis": "Ukubwa wa neno kuu"
+      "sizeEmphasis": "Ukubwa wa neno kuu",
+      "glowTitle": "Mng'ao",
+      "glowHelp": "Mwanga unaozunguka maandishi: laini zaidi au mkali zaidi.",
+      "glowLabel": "Nguvu ya mng'ao",
+      "echoTitle": "Mwangwi",
+      "echoHelp": "Nakala za neno kuu zinazounda safu: zisionekane sana au zionekane zaidi.",
+      "echoLabel": "Kuonekana kwa nakala"
     },
     "colors": {
       "swatch": "Rangi {color}",

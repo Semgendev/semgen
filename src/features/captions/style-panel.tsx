@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { CARD_LIGHTS, PRESET_IDS, type PresetId } from "./presets";
+import { CARD_LIGHTS, PRESET_IDS, type LabPresetId, type PresetId } from "./presets";
 import { StyleCard, StyleStage } from "./style-card";
 import type { CaptionStyle } from "./style";
 
@@ -28,8 +28,10 @@ export type StylePanelText = {
 // The left panel: the gallery of styles, or (after the settings button) the settings of the chosen
 // style. In the settings view the style's name and its looping animation stay pinned on top while
 // only the settings below scroll.
-export function StylePanel({
+export function StylePanel<Id extends LabPresetId = PresetId>({
   text,
+  // the styles shown in the gallery (the lab also shows the ones still being reviewed)
+  ids = PRESET_IDS as readonly LabPresetId[] as readonly Id[],
   selected,
   labelOf,
   styleOf,
@@ -44,14 +46,15 @@ export function StylePanel({
   replay = null,
 }: {
   text: StylePanelText;
-  selected: PresetId;
-  labelOf: (id: PresetId) => string;
-  styleOf: (id: PresetId) => CaptionStyle;
-  lightOf?: (id: PresetId) => string;
+  ids?: readonly Id[];
+  selected: Id;
+  labelOf: (id: Id) => string;
+  styleOf: (id: Id) => CaptionStyle;
+  lightOf?: (id: Id) => string;
   current: CaptionStyle;
   settingsOpen: boolean;
   onSettingsOpenChange: (open: boolean) => void;
-  onSelect: (id: PresetId) => void;
+  onSelect: (id: Id) => void;
   onReset: () => void;
   resetDisabled: boolean;
   settings: ReactNode;
@@ -155,7 +158,7 @@ export function StylePanel({
             aria-labelledby="caption-styles-title"
             className="-mx-1 grid min-h-0 auto-rows-max grid-cols-2 gap-2.5 overflow-y-auto overscroll-contain p-1 xl:grid-cols-3"
           >
-            {PRESET_IDS.map((id) => (
+            {ids.map((id) => (
               <StyleCard
                 key={id}
                 style={styleOf(id)}

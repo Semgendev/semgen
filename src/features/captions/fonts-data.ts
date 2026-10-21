@@ -787,6 +787,24 @@ export const FONT_FACES: FontFaceData[] = [
     id: "outfit",
     family: "Outfit",
     style: "normal",
+    weight: "300",
+    file: "QGYvz_MVcBeNP4NJtEtq.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "outfit",
+    family: "Outfit",
+    style: "normal",
+    weight: "300",
+    file: "QGYvz_MVcBeNP4NJuktqQ4E.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "outfit",
+    family: "Outfit",
+    style: "normal",
     weight: "500",
     file: "QGYvz_MVcBeNP4NJtEtq.woff2",
     unicodeRange:
@@ -838,6 +856,24 @@ export const FONT_FACES: FontFaceData[] = [
       "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
   },
   {
+    id: "outfit",
+    family: "Outfit",
+    style: "normal",
+    weight: "800",
+    file: "QGYvz_MVcBeNP4NJtEtq.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "outfit",
+    family: "Outfit",
+    style: "normal",
+    weight: "800",
+    file: "QGYvz_MVcBeNP4NJuktqQ4E.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
     id: "anybody",
     family: "Anybody",
     style: "normal",
@@ -870,6 +906,384 @@ export const FONT_FACES: FontFaceData[] = [
     style: "normal",
     weight: "800",
     file: "VuJudNvK2Ib2ppdWYq311GH32hxIv0sd5iDlWdTKRA.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "300",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "300",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "400",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "400",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "500",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "500",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "700",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "700",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "800",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "800",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "900",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "inter",
+    family: "Inter",
+    style: "normal",
+    weight: "900",
+    file: "UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "normal",
+    weight: "700",
+    file: "_Xms-HUzqDCFdgfMm4S9DQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "normal",
+    weight: "700",
+    file: "_Xms-HUzqDCFdgfMm4q9DbZs.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "normal",
+    weight: "900",
+    file: "_Xms-HUzqDCFdgfMm4S9DQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "normal",
+    weight: "900",
+    file: "_Xms-HUzqDCFdgfMm4q9DbZs.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "300",
+    file: "_Xmu-HUzqDCFdgfMm4GND65o.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "300",
+    file: "_Xmu-HUzqDCFdgfMm4GNAa5o_ik.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "400",
+    file: "_Xmu-HUzqDCFdgfMm4GND65o.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "400",
+    file: "_Xmu-HUzqDCFdgfMm4GNAa5o_ik.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "800",
+    file: "_Xmu-HUzqDCFdgfMm4GND65o.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "800",
+    file: "_Xmu-HUzqDCFdgfMm4GNAa5o_ik.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "900",
+    file: "_Xmu-HUzqDCFdgfMm4GND65o.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "figtree",
+    family: "Figtree",
+    style: "italic",
+    weight: "900",
+    file: "_Xmu-HUzqDCFdgfMm4GNAa5o_ik.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "normal",
+    weight: "400",
+    file: "cY9VfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBAbNJYQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "normal",
+    weight: "400",
+    file: "cY9VfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBAbDJYQraA.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "normal",
+    weight: "500",
+    file: "cY9VfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBAbNJYQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "normal",
+    weight: "500",
+    file: "cY9VfjOCX1hbuyalUrK49dLac06G1ZGsZBtoBAbDJYQraA.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "italic",
+    weight: "400",
+    file: "cY9XfjOCX1hbuyalUrK439vogqC9yFZCYg7oRZaLFYYzbA.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "newsreader",
+    family: "Newsreader",
+    style: "italic",
+    weight: "400",
+    file: "cY9XfjOCX1hbuyalUrK439vogqC9yFZCYg7oRZaLFYgzbBZD.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "great-vibes",
+    family: "Great Vibes",
+    style: "normal",
+    weight: "400",
+    file: "RWmMoKWR9v4ksMfaWd_JN9XFiaQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "great-vibes",
+    family: "Great Vibes",
+    style: "normal",
+    weight: "400",
+    file: "RWmMoKWR9v4ksMfaWd_JN9XLiaQ6DQ.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "normal",
+    weight: "400",
+    file: "aFTH7PxzY382XsXX63LUYL6GYFcan6NJrKp-VPj1KOxQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "normal",
+    weight: "400",
+    file: "aFTH7PxzY382XsXX63LUYL6GYFcan6NJrKp-VPj1JuxQRgc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "normal",
+    weight: "700",
+    file: "aFTH7PxzY382XsXX63LUYL6GYFcan6NJrKp-VPj1KOxQ.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "normal",
+    weight: "700",
+    file: "aFTH7PxzY382XsXX63LUYL6GYFcan6NJrKp-VPj1JuxQRgc.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "500",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxSXgM.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "500",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxcXgOFEw.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "700",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxSXgM.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "700",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxcXgOFEw.woff2",
+    unicodeRange:
+      "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "900",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxSXgM.woff2",
+    unicodeRange:
+      "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+  },
+  {
+    id: "bodoni",
+    family: "Bodoni Moda",
+    style: "italic",
+    weight: "900",
+    file: "aFTB7PxzY382XsXX63LUYJSPUqb0pL6OQqxrZLnVbtxcXgOFEw.woff2",
     unicodeRange:
       "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF",
   },

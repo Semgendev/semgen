@@ -252,7 +252,20 @@
       "impact": "Impacto vermelho",
       "gold": "Ouro líquido",
       "glass": "Vidro",
-      "liquid": "Preenchimento líquido"
+      "liquid": "Preenchimento líquido",
+      "spotlight": "Holofote",
+      "echo": "Eco",
+      "prism": "Prisma",
+      "anchor": "Âncora",
+      "duo": "Duo dourado",
+      "whisper": "Sussurro",
+      "quill": "Pena",
+      "burst": "Rajada",
+      "halo": "Halo suave",
+      "spread": "Letras abertas",
+      "poster": "Cartaz",
+      "newsprint": "Jornal",
+      "number": "Número gigante"
     },
     "personalize": "Personalizar o estilo",
     "colorsHelp": "Mude a cor do texto e a da palavra-chave.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Tamanho",
       "sizeHelp": "Aumente ou reduza o texto ou a palavra-chave. 100 % é o estilo original.",
       "sizeText": "Tamanho do texto",
-      "sizeEmphasis": "Tamanho da palavra-chave"
+      "sizeEmphasis": "Tamanho da palavra-chave",
+      "glowTitle": "Brilho",
+      "glowHelp": "A luz à volta do texto: mais suave ou mais forte.",
+      "glowLabel": "Intensidade do brilho",
+      "echoTitle": "Eco",
+      "echoHelp": "As cópias da palavra-chave que formam uma coluna: mais discretas ou mais visíveis.",
+      "echoLabel": "Visibilidade das cópias"
     },
     "colors": {
       "swatch": "Cor {color}",

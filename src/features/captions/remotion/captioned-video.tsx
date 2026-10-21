@@ -31,12 +31,17 @@ import {
   activeWindow,
   applyCase,
   CONVERGE_SPREAD_EM,
+  entranceOf,
+  SPREAD_START_EM,
   blurSamples,
   exitMs,
   fillProgress,
   layoutLines,
   letterRiseEm,
+  letterSoftness,
   liquidLevel,
+  seeded,
+  wordAppearAt,
   wordMotionAt,
   type WordMotion,
 } from "../motion";
@@ -200,6 +205,7 @@ function Glyphs({
   text,
   spreadEm,
   rise,
+  soft = 1,
   place,
   paint,
 }: {
@@ -207,10 +213,12 @@ function Glyphs({
   spreadEm: number;
   // letters rising from behind a mask (1 = all in place)
   rise: number;
+  // letters coming out of a blur one after the other (1 = all sharp)
+  soft?: number;
   place: LinePlace;
   paint?: CSSProperties;
 }) {
-  if (spreadEm < 0.001 && rise >= 1) return <>{text}</>;
+  if (spreadEm < 0.001 && rise >= 1 && soft >= 1) return <>{text}</>;
   const letters = Array.from(graphemes.segment(text), (part) => part.segment);
   if (JOINED_SCRIPTS.test(text)) {
     const shift = (place.before + letters.length / 2 - place.middle) * spreadEm;
@@ -218,7 +226,9 @@ function Glyphs({
       <span
         style={{
           display: "inline-block",
-          transform: `translate3d(${shift}em, ${letterRiseEm(rise, 0, 1)}em, 0) scaleX(${1 + spreadEm})`,
+          transform: `translate3d(${shift}em, ${letterRiseEm(rise, 0, 1) + (1 - soft) * 0.3}em, 0) scaleX(${1 + spreadEm})`,
+          opacity: soft < 1 ? soft : undefined,
+          filter: soft < 1 ? `blur(${(1 - soft) * 0.16}em)` : undefined,
           ...paint,
         }}
       >
@@ -228,18 +238,23 @@ function Glyphs({
   }
   return (
     <>
-      {letters.map((letter, index) => (
-        <span
-          key={index}
-          style={{
-            display: "inline-block",
-            transform: `translate3d(${(place.before + index - place.middle) * spreadEm}em, ${letterRiseEm(rise, index, letters.length)}em, 0)`,
-            ...paint,
-          }}
-        >
-          {letter}
-        </span>
-      ))}
+      {letters.map((letter, index) => {
+        const sharp = soft < 1 ? letterSoftness(soft, index, letters.length) : 1;
+        return (
+          <span
+            key={index}
+            style={{
+              display: "inline-block",
+              transform: `translate3d(${(place.before + index - place.middle) * spreadEm}em, ${letterRiseEm(rise, index, letters.length) + (1 - sharp) * 0.3}em, 0)`,
+              opacity: sharp < 1 ? sharp : undefined,
+              filter: sharp < 1 ? `blur(${(1 - sharp) * 0.16}em)` : undefined,
+              ...paint,
+            }}
+          >
+            {letter}
+          </span>
+        );
+      })}
     </>
   );
 }
@@ -317,6 +332,113 @@ function DrawnBox({
   );
 }
 
+// A fan of light rays opening upwards from behind the word (rays look), with a slow sway.
+function Rays({
+  rays,
+  grow,
+  light,
+  opacity,
+  timeMs,
+}: {
+  rays: NonNullable<TextLook["rays"]>;
+  grow: number;
+  light: number;
+  opacity: number;
+  timeMs: number;
+}) {
+  const step = rays.spreadDeg / rays.count;
+  const stops: string[] = [];
+  for (let index = 0; index < rays.count; index++) {
+    const from = index * step;
+    // thin bright rays with soft edges, a little irregular so it reads as light, not as a pattern
+    const width = step * (0.55 + 0.25 * Math.abs(Math.sin(index * 1.7)));
+    stops.push(
+      `${transparent(rays.color)} ${from}deg`,
+      `${rays.color} ${from + width * 0.5}deg`,
+      `${transparent(rays.color)} ${from + width}deg`,
+    );
+  }
+  stops.push(
+    `${transparent(rays.color)} ${rays.spreadDeg}deg`,
+    `${transparent(rays.color)} 360deg`,
+  );
+  const sway = Math.sin(timeMs / 900) * 3;
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "40%",
+        width: `${rays.lengthEm * 2}em`,
+        height: `${rays.lengthEm}em`,
+        pointerEvents: "none",
+        transformOrigin: "50% 100%",
+        transform: `translateX(-50%) rotate(${sway}deg) scale(${0.35 + 0.65 * grow})`,
+        backgroundImage: `conic-gradient(from ${-90 + (180 - rays.spreadDeg) / 2}deg at 50% 100%, ${stops.join(", ")})`,
+        maskImage: "radial-gradient(ellipse 50% 100% at 50% 100%, black 18%, transparent 100%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 50% 100% at 50% 100%, black 18%, transparent 100%)",
+        filter: "blur(0.09em)",
+        mixBlendMode: "screen",
+        opacity: Math.min(1, 0.8 * light) * opacity,
+      }}
+    />
+  );
+}
+
+// A big soft blob of coloured light behind the word, drifting slowly like a flame (haze look).
+function Haze({
+  haze,
+  opacity,
+  timeMs,
+}: {
+  haze: NonNullable<TextLook["haze"]>;
+  opacity: number;
+  timeMs: number;
+}) {
+  const driftX = Math.sin(timeMs / 1300) * 0.12;
+  const driftY = Math.cos(timeMs / 1700) * 0.08;
+  const breathe = 1 + Math.sin(timeMs / 1100) * 0.06;
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: `${haze.sizeEm * 2.6}em`,
+        height: `${haze.sizeEm}em`,
+        pointerEvents: "none",
+        transform: `translate(-50%, -50%) translate(${driftX}em, ${driftY}em) scale(${breathe})`,
+        backgroundImage: `radial-gradient(closest-side, ${haze.color} 0%, ${haze.color} 35%, ${transparent(haze.color)} 100%)`,
+        filter: "blur(0.25em)",
+        opacity: haze.opacity * opacity,
+      }}
+    />
+  );
+}
+
+// A number counting up to its value while the word comes in: "15 000" shows 0, 2 400, 9 800...
+// The text around the number ("$", "%", "K") and its way of grouping digits stay as they are.
+const NUMBER_PARTS = /^(\D*?)(\d[\d\s.,\u00A0\u202F]*\d|\d)(\D*)$/;
+
+export function countedText(text: string, progress: number): string {
+  if (progress >= 1) return text;
+  const match = NUMBER_PARTS.exec(text);
+  if (!match) return text;
+  const [, before = "", digits = "", after = ""] = match;
+  const separator = /[\s,.\u00A0\u202F](?=\d{3}(?:\D|$))/.exec(digits)?.[0];
+  const value = Number(digits.replace(/\D/g, ""));
+  if (!Number.isFinite(value)) return text;
+  const shown = String(Math.round(value * progress));
+  const grouped = separator ? shown.replace(/\B(?=(\d{3})+(?!\d))/g, separator) : shown;
+  return `${before}${grouped}${after}`;
+}
+
+const COUNT_MS = 700;
+const EXTRUDE_STEPS = 8;
+
 function Word({
   word,
   look,
@@ -343,8 +465,13 @@ function Word({
   // Highlighter: the box is drawn like a marker stroke when the word is said, and the text takes
   // its "on the marker" colour as the stroke passes under it.
   const drawMs = !highlight?.box ? (look.box?.drawMs ?? 0) : 0;
-  const drawn =
-    drawMs > 0
+  const typedBox = Boolean(look.cursor);
+  const started = timeMs >= word.start - ACTIVE_LEAD_MS;
+  const drawn = typedBox
+    ? started
+      ? Math.min(1, Math.max(0.18, motion.reveal + 0.12))
+      : 0
+    : drawMs > 0
       ? interpolate(
           timeMs,
           [word.start - ACTIVE_LEAD_MS, word.start - ACTIVE_LEAD_MS + drawMs],
@@ -385,7 +512,18 @@ function Word({
           ? `inset(-50% -10% -50% ${hidden * 100}%)`
           : `inset(-50% ${hidden * 100}% -50% -10%)`
         : `inset(${hidden * 100}% -10% -50% -10%)`;
-  const text = applyCase(word.text, style.textCase);
+  const counting = look.countUp
+    ? interpolate(
+        timeMs,
+        [word.start - ACTIVE_LEAD_MS, word.start - ACTIVE_LEAD_MS + COUNT_MS],
+        [0, 1],
+        {
+          ...clampOpts,
+          easing: Easing.out(Easing.cubic),
+        },
+      )
+    : 1;
+  const text = countedText(applyCase(word.text, style.textCase), counting);
   const padding = box ? `${box.paddingYEm}em ${box.paddingXEm}em` : undefined;
   // Letters rising from under the baseline stay hidden below it until they reach their place.
   const rising = motion.letters < 1;
@@ -406,7 +544,14 @@ function Word({
           ...rest,
         }}
       >
-        <Glyphs text={text} spreadEm={spreadEm} rise={motion.letters} place={place} paint={paint} />
+        <Glyphs
+          text={text}
+          spreadEm={spreadEm}
+          rise={motion.letters}
+          soft={motion.soft}
+          place={place}
+          paint={paint}
+        />
       </span>
     );
   };
@@ -439,7 +584,7 @@ function Word({
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
         opacity: motion.opacity * upcoming,
-        transform: `${shift ?? ""} translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
+        transform: `${shift ?? ""} translate3d(${motion.translateXEm}em, ${motion.translateYEm}em, 0) scale(${scale})`,
         willChange: "transform, opacity",
         filter: filterFor(look, motion),
         backgroundColor: boxColor,
@@ -452,6 +597,34 @@ function Word({
       }}
     >
       {badge}
+      {look.haze ? <Haze haze={look.haze} opacity={motion.opacity} timeMs={timeMs} /> : null}
+      {look.rays ? (
+        <Rays
+          rays={look.rays}
+          grow={motion.grow}
+          light={motion.light}
+          opacity={motion.opacity}
+          timeMs={timeMs}
+        />
+      ) : null}
+      {look.echo && motion.echo > 0.001
+        ? Array.from({ length: look.echo.count * 2 }, (_, index) => {
+            const echo = look.echo;
+            if (!echo) return null;
+            const rank = Math.floor(index / 2) + 1;
+            const side = index % 2 === 0 ? -1 : 1;
+            return layer(`echo-${index}`, {
+              color: echo.color,
+              transform: `translate3d(0, ${side * rank * echo.gapEm * motion.echo}em, 0)`,
+              opacity: Math.min(
+                1,
+                motion.echo *
+                  (echo.opacity ?? 1) *
+                  Math.max(0.1, 0.55 - (rank - 1) * (0.42 / echo.count)),
+              ),
+            });
+          })
+        : null}
       {drawMs > 0 && look.box && drawn > 0 ? (
         <DrawnBox box={look.box} drawn={drawn} rtl={rtl} />
       ) : null}
@@ -485,6 +658,17 @@ function Word({
             : null}
         </>
       ) : null}
+      {look.extrude
+        ? Array.from({ length: EXTRUDE_STEPS }, (_, index) => {
+            const extrude = look.extrude;
+            if (!extrude) return null;
+            const depth = ((EXTRUDE_STEPS - index) / EXTRUDE_STEPS) * extrude.depthEm;
+            return layer(`extrude-${index}`, {
+              color: extrude.color,
+              transform: `translate3d(${depth * 0.6}em, ${depth}em, 0)`,
+            });
+          })
+        : null}
       {outlineBehind && look.stroke
         ? layer("outline", {
             color: look.stroke.color,
@@ -496,7 +680,7 @@ function Word({
           `trail-${index}`,
           {
             ...fillStyle(fill),
-            transform: `translate3d(0, ${(ghost.translateYEm - motion.translateYEm) / scale}em, 0) scale(${ghost.scale / motion.scale})`,
+            transform: `translate3d(${(ghost.translateXEm - motion.translateXEm) / scale}em, ${(ghost.translateYEm - motion.translateYEm) / scale}em, 0) scale(${ghost.scale / motion.scale})`,
             opacity: interpolate(ghost.opacity, [0, 1], [0, 0.32 - index * 0.1], clampOpts),
           },
           ghost.spreadEm,
@@ -525,10 +709,27 @@ function Word({
           text={text}
           spreadEm={motion.spreadEm}
           rise={motion.letters}
+          soft={motion.soft}
           place={place}
           paint={mainPaint}
         />
       </span>
+      {look.cursor && started && motion.reveal < 0.999 ? (
+        // a block cursor waits in the empty box, then rides the edge of the letters being typed
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "14%",
+            bottom: "10%",
+            left: rtl
+              ? `calc(${(1 - motion.reveal) * 100}% - ${(1 - motion.reveal) * 0.42}em)`
+              : `calc(${motion.reveal * 100}% - ${motion.reveal * 0.42}em)`,
+            width: "0.42em",
+            backgroundColor: look.cursor,
+          }}
+        />
+      ) : null}
       {liquid && level > 0
         ? layer("liquid", {
             ...fillStyle(liquid.fill),
@@ -572,6 +773,49 @@ function Word({
 const LINE_HEIGHT = 1.08;
 const WORD_GAP_EM = 0.28;
 
+// The word of a caption drawn in the third family (poster styles): its last word, when the caption
+// has three words or more and that word has some weight (4 letters at least, never "qui" or "de").
+export function closingIndex(
+  page: Pick<CaptionPage, "words">,
+  style: Pick<CaptionStyle, "closing">,
+): number {
+  const last = page.words.length - 1;
+  const word = page.words[last];
+  if (!style.closing || last < 2 || !word || word.emphasis) return -1;
+  return word.text.replace(/[^\p{L}\p{N}]/gu, "").length >= 4 ? last : -1;
+}
+
+// Whether the key word of a caption is drawn as such. Solo styles only light it up when it is alone
+// on screen and carries weight (5 letters or more, not a lead-in cut by a comma like "Salut,").
+export function standsOut(
+  page: Pick<CaptionPage, "words">,
+  wordIndex: number,
+  style: Pick<CaptionStyle, "soloEmphasis">,
+): boolean {
+  const word = page.words[wordIndex];
+  if (!word?.emphasis) return false;
+  if (!style.soloEmphasis) return true;
+  return (
+    page.words.length === 1 &&
+    !/,$/.test(word.text) &&
+    word.text.replace(/[^\p{L}\p{N}]/gu, "").length >= 5
+  );
+}
+
+// How much bigger the words of a line are drawn (the first line of a book-title style).
+function lineScale(style: CaptionStyle, lineIndex: number, lineCount: number): number {
+  return lineIndex === 0 && lineCount > 1 ? (style.firstLineScale ?? 1) : 1;
+}
+
+// The look of the key word of a caption: styles with a colour per idea give each caption one fill
+// of their list (always the same one for the same caption, in the preview and the export).
+function emphasisLookOf(page: CaptionPage, style: CaptionStyle): TextLook {
+  const fills = style.emphasisFills;
+  if (!fills || fills.length === 0) return style.emphasis;
+  const fill = fills[Math.floor(seeded(style.seed ?? 7, Math.round(page.start)) * fills.length)];
+  return fill ? { ...style.emphasis, fill } : style.emphasis;
+}
+
 // Size of the caption at full size, measured with its real fonts, then the scale and the position
 // that keep it inside the safe zone.
 function fitPage(
@@ -588,19 +832,26 @@ function fitPage(
   lines.forEach((line, lineIndex) => {
     let lineWidth = linePad + baseFontPx * WORD_GAP_EM * (line.length - 1);
     let lineHeight = 0;
+    const grow = lineScale(style, lineIndex, lines.length);
     for (const wordIndex of line) {
       const word = page.words[wordIndex];
       if (!word) continue;
-      const look = word.emphasis ? style.emphasis : style.base;
-      const fontPx = (look.sizePct / 100) * height;
+      const look = standsOut(page, wordIndex, style)
+        ? style.emphasis
+        : style.closing && wordIndex === closingIndex(page, style)
+          ? style.closing
+          : style.base;
+      const fontPx = (look.sizePct / 100) * height * grow;
       const font = `${look.italic && !ARABIC_TEXT.test(word.text) ? "italic " : ""}${look.weight} ${fontPx}px ${fontFamily(look)}`;
       const box = style.active?.box ?? look.box;
       // a converging word starts wider than it ends: it must fit in the zone from its first frame
       const entrance = word.emphasis
-        ? (style.animation.emphasis?.in ?? style.animation.in)
-        : style.animation.in;
-      if (entrance === "converge") {
-        lineWidth += (Array.from(word.text).length - 1) * CONVERGE_SPREAD_EM * fontPx;
+        ? (style.animation.emphasis?.in ?? entranceOf(page, style))
+        : entranceOf(page, style);
+      if (entrance === "converge" || entrance === "spread") {
+        // a spread word starts very wide but faint and blurred: only part of it must fit at once
+        const spread = entrance === "spread" ? SPREAD_START_EM * 0.35 : CONVERGE_SPREAD_EM;
+        lineWidth += (Array.from(word.text).length - 1) * spread * fontPx;
       }
       lineWidth +=
         measureText(applyCase(word.text, style.textCase), font, look.letterSpacingEm * fontPx) +
@@ -698,6 +949,20 @@ function Badge({
   );
 }
 
+// How much of the background of a line is drawn (0 → 1): it opens from the left as the first word
+// of the line comes in, so an empty card is never seen waiting for its words.
+const LINE_DRAW_MS = 260;
+
+function lineDrawn(page: CaptionPage, line: number[], style: CaptionStyle, timeMs: number): number {
+  const first = line[0];
+  if (first === undefined) return 1;
+  const at = wordAppearAt(page, first, style);
+  return interpolate(timeMs, [at, at + LINE_DRAW_MS], [0, 1], {
+    ...clampOpts,
+    easing: Easing.out(Easing.cubic),
+  });
+}
+
 // a caption can be touched this long after it appears
 const ENTRY_GRACE_MS = 150;
 
@@ -722,6 +987,9 @@ function PageBlock({
 }) {
   const lines = layoutLines(page.words, style);
   const fit = fitPage(page, lines, style, width, height);
+  // left-aligned styles hang their lines from the left edge of the block
+  const left = style.align === "left";
+  const emphasisLook = emphasisLookOf(page, style);
   const baseFontPx = (style.base.sizePct / 100) * height * fit.scale;
   const key = blockKey(page);
   const elements = lineElements(lines, page.words, style.layout === "stack");
@@ -752,7 +1020,7 @@ function PageBlock({
         transform: "translate(-50%, -50%)",
         width: `${style.maxWidthPct}%`,
         display: "flex",
-        justifyContent: "center",
+        justifyContent: left ? "flex-start" : "center",
         // only the block itself can be touched, not the empty sides around it
         pointerEvents: editor ? "none" : undefined,
       }}
@@ -771,9 +1039,9 @@ function PageBlock({
           transform: shiftOf(blockPlace, width, height),
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: left ? "flex-start" : "center",
           gap: `${style.lineGapEm * baseFontPx}px`,
-          textAlign: "center",
+          textAlign: left ? "left" : "center",
         }}
       >
         {editor && blockSelected && !split ? (
@@ -797,6 +1065,7 @@ function PageBlock({
           </>
         ) : null}
         {lines.map((line, lineIndex) => {
+          const grow = lineScale(style, lineIndex, lines.length);
           const lengths = line.map(
             (wordIndex) => applyCase(page.words[wordIndex]?.text ?? "", style.textCase).length,
           );
@@ -848,24 +1117,38 @@ function PageBlock({
               style={{
                 ...(editor && split ? pickable(editor, key, part, height, live, false) : {}),
                 position: "relative",
-                zIndex: lineLayer,
+                // the small words stay readable over the echo column of the key word
+                isolation: style.lineBox ? "isolate" : undefined,
+                zIndex:
+                  lineLayer +
+                  (element !== "emphasis" && (style.emphasis.echo || style.emphasis.rays) ? 1 : 0),
                 transform: placed ? shiftOf(placed, width, height) : undefined,
                 display: "flex",
                 // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
                 flexWrap: "nowrap",
                 direction: rtl ? "rtl" : "ltr",
-                justifyContent: "center",
+                justifyContent: left ? "flex-start" : "center",
                 alignItems: "baseline",
                 columnGap: `${baseFontPx * 0.28}px`,
-                backgroundColor: style.lineBox?.color,
-                borderRadius: style.lineBox
-                  ? `${style.lineBox.radiusEm * baseFontPx}px`
-                  : undefined,
                 padding: style.lineBox
                   ? `${style.lineBox.paddingYEm * baseFontPx}px ${style.lineBox.paddingXEm * baseFontPx}px`
                   : undefined,
               }}
             >
+              {style.lineBox ? (
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: -1,
+                    backgroundColor: style.lineBox.color,
+                    borderRadius: `${style.lineBox.radiusEm * baseFontPx}px`,
+                    transformOrigin: rtl ? "100% 50%" : "0 50%",
+                    transform: `scaleX(${lineDrawn(page, line, style, timeMs)})`,
+                  }}
+                />
+              ) : null}
               {partBadge && editor ? (
                 <Badge
                   label={part === "text" ? editor.labels.deleteText : editor.labels.deleteKeyWord}
@@ -879,7 +1162,14 @@ function PageBlock({
               {line.map((wordIndex, position) => {
                 const word = page.words[wordIndex];
                 if (!word) return null;
-                const look = word.emphasis ? style.emphasis : style.base;
+                // solo styles only light the key word up when it is alone on screen
+                const lit = standsOut(page, wordIndex, style);
+                const closes = !lit && wordIndex === closingIndex(page, style);
+                const look = lit
+                  ? emphasisLook
+                  : closes && style.closing
+                    ? style.closing
+                    : style.base;
                 const ownKeyWord = word.emphasis && element !== "emphasis";
                 return (
                   <Word
@@ -923,7 +1213,7 @@ function PageBlock({
                         extrapolateRight: "clamp",
                       },
                     )}
-                    fontPx={(look.sizePct / 100) * height * fit.scale}
+                    fontPx={(look.sizePct / 100) * height * fit.scale * grow}
                     place={places[position] ?? { before: 0, middle: 0 }}
                   />
                 );

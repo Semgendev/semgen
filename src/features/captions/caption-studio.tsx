@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { saveCustomColors } from "@/features/preferences/actions";
 import { MAX_CUSTOM_COLORS } from "@/features/preferences/schemas";
 
+import { usePlayerControls } from "@/features/projects/player";
+
 import { setCaptionStyle } from "./actions";
 import {
   useCaptionWords,
@@ -64,7 +66,7 @@ import { SettingsPanel } from "./settings-panel";
 import { PANEL_CARD, StylePanel } from "./style-panel";
 import { StudioGuide } from "./studio-guide";
 import { StudioTabs, type TabId } from "./studio-tabs";
-import { applyTweaks, hasTweaks, type CaptionTweaks } from "./tweaks";
+import { applyTweaks, hasEcho, hasLight, hasTweaks, type CaptionTweaks } from "./tweaks";
 
 // Colour pickers save a moment after the last change (a native picker fires on every move).
 const SAVE_DELAY_MS = 500;
@@ -131,6 +133,7 @@ export function CaptionStudio({
   const [replay, setReplay] = useState<{ id: number; mode: "once" | "stop" } | null>(null);
   const [failed, setFailed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const player = usePlayerControls();
   // the text is checked before the style is chosen: the transcript is the first tab
   const [tab, setTab] = useState<TabId>(transcriptionSlot ? "transcription" : "styles");
   // the transcript tab cuts its lines like the chosen style
@@ -229,6 +232,8 @@ export function CaptionStudio({
     setPreset(next);
     setTweaks({});
     save(next, colors, {}, 0);
+    // the new style is seen moving at once: a paused video plays on from where it is
+    if (!player.isPlaying()) player.togglePlay();
   }
 
   function recolor(next: CaptionColors) {
@@ -706,6 +711,8 @@ export function CaptionStudio({
                     onRemoveCustomColor={removeCustomColor}
                     onReplay={(mode) => setReplay((last) => ({ id: (last?.id ?? 0) + 1, mode }))}
                     onResetAll={resetSettings}
+                    hasLight={hasLight(CAPTION_PRESETS[preset])}
+                    hasEcho={hasEcho(CAPTION_PRESETS[preset])}
                   />
                 }
               />

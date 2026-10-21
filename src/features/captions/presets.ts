@@ -18,8 +18,27 @@ export const PRESET_IDS = [
   "gold",
   "glass",
   "liquid",
+  "spotlight",
+  "echo",
+  "prism",
+  "anchor",
+  "duo",
+  "whisper",
+  "quill",
+  "burst",
+  "halo",
+  "spread",
+  "poster",
+  "newsprint",
+  "number",
 ] as const;
 export type PresetId = (typeof PRESET_IDS)[number];
+
+// Styles still being reviewed: shown in the animation lab only, until Ashanti validates them (then
+// they move into PRESET_IDS, with their names in every language). Empty between two waves.
+export const NEW_PRESET_IDS = [] as const;
+export type NewPresetId = (typeof NEW_PRESET_IDS)[number];
+export type LabPresetId = PresetId | NewPresetId;
 
 const plain = {
   italic: false,
@@ -33,7 +52,10 @@ const plain = {
 // Soft shadow that detaches the text from any footage without looking "outlined".
 const softShadow = { color: "#000000A6", blurEm: 0.28, offsetYEm: 0.04 };
 
-const FIRST_PRESETS: Omit<Record<PresetId, CaptionStyle>, "gold" | "glass" | "liquid"> = {
+const FIRST_PRESETS: Omit<
+  Record<PresetId, CaptionStyle>,
+  "gold" | "glass" | "liquid" | keyof typeof WAVE_PRESETS
+> = {
   // Kinetic typography: the key word huge and condensed, the rest small and spaced out.
   cinema: {
     version: 1,
@@ -571,11 +593,688 @@ const LIQUID: CaptionStyle = {
   },
 };
 
+// Spotlight: small white words, then the key word lands in bright yellow with a flash of light and
+// a fan of rays opening behind it, like a stage light.
+const SPOTLIGHT: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 3,
+  maxCharsPerLine: 16,
+  textCase: "none",
+  position: { x: 50, y: 66 },
+  maxWidthPct: 82,
+  lineGapEm: -0.02,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 400,
+    sizePct: 3,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "inter",
+    weight: 800,
+    sizePct: 7.4,
+    letterSpacingEm: -0.035,
+    fill: { type: "gradient", from: "#FFF7B8", via: "#FFE100", to: "#FFC400", angle: 180 },
+    shadow: { color: "#00000066", blurEm: 0.16, offsetYEm: 0.03 },
+    deepGlow: { color: "#FFD60A", radiusEm: 0.34, intensity: 0.85, chromatic: null },
+    rays: { color: "#FFE566B3", count: 7, spreadDeg: 130, lengthEm: 2.2 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "fade",
+    inMs: 160,
+    staggerMs: 0,
+    out: "fade",
+    outMs: 140,
+    emphasis: { in: "slam", inMs: 560 },
+  },
+};
+
+// Echo: the key word unrolls a column of yellow copies above and below it, then they fold back.
+const ECHO: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 3,
+  maxCharsPerLine: 16,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 84,
+  lineGapEm: -0.04,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 500,
+    sizePct: 3.1,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "inter",
+    weight: 800,
+    sizePct: 10.5,
+    letterSpacingEm: -0.04,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000073", blurEm: 0.16, offsetYEm: 0.03 },
+    echo: { color: "#FFD60A", count: 6, gapEm: 0.56 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "fly",
+    inMs: 520,
+    staggerMs: 0,
+    out: "fade",
+    outMs: 150,
+    motionBlur: true,
+    emphasis: { in: "echo", inMs: 420 },
+  },
+};
+
+// Prism: heavy italic key words, each idea in its own colour, shooting in from the side out of
+// focus, with a soft flame of light drifting behind them.
+const PRISM: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 3,
+  maxCharsPerLine: 14,
+  textCase: "none",
+  position: { x: 50, y: 66 },
+  maxWidthPct: 84,
+  lineGapEm: -0.06,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "figtree",
+    weight: 300,
+    italic: true,
+    sizePct: 5.2,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "figtree",
+    weight: 900,
+    italic: true,
+    sizePct: 8,
+    letterSpacingEm: -0.03,
+    fill: { type: "gradient", from: "#B061E8", to: "#E84393", angle: 90 },
+    shadow: { color: "#00000059", blurEm: 0.14, offsetYEm: 0.03 },
+    haze: { color: "#FF5A1F", sizeEm: 3, opacity: 0.42 },
+  },
+  emphasisFills: [
+    { type: "gradient", from: "#FF9A5C", to: "#FF4A12", angle: 180 },
+    { type: "gradient", from: "#FFFFFF", to: "#F1E9E4", angle: 180 },
+    { type: "gradient", from: "#B061E8", to: "#E84393", angle: 90 },
+    { type: "gradient", from: "#D9F5FF", to: "#8FD3F4", angle: 180 },
+    { type: "gradient", from: "#FF6A9A", to: "#D4145A", angle: 180 },
+  ],
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "whip",
+    inMs: 380,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 160,
+    motionBlur: true,
+    emphasis: { in: "whip", inMs: 460 },
+  },
+};
+
+// Anchor: the caption opens on one big heavy word in a soft gradient; the rest of the sentence is
+// added below it in a fine white serif, each word flying in from its own side out of a blur.
+const ANCHOR: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  keyWord: "first",
+  grouping: "phrase",
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 16,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 84,
+  lineGapEm: -0.12,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "bodoni",
+    weight: 400,
+    sizePct: 4,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "inter",
+    weight: 800,
+    sizePct: 6.4,
+    letterSpacingEm: -0.03,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000073", blurEm: 0.18, offsetYEm: 0.04 },
+  },
+  emphasisFills: [
+    { type: "gradient", from: "#FFFFFF", to: "#C9D6FF", angle: 180 },
+    { type: "gradient", from: "#FFF3E0", to: "#FFB36B", angle: 180 },
+    { type: "gradient", from: "#FBEAFF", to: "#B98CFF", angle: 180 },
+    { type: "gradient", from: "#FFFFFF", to: "#E8E8E8", angle: 180 },
+  ],
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "fly",
+    inMs: 520,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 160,
+    motionBlur: true,
+    emphasis: { in: "blurRise", inMs: 420 },
+  },
+};
+
+// Golden duo: tiny clean words around one huge key word in a high contrast italic serif, gold,
+// cream or white, coming out of a soft blur with a warm glow.
+const DUO: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 22,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 86,
+  lineGapEm: -0.28,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter-tight",
+    weight: 500,
+    sizePct: 2.9,
+    letterSpacingEm: -0.015,
+    fill: { type: "solid", color: "#FFFFFFF0" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "playfair",
+    weight: 900,
+    italic: true,
+    sizePct: 8.6,
+    letterSpacingEm: -0.04,
+    fill: {
+      type: "gradient",
+      from: "#FFE7A0",
+      to: "#F58A07",
+      angle: 180,
+      stops: [
+        { color: "#FFF1C4", atPct: 0 },
+        { color: "#FFC93C", atPct: 42 },
+        { color: "#F7A21B", atPct: 70 },
+        { color: "#E07A06", atPct: 100 },
+      ],
+    },
+    shadow: { color: "#00000066", blurEm: 0.12, offsetYEm: 0.03 },
+    deepGlow: { color: "#FF9A1F", radiusEm: 0.32, intensity: 0.6, chromatic: null },
+  },
+  emphasisFills: [
+    {
+      type: "gradient",
+      from: "#FFE7A0",
+      to: "#F58A07",
+      angle: 180,
+      stops: [
+        { color: "#FFF1C4", atPct: 0 },
+        { color: "#FFC93C", atPct: 42 },
+        { color: "#F7A21B", atPct: 70 },
+        { color: "#E07A06", atPct: 100 },
+      ],
+    },
+    { type: "gradient", from: "#FFFBEF", to: "#F2DFA6", angle: 180 },
+    { type: "gradient", from: "#FFFFFF", to: "#ECECEC", angle: 180 },
+  ],
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blur",
+    inMs: 240,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 260,
+    emphasis: { in: "focus", inMs: 480 },
+  },
+};
+
+// Whisper: a quiet book serif; the letters of each word come out of a soft blur one after the
+// other, rising a little, like a voice in a low tone. The first line of a
+// caption is set bigger, like the opening words of a chapter.
+const WHISPER: CaptionStyle = {
+  version: 1,
+  layout: "line",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 14,
+  textCase: "none",
+  position: { x: 50, y: 60 },
+  maxWidthPct: 80,
+  lineGapEm: -0.2,
+  lineBox: null,
+  firstLineScale: 2,
+  base: {
+    ...plain,
+    font: "newsreader",
+    weight: 500,
+    sizePct: 3.3,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000040", blurEm: 0.2, offsetYEm: 0.02 },
+  },
+  emphasis: {
+    ...plain,
+    font: "newsreader",
+    weight: 500,
+    sizePct: 3.3,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000040", blurEm: 0.2, offsetYEm: 0.02 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: { in: "drift", inMs: 700, staggerMs: 0, out: "blur", outMs: 260 },
+};
+
+// Quill: the opening words are written in a fine script, as with a pen, and ride a little over
+// the bold line of the key word below them.
+const QUILL: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 18,
+  textCase: "none",
+  position: { x: 50, y: 62 },
+  maxWidthPct: 70,
+  lineGapEm: -0.4,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "great-vibes",
+    weight: 400,
+    sizePct: 6.2,
+    fill: { type: "gradient", from: "#FFFFFF", to: "#F1E7DA", angle: 180 },
+    shadow: softShadow,
+    deepGlow: { color: "#FFF4E2", radiusEm: 0.22, intensity: 0.35, chromatic: null },
+  },
+  emphasis: {
+    ...plain,
+    font: "outfit",
+    weight: 800,
+    sizePct: 8.4,
+    letterSpacingEm: -0.035,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000080", blurEm: 0.16, offsetYEm: 0.04 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "ink",
+    inMs: 720,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 220,
+    emphasis: { in: "blurRise", inMs: 380 },
+  },
+};
+
+// Burst: one or two words at a time on a single line, each caption with its own move from one
+// family (spring, focus, glide, whip, spread); a key word alone on screen lights up in a gradient.
+const BURST: CaptionStyle = {
+  version: 1,
+  layout: "line",
+  grouping: "phrase",
+  maxWordsPerPage: 2,
+  maxCharsPerLine: 22,
+  textCase: "none",
+  position: { x: 50, y: 64 },
+  maxWidthPct: 86,
+  lineGapEm: 0,
+  lineBox: null,
+  soloEmphasis: true,
+  singleWords: true,
+  base: {
+    ...plain,
+    font: "outfit",
+    weight: 700,
+    sizePct: 6,
+    letterSpacingEm: -0.025,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000080", blurEm: 0.18, offsetYEm: 0.04 },
+  },
+  emphasis: {
+    ...plain,
+    font: "outfit",
+    weight: 800,
+    sizePct: 8,
+    letterSpacingEm: -0.035,
+    fill: { type: "gradient", from: "#FFE3A3", to: "#FF7A3D", angle: 180 },
+    shadow: { color: "#00000080", blurEm: 0.18, offsetYEm: 0.04 },
+    deepGlow: { color: "#FF9A5C", radiusEm: 0.3, intensity: 0.45, chromatic: null },
+  },
+  emphasisFills: [
+    { type: "gradient", from: "#FFE3A3", to: "#FF7A3D", angle: 180 },
+    { type: "gradient", from: "#FFD1B0", to: "#FF5A5F", angle: 180 },
+  ],
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "pop",
+    inMs: 420,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 160,
+    motionBlur: true,
+    variants: ["pop", "rack", "fly", "whip", "spread", "blurRise"],
+  },
+};
+
+// Soft halo: rounded white words pulled into focus like a camera lens, with a soft white glow; the
+// key word turns neon red with its own red halo.
+const HALO: CaptionStyle = {
+  version: 1,
+  layout: "line",
+  grouping: "phrase",
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 16,
+  textCase: "lower",
+  position: { x: 50, y: 62 },
+  maxWidthPct: 86,
+  lineGapEm: -0.02,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "outfit",
+    weight: 600,
+    sizePct: 6.4,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#EDEDED" },
+    shadow: { color: "#00000066", blurEm: 0.16, offsetYEm: 0.03 },
+    deepGlow: { color: "#FFFFFF", radiusEm: 0.45, intensity: 0.4, chromatic: null },
+  },
+  emphasis: {
+    ...plain,
+    font: "outfit",
+    weight: 700,
+    sizePct: 6.8,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#E8120A" },
+    shadow: { color: "#00000066", blurEm: 0.16, offsetYEm: 0.03 },
+    deepGlow: { color: "#8A0000", radiusEm: 0.5, intensity: 1, chromatic: null },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: { in: "rack", inMs: 520, staggerMs: 0, out: "blur", outMs: 250 },
+};
+
+// Open letters: a small light line, then the key word in a high contrast italic serif whose letters
+// start very far apart and close in as they come into focus.
+const SPREAD: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  grouping: "phrase",
+  maxWordsPerPage: 4,
+  maxCharsPerLine: 20,
+  textCase: "none",
+  position: { x: 50, y: 62 },
+  maxWidthPct: 86,
+  lineGapEm: -0.08,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter",
+    weight: 300,
+    sizePct: 3.6,
+    letterSpacingEm: 0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "playfair",
+    weight: 700,
+    italic: true,
+    sizePct: 8.4,
+    letterSpacingEm: -0.01,
+    fill: { type: "gradient", from: "#FFFFFF", to: "#BFD6FF", angle: 180 },
+    shadow: { color: "#00000066", blurEm: 0.14, offsetYEm: 0.04 },
+    deepGlow: { color: "#5B8DEF", radiusEm: 0.3, intensity: 0.5, chromatic: null },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blurRise",
+    inMs: 380,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 200,
+    emphasis: { in: "spread", inMs: 900 },
+  },
+};
+
+// Poster: three families in one block, like a fashion magazine cover: the small words in a fine
+// italic serif, the key word huge in a high contrast italic, the last word in a heavy sans; the lines
+// overlap and come in one after the other out of a blur.
+const POSTER: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  keyWord: "notLast",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 14,
+  textCase: "lower",
+  position: { x: 50, y: 58 },
+  maxWidthPct: 86,
+  lineGapEm: -0.7,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "playfair",
+    weight: 400,
+    italic: true,
+    sizePct: 3.4,
+    fill: { type: "solid", color: "#FFFFFFD9" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "bodoni",
+    weight: 500,
+    italic: true,
+    sizePct: 9,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000059", blurEm: 0.14, offsetYEm: 0.03 },
+  },
+  closing: {
+    ...plain,
+    font: "inter",
+    weight: 800,
+    sizePct: 6.8,
+    letterSpacingEm: -0.045,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: { color: "#00000066", blurEm: 0.16, offsetYEm: 0.04 },
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blurRise",
+    inMs: 420,
+    staggerMs: 0,
+    out: "fade",
+    outMs: 300,
+    emphasis: { in: "focus", inMs: 560 },
+  },
+};
+
+// Newsprint: the caption is typeset on a white paper card in a dark italic serif, typed letter by
+// letter; the key word is typed in white in a black box that grows behind a block cursor.
+const NEWSPRINT: CaptionStyle = {
+  version: 1,
+  layout: "line",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 20,
+  textCase: "none",
+  position: { x: 50, y: 66 },
+  maxWidthPct: 86,
+  lineGapEm: 0.12,
+  lineBox: { color: "#FAFAF7", radiusEm: 0.22, paddingXEm: 0.45, paddingYEm: 0.18 },
+  base: {
+    ...plain,
+    font: "playfair",
+    weight: 400,
+    italic: true,
+    sizePct: 3.4,
+    fill: { type: "solid", color: "#2B2B2B" },
+  },
+  emphasis: {
+    ...plain,
+    font: "inter-tight",
+    weight: 700,
+    sizePct: 3.4,
+    letterSpacingEm: -0.02,
+    fill: { type: "solid", color: "#FFFFFF" },
+    box: {
+      color: "#2C2C2C",
+      radiusEm: 0.12,
+      paddingXEm: 0.22,
+      paddingYEm: 0.06,
+      drawMs: 300,
+      drawFrom: "left",
+    },
+    cursor: "#FFFFFF",
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "typewriter",
+    inMs: 300,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 220,
+    emphasis: { in: "typewriter", inMs: 420, delayMs: 320 },
+  },
+};
+
+// Giant number: the number of a caption becomes huge and counts up to its value, a band of light
+// crossing it; the words around it stay small and clean. Without a number, the key word is giant.
+const NUMBER: CaptionStyle = {
+  version: 1,
+  layout: "stack",
+  keyWord: "number",
+  grouping: "phrase",
+  maxWordsPerPage: 5,
+  maxCharsPerLine: 18,
+  textCase: "none",
+  position: { x: 50, y: 60 },
+  maxWidthPct: 86,
+  lineGapEm: -0.12,
+  lineBox: null,
+  base: {
+    ...plain,
+    font: "inter-tight",
+    weight: 500,
+    sizePct: 2.6,
+    letterSpacingEm: -0.01,
+    fill: { type: "solid", color: "#FFFFFF" },
+    shadow: softShadow,
+  },
+  emphasis: {
+    ...plain,
+    font: "inter",
+    weight: 900,
+    sizePct: 13,
+    letterSpacingEm: -0.05,
+    fill: {
+      type: "gradient",
+      from: "#FFFFFF",
+      to: "#B9C2D0",
+      angle: 180,
+      stops: [
+        { color: "#FFFFFF", atPct: 0 },
+        { color: "#F2F4F8", atPct: 45 },
+        { color: "#C9D0DC", atPct: 72 },
+        { color: "#9AA4B4", atPct: 100 },
+      ],
+    },
+    shadow: { color: "#00000080", blurEm: 0.12, offsetYEm: 0.04 },
+    sweep: { color: "#FFFFFFB3", angle: 110, widthPct: 22, periodMs: 2600 },
+    extrude: { color: "#3A4250", depthEm: 0.07 },
+    deepGlow: { color: "#FFFFFF", radiusEm: 0.3, intensity: 0.18, chromatic: null },
+    countUp: true,
+  },
+  reveal: "word",
+  upcomingOpacity: 1,
+  active: null,
+  animation: {
+    in: "blurRise",
+    inMs: 380,
+    staggerMs: 0,
+    out: "blur",
+    outMs: 220,
+    emphasis: { in: "focus", inMs: 520, delayMs: 80 },
+  },
+};
+
+export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = {};
+
+// The styles of the 2026-10 waves (taken from Ashanti's reference videos), validated.
+const WAVE_PRESETS = {
+  poster: POSTER,
+  newsprint: NEWSPRINT,
+  number: NUMBER,
+  quill: QUILL,
+  burst: BURST,
+  halo: HALO,
+  spread: SPREAD,
+  spotlight: SPOTLIGHT,
+  echo: ECHO,
+  prism: PRISM,
+  anchor: ANCHOR,
+  duo: DUO,
+  whisper: WHISPER,
+} satisfies Record<string, CaptionStyle>;
+
 export const CAPTION_PRESETS: Record<PresetId, CaptionStyle> = {
   ...FIRST_PRESETS,
   gold: GOLD,
   glass: GLASS,
   liquid: LIQUID,
+  ...WAVE_PRESETS,
 };
 
 export const DEFAULT_PRESET: PresetId = "cinema";
@@ -602,7 +1301,20 @@ export const MIX_BLACK = "#000000";
 export const LAB_BACKDROP = "linear-gradient(160deg, #23262E 0%, #101216 55%, #1B1420 100%)";
 
 // Light that sets the mood of each style card in the gallery (its key colour, softened).
-export const CARD_LIGHTS: Record<PresetId, string> = {
+export const CARD_LIGHTS: Record<LabPresetId, string> = {
+  poster: "#E8E3DA",
+  newsprint: "#FAFAF7",
+  number: "#C9D0DC",
+  quill: "#F1E7DA",
+  burst: "#FF9A5C",
+  halo: "#FF2A1A",
+  spread: "#CFE0FF",
+  spotlight: "#FFE100",
+  echo: "#FFD60A",
+  prism: "#E84393",
+  anchor: "#DDE3EC",
+  duo: "#F5C452",
+  whisper: "#E8E1D5",
   cinema: "#B8C6E0",
   elegance: "#7FD4FF",
   editorial: "#FFD9A8",

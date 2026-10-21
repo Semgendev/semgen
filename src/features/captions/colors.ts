@@ -87,6 +87,12 @@ export function applyColors(style: CaptionStyle, colors: CaptionColors | undefin
       ? { ...style.base, fill: textFill(colors.text, style.base.fill) }
       : style.base,
     emphasis: colors.accent ? withAccent(style.emphasis, colors.accent) : style.emphasis,
+    closing:
+      colors.text && style.closing
+        ? { ...style.closing, fill: textFill(colors.text, style.closing.fill) }
+        : style.closing,
+    // the user's key word colour replaces the colour per idea of the style
+    emphasisFills: colors.accent ? undefined : style.emphasisFills,
   };
 }
 

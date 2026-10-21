@@ -15,6 +15,9 @@ import { FONT_IDS, type FontId } from "./style";
 import {
   OUTLINE_SIZES,
   SIZE_DEFAULT,
+  GLOW_MAX,
+  GLOW_MIN,
+  GLOW_STEP,
   SIZE_MAX,
   SIZE_MIN,
   SIZE_STEP,
@@ -44,6 +47,11 @@ const FONT_NAMES: Record<FontId, string> = {
   "dm-serif": "DM Serif",
   outfit: "Outfit",
   anybody: "Anybody",
+  inter: "Inter",
+  figtree: "Figtree",
+  newsreader: "Newsreader",
+  bodoni: "Bodoni Moda",
+  "great-vibes": "Great Vibes",
 };
 
 // A choice button: big enough for a finger, clear when chosen.
@@ -118,11 +126,17 @@ function SizeSlider({
   value,
   onChange,
   originalLabel,
+  min = SIZE_MIN,
+  max = SIZE_MAX,
+  step = SIZE_STEP,
 }: {
   label: string;
   value: number | undefined;
   onChange: (value: number | undefined) => void;
   originalLabel: string;
+  min?: number;
+  max?: number;
+  step?: number;
 }) {
   const shown = value ?? SIZE_DEFAULT;
   return (
@@ -147,9 +161,9 @@ function SizeSlider({
       </div>
       <input
         type="range"
-        min={SIZE_MIN}
-        max={SIZE_MAX}
-        step={SIZE_STEP}
+        min={min}
+        max={max}
+        step={step}
         value={shown}
         aria-label={label}
         onChange={(event) => {
@@ -173,6 +187,10 @@ export type SettingsPanelProps = {
   // an animation was chosen: play it once on the preview ("stop" for none)
   onReplay: (mode: "once" | "stop") => void;
   onResetAll: () => void;
+  // the style has a light (glow, rays, flame): its strength can be changed
+  hasLight?: boolean;
+  // the key word unrolls an echo column: how visible its copies are can be changed
+  hasEcho?: boolean;
 };
 
 // The settings of the chosen style, in plain words, in unfolding groups: colours, font, size,
@@ -187,6 +205,8 @@ export function SettingsPanel({
   onRemoveCustomColor,
   onReplay,
   onResetAll,
+  hasLight = false,
+  hasEcho = false,
 }: SettingsPanelProps) {
   const t = useTranslations("captions");
   const [fontTarget, setFontTarget] = useState<"text" | "emphasis">("text");
@@ -338,6 +358,42 @@ export function SettingsPanel({
           onChange={(emphasis) => setTweaks({ sizes: { ...tweaks.sizes, emphasis } })}
         />
       </AccordionSection>
+
+      {hasLight ? (
+        <AccordionSection
+          title={t("tweaks.glowTitle")}
+          summary={tweaks.glow !== undefined ? `${tweaks.glow} %` : original}
+          help={t("tweaks.glowHelp")}
+        >
+          <SizeSlider
+            label={t("tweaks.glowLabel")}
+            value={tweaks.glow}
+            originalLabel={original}
+            min={GLOW_MIN}
+            max={GLOW_MAX}
+            step={GLOW_STEP}
+            onChange={(glow) => setTweaks({ glow })}
+          />
+        </AccordionSection>
+      ) : null}
+
+      {hasEcho ? (
+        <AccordionSection
+          title={t("tweaks.echoTitle")}
+          summary={tweaks.echo !== undefined ? `${tweaks.echo} %` : original}
+          help={t("tweaks.echoHelp")}
+        >
+          <SizeSlider
+            label={t("tweaks.echoLabel")}
+            value={tweaks.echo}
+            originalLabel={original}
+            min={GLOW_MIN}
+            max={GLOW_MAX}
+            step={GLOW_STEP}
+            onChange={(echo) => setTweaks({ echo })}
+          />
+        </AccordionSection>
+      ) : null}
 
       <AccordionSection
         title={t("tweaks.animationTitle")}

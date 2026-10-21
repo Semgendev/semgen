@@ -252,7 +252,20 @@
       "impact": "Impact rouge",
       "gold": "Or liquide",
       "glass": "Verre",
-      "liquid": "Remplissage"
+      "liquid": "Remplissage",
+      "spotlight": "Projecteur",
+      "echo": "Écho",
+      "prism": "Prisme",
+      "anchor": "Ancre",
+      "duo": "Duo doré",
+      "whisper": "Murmure",
+      "quill": "Plume",
+      "burst": "Rafale",
+      "halo": "Halo doux",
+      "spread": "Lettres ouvertes",
+      "poster": "Affiche",
+      "newsprint": "Journal",
+      "number": "Chiffre géant"
     },
     "personalize": "Personnaliser le style",
     "colorsHelp": "Change la couleur du texte et celle du mot fort.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Taille",
       "sizeHelp": "Agrandis ou réduis le texte ou le mot fort. 100 % = le style d’origine.",
       "sizeText": "Taille du texte",
-      "sizeEmphasis": "Taille du mot fort"
+      "sizeEmphasis": "Taille du mot fort",
+      "glowTitle": "Lueur",
+      "glowHelp": "La lumière autour du texte : plus douce ou plus forte.",
+      "glowLabel": "Intensité de la lueur",
+      "echoTitle": "Écho",
+      "echoHelp": "Les copies du mot fort qui forment une colonne : plus discrètes ou plus visibles.",
+      "echoLabel": "Visibilité des copies"
     },
     "colors": {
       "swatch": "Couleur {color}",

@@ -252,7 +252,20 @@
       "impact": "Roter Impact",
       "gold": "Flüssiges Gold",
       "glass": "Glas",
-      "liquid": "Flüssige Füllung"
+      "liquid": "Flüssige Füllung",
+      "spotlight": "Scheinwerfer",
+      "echo": "Echo",
+      "prism": "Prisma",
+      "anchor": "Anker",
+      "duo": "Goldenes Duo",
+      "whisper": "Flüstern",
+      "quill": "Feder",
+      "burst": "Salve",
+      "halo": "Sanfter Schein",
+      "spread": "Offene Buchstaben",
+      "poster": "Plakat",
+      "newsprint": "Zeitung",
+      "number": "Riesenzahl"
     },
     "personalize": "Stil anpassen",
     "colorsHelp": "Ändere die Farbe des Textes und die des Schlüsselworts.",
@@ -302,7 +315,13 @@
       "sizeTitle": "Größe",
       "sizeHelp": "Mache den Text oder das Schlüsselwort größer oder kleiner. 100 % ist der ursprüngliche Stil.",
       "sizeText": "Textgröße",
-      "sizeEmphasis": "Größe des Schlüsselworts"
+      "sizeEmphasis": "Größe des Schlüsselworts",
+      "glowTitle": "Leuchten",
+      "glowHelp": "Das Licht um den Text: sanfter oder stärker.",
+      "glowLabel": "Stärke des Leuchtens",
+      "echoTitle": "Echo",
+      "echoHelp": "Die Kopien des Schlüsselworts, die eine Säule bilden: dezenter oder sichtbarer.",
+      "echoLabel": "Sichtbarkeit der Kopien"
     },
     "colors": {
       "swatch": "Farbe {color}",

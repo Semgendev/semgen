@@ -86,7 +86,11 @@ export function usePlayerTime(): number {
 
 export function usePlayerControls() {
   const api = useContext(PlayerApiContext);
-  return { seek: api?.seek ?? noop, isPlaying: api?.isPlaying ?? (() => false) };
+  return {
+    seek: api?.seek ?? noop,
+    isPlaying: api?.isPlaying ?? (() => false),
+    togglePlay: api?.togglePlay ?? noop,
+  };
 }
 
 // For a player component: plug its controls in and report the current time.
