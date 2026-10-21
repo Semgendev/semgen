@@ -83,17 +83,29 @@ export function CaptionPlayer({
   );
   const setTimeMs = usePlayerBridge(makeController);
 
+  // The player sends "frameupdate" from inside its own effect: setting the time right there would be
+  // a state update in an effect at every frame (React stops it with "Maximum update depth exceeded"
+  // when a heavy style slows the page down). The time is published at the next screen frame instead.
   useEffect(() => {
     const current = player.current;
     if (!current || !meta) return;
+    let queued: number | null = null;
+    let latestMs = lastMs.current;
     const onFrame = (event: { detail: { frame: number } }) => {
-      const ms = Math.round((event.detail.frame / CAPTION_FPS) * 1000);
-      if (Math.abs(ms - lastMs.current) < MIN_TIME_STEP_MS) return;
-      lastMs.current = ms;
-      setTimeMs(ms);
+      latestMs = Math.round((event.detail.frame / CAPTION_FPS) * 1000);
+      if (queued !== null) return;
+      queued = requestAnimationFrame(() => {
+        queued = null;
+        if (Math.abs(latestMs - lastMs.current) < MIN_TIME_STEP_MS) return;
+        lastMs.current = latestMs;
+        setTimeMs(latestMs);
+      });
     };
     current.addEventListener("frameupdate", onFrame);
-    return () => current.removeEventListener("frameupdate", onFrame);
+    return () => {
+      current.removeEventListener("frameupdate", onFrame);
+      if (queued !== null) cancelAnimationFrame(queued);
+    };
   }, [meta, setTimeMs]);
 
   // touching a text pauses the video: the text stays on screen while it is moved

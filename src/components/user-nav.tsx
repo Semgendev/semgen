@@ -17,7 +17,10 @@ async function UserNavContent() {
 
   if (!data?.claims) {
     return (
-      <Link href="/account" className={buttonVariants({ variant: "ghost" })}>
+      <Link
+        href="/account"
+        className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}
+      >
         {t("account.signIn")}
       </Link>
     );
@@ -33,13 +36,16 @@ async function UserNavContent() {
         className={cn(
           buttonVariants({ variant: "outline" }),
           // The "spark" accent is reserved for credits and AI actions (D15).
-          "border-spark/40 text-spark-text hover:bg-spark/10",
+          "border-spark/40 text-spark-text hover:bg-spark/10 max-lg:min-h-11",
         )}
       >
         <Coins className="size-4" aria-hidden="true" />
         {t("credits.balance", { count: balance })}
       </Link>
-      <Link href="/account" className={buttonVariants({ variant: "ghost" })}>
+      <Link
+        href="/account"
+        className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}
+      >
         {t("account.myAccount")}
       </Link>
     </>

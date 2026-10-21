@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon" aria-label={t("label")} />}
+        render={<Button variant="outline" size="icon" aria-label={t("label")} className="max-lg:size-11" />}
       >
         <span className="text-xs font-semibold tracking-wide" aria-hidden="true">
           {locale.toUpperCase()}

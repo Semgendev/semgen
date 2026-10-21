@@ -95,7 +95,9 @@ const NOTICE_MS = 4000;
 // a change that undo / redo can take back: a correction of the text, or a move on the video
 type Step = "words" | "moves";
 // an icon of the tools frame (a larger target on a phone)
-const TOOL_BUTTON = "size-11 rounded-lg hover:bg-surface sm:size-9";
+const TOOL_BUTTON ="size-11 rounded-lg hover:bg-surface sm:size-9";
+// the small text buttons (copy, SRT, revert…): at least 44 px high on a phone and a tablet
+const TOUCH_BUTTON = "max-lg:h-11 max-lg:px-4";
 // the small frame around one tool (or one pair of tools)
 const TOOL_FRAME =
   "border-border bg-surface-2 flex min-w-0 shrink-0 items-center gap-0.5 rounded-xl border p-0.5";
@@ -802,7 +804,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
-            className={cn(!isEdited && "invisible")}
+            className={cn(TOUCH_BUTTON, !isEdited && "invisible")}
             aria-hidden={!isEdited}
             tabIndex={isEdited ? undefined : -1}
             disabled={!isEdited || saving || dirty}
@@ -811,7 +813,13 @@ export function TranscriptView({
             <RotateCcw aria-hidden="true" />
             {t("edit.revert")}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={copyText}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={TOUCH_BUTTON}
+            onClick={copyText}
+          >
             {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             {copied ? t("copied") : t("copy")}
           </Button>
@@ -819,6 +827,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
+            className={TOUCH_BUTTON}
             onClick={() => download(`${baseName}.srt`, toSrt(exported), "application/x-subrip")}
           >
             <Download aria-hidden="true" />
@@ -828,6 +837,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
+            className={TOUCH_BUTTON}
             onClick={() => download(`${baseName}.txt`, toPlainText(exported), "text/plain")}
           >
             <Download aria-hidden="true" />
@@ -850,6 +860,7 @@ export function TranscriptView({
                 type="button"
                 variant="outline"
                 size="sm"
+                className={TOUCH_BUTTON}
                 onClick={() => {
                   if (saveState === "error") save();
                   if (movesSave === "error") movesBridge.retry();
@@ -889,7 +900,8 @@ export function TranscriptView({
               onOpenChange={setSearchOpen}
             />
           </div>
-          <div className={TOOL_FRAME}>
+          {/* On a phone the open search field takes the room of the other tools (else ~4 letters fit) */}
+          <div className={cn(TOOL_FRAME, searchOpen && "max-sm:hidden")}>
             <Button
               type="button"
               variant="ghost"
@@ -904,7 +916,7 @@ export function TranscriptView({
               <ReplaceAll aria-hidden="true" />
             </Button>
           </div>
-          <div className={TOOL_FRAME}>
+          <div className={cn(TOOL_FRAME, searchOpen && "max-sm:hidden")}>
             <Button
               type="button"
               variant="ghost"
@@ -951,7 +963,13 @@ export function TranscriptView({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <p className="text-text-3 min-w-0 flex-1 basis-64 text-sm leading-5">{t("edit.hint")}</p>
         {hiddenCuts > 0 ? (
-          <Button type="button" variant="outline" size="sm" onClick={bringBackCuts}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={TOUCH_BUTTON}
+            onClick={bringBackCuts}
+          >
             <Scissors aria-hidden="true" />
             {t("edit.restoreCuts")}
           </Button>

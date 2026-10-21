@@ -234,6 +234,13 @@ export function CaptionStudio({
     save(next, colors, {}, 0);
     // the new style is seen moving at once: a paused video plays on from where it is
     if (!player.isPlaying()) player.togglePlay();
+    // On a phone the list of styles is below the video: the page was scrolled down to reach the
+    // card, so the video is brought back into view to see the style at work.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      requestAnimationFrame(() =>
+        videoCard.current?.scrollIntoView({ block: "start", behavior: "smooth" }),
+      );
+    }
   }
 
   function recolor(next: CaptionColors) {

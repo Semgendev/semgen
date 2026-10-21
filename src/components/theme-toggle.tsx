@@ -19,6 +19,7 @@ export function ThemeToggle() {
       type="button"
       variant="outline"
       size="icon"
+      className="max-lg:size-11"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       <Sun className="size-4 dark:hidden" aria-hidden="true" />

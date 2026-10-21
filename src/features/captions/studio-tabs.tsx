@@ -45,7 +45,7 @@ export function StudioTabs({
               aria-selected={selected}
               onClick={() => onChange(tab.id)}
               className={cn(
-                "focus-visible:ring-focus relative truncate rounded-t-lg px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-2",
+                "focus-visible:ring-focus relative truncate rounded-t-lg px-3 py-2 max-lg:min-h-11 max-lg:px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-2",
                 selected ? "text-text" : "text-text-2 hover:text-text",
               )}
             >
@@ -69,7 +69,7 @@ export function StudioTabs({
                 type="button"
                 aria-label={moreLabel}
                 title={moreLabel}
-                className="text-text-2 hover:text-text focus-visible:ring-focus mb-1 flex size-8 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2"
+                className="text-text-2 hover:text-text focus-visible:ring-focus mb-1 flex size-8 shrink-0 max-lg:size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2"
               />
             }
           >
