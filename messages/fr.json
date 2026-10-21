@@ -265,7 +265,11 @@
       "spread": "Lettres ouvertes",
       "poster": "Affiche",
       "newsprint": "Journal",
-      "number": "Chiffre géant"
+      "number": "Chiffre géant",
+      "acid": "Néon acide",
+      "circle": "Cercle tracé",
+      "blend": "Fondu",
+      "initials": "Lettres encadrées"
     },
     "personalize": "Personnaliser le style",
     "colorsHelp": "Change la couleur du texte et celle du mot fort.",

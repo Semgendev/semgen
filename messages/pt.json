@@ -265,7 +265,11 @@
       "spread": "Letras abertas",
       "poster": "Cartaz",
       "newsprint": "Jornal",
-      "number": "Número gigante"
+      "number": "Número gigante",
+      "acid": "Neon ácido",
+      "circle": "Círculo à mão",
+      "blend": "Fusão",
+      "initials": "Letras emolduradas"
     },
     "personalize": "Personalizar o estilo",
     "colorsHelp": "Mude a cor do texto e a da palavra-chave.",

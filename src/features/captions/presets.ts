@@ -31,12 +31,16 @@ export const PRESET_IDS = [
   "poster",
   "newsprint",
   "number",
+  "acid",
+  "circle",
+  "blend",
+  "initials",
 ] as const;
 export type PresetId = (typeof PRESET_IDS)[number];
 
 // Styles still being reviewed: shown in the animation lab only, until Ashanti validates them (then
 // they move into PRESET_IDS, with their names in every language). Empty between two waves.
-export const NEW_PRESET_IDS = ["acid", "circle", "blend", "initials"] as const;
+export const NEW_PRESET_IDS = [] as const;
 export type NewPresetId = (typeof NEW_PRESET_IDS)[number];
 export type LabPresetId = PresetId | NewPresetId;
 
@@ -1429,12 +1433,7 @@ const INITIALS: CaptionStyle = {
   },
 };
 
-export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = {
-  acid: ACID,
-  circle: CIRCLE,
-  blend: BLEND,
-  initials: INITIALS,
-};
+export const NEW_PRESETS: Record<NewPresetId, CaptionStyle> = {};
 
 // The styles of the 2026-10 waves (taken from Ashanti's reference videos), validated.
 const WAVE_PRESETS = {
@@ -1451,6 +1450,10 @@ const WAVE_PRESETS = {
   anchor: ANCHOR,
   duo: DUO,
   whisper: WHISPER,
+  acid: ACID,
+  circle: CIRCLE,
+  blend: BLEND,
+  initials: INITIALS,
 } satisfies Record<string, CaptionStyle>;
 
 export const CAPTION_PRESETS: Record<PresetId, CaptionStyle> = {

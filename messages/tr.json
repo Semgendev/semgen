@@ -265,7 +265,11 @@
       "spread": "Açık harfler",
       "poster": "Afiş",
       "newsprint": "Gazete",
-      "number": "Dev sayı"
+      "number": "Dev sayı",
+      "acid": "Asit neon",
+      "circle": "Elle çizilmiş daire",
+      "blend": "Karışım",
+      "initials": "Çerçeveli harfler"
     },
     "personalize": "Stili özelleştir",
     "colorsHelp": "Metnin ve anahtar kelimenin rengini değiştir.",

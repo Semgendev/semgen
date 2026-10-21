@@ -265,7 +265,11 @@
       "spread": "Open letters",
       "poster": "Poster",
       "newsprint": "Newsprint",
-      "number": "Giant number"
+      "number": "Giant number",
+      "acid": "Acid neon",
+      "circle": "Hand circle",
+      "blend": "Blend",
+      "initials": "Boxed letters"
     },
     "personalize": "Customize the style",
     "colorsHelp": "Change the colour of the text and of the key word.",

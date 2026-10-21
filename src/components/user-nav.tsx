@@ -17,10 +17,7 @@ async function UserNavContent() {
 
   if (!data?.claims) {
     return (
-      <Link
-        href="/account"
-        className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}
-      >
+      <Link href="/account" className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}>
         {t("account.signIn")}
       </Link>
     );
@@ -42,10 +39,7 @@ async function UserNavContent() {
         <Coins className="size-4" aria-hidden="true" />
         {t("credits.balance", { count: balance })}
       </Link>
-      <Link
-        href="/account"
-        className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}
-      >
+      <Link href="/account" className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}>
         {t("account.myAccount")}
       </Link>
     </>

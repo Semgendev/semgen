@@ -95,7 +95,7 @@ const NOTICE_MS = 4000;
 // a change that undo / redo can take back: a correction of the text, or a move on the video
 type Step = "words" | "moves";
 // an icon of the tools frame (a larger target on a phone)
-const TOOL_BUTTON ="size-11 rounded-lg hover:bg-surface sm:size-9";
+const TOOL_BUTTON = "size-11 rounded-lg hover:bg-surface sm:size-9";
 // the small text buttons (copy, SRT, revert…): at least 44 px high on a phone and a tablet
 const TOUCH_BUTTON = "max-lg:h-11 max-lg:px-4";
 // the small frame around one tool (or one pair of tools)

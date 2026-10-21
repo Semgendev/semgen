@@ -254,7 +254,7 @@ export function SearchTool({
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchLabel")}
             autoComplete="off"
-            className="h-11 border-0 sm:h-9 bg-transparent ps-3 pe-16 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:hidden"
+            className="h-11 border-0 bg-transparent ps-3 pe-16 shadow-none focus-visible:ring-0 sm:h-9 [&::-webkit-search-cancel-button]:hidden"
             onChange={(event) => onFind(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {

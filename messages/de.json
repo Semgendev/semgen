@@ -265,7 +265,11 @@
       "spread": "Offene Buchstaben",
       "poster": "Plakat",
       "newsprint": "Zeitung",
-      "number": "Riesenzahl"
+      "number": "Riesenzahl",
+      "acid": "Säureneon",
+      "circle": "Handkreis",
+      "blend": "Überblendung",
+      "initials": "Gerahmte Buchstaben"
     },
     "personalize": "Stil anpassen",
     "colorsHelp": "Ändere die Farbe des Textes und die des Schlüsselworts.",

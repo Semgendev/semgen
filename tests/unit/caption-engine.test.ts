@@ -20,7 +20,7 @@ import {
   vignetteAmount,
 } from "@/features/captions/remotion/captioned-video";
 import { applyTweaks, hasEcho, hasLight } from "@/features/captions/tweaks";
-import { CAPTION_PRESETS, NEW_PRESETS, PRESET_IDS } from "@/features/captions/presets";
+import { CAPTION_PRESETS, PRESET_IDS } from "@/features/captions/presets";
 import { captionStyleSchema, type CaptionStyle } from "@/features/captions/style";
 
 // Counts flashes the WCAG way: a flash is a pair of opposing changes (down then up) of at least
@@ -306,7 +306,7 @@ describe("third wave", () => {
   });
 
   it("darkens the edges only while a key word is on screen", () => {
-    const style = NEW_PRESETS.acid;
+    const style = CAPTION_PRESETS.acid;
     const pages = paginate(demoWords(), style);
     const page = pages.find((one) => one.words.some((word) => word.emphasis))!;
     const key = page.words.find((word) => word.emphasis)!;
@@ -316,15 +316,15 @@ describe("third wave", () => {
   });
 
   it("writes the key word in capitals when its own case says so", () => {
-    expect(NEW_PRESETS.acid.emphasis.textCase).toBe("upper");
-    expect(captionStyleSchema.safeParse(NEW_PRESETS.acid).success).toBe(true);
-    expect(captionStyleSchema.safeParse(NEW_PRESETS.circle).success).toBe(true);
+    expect(CAPTION_PRESETS.acid.emphasis.textCase).toBe("upper");
+    expect(captionStyleSchema.safeParse(CAPTION_PRESETS.acid).success).toBe(true);
+    expect(captionStyleSchema.safeParse(CAPTION_PRESETS.circle).success).toBe(true);
   });
 });
 
 describe("third wave, second step", () => {
   it("spells a key word out from its boxed capital", () => {
-    const look = NEW_PRESETS.initials.emphasis;
+    const look = CAPTION_PRESETS.initials.emphasis;
     const start = initialOf(look, "demain", 1000, 900);
     expect(start?.first).toBe("D");
     expect(start?.others).toBe("emain");
@@ -335,15 +335,15 @@ describe("third wave, second step", () => {
   });
 
   it("keeps joined scripts and words without letters whole", () => {
-    const look = NEW_PRESETS.initials.emphasis;
+    const look = CAPTION_PRESETS.initials.emphasis;
     expect(initialOf(look, "مرحبًا", 0, 500)).toBeNull();
     expect(initialOf(look, "!", 0, 500)).toBeNull();
     expect(initialOf(CAPTION_PRESETS.cinema.emphasis, "demain", 0, 500)).toBeNull();
   });
 
   it("mixes the blend style with the video", () => {
-    expect(NEW_PRESETS.blend.blend).toBe("difference");
-    expect(captionStyleSchema.safeParse(NEW_PRESETS.blend).success).toBe(true);
-    expect(captionStyleSchema.safeParse(NEW_PRESETS.initials).success).toBe(true);
+    expect(CAPTION_PRESETS.blend.blend).toBe("difference");
+    expect(captionStyleSchema.safeParse(CAPTION_PRESETS.blend).success).toBe(true);
+    expect(captionStyleSchema.safeParse(CAPTION_PRESETS.initials).success).toBe(true);
   });
 });

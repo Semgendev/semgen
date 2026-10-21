@@ -265,7 +265,11 @@
       "spread": "Lettere aperte",
       "poster": "Manifesto",
       "newsprint": "Giornale",
-      "number": "Numero gigante"
+      "number": "Numero gigante",
+      "acid": "Neon acido",
+      "circle": "Cerchio a mano",
+      "blend": "Fusione",
+      "initials": "Lettere incorniciate"
     },
     "personalize": "Personalizza lo stile",
     "colorsHelp": "Cambia il colore del testo e quello della parola chiave.",

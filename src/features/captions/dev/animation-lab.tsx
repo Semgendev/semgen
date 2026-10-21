@@ -26,13 +26,13 @@ import { demoWords } from "./demo-words";
 // text, in slow motion or frame by frame, with live settings. Used to tune the "feeling".
 
 const LABELS: Record<LabPresetId, string> = {
-  acid: "Néon acide (vague 3)",
-  circle: "Cercle tracé (vague 3)",
-  blend: "Fondu (vague 3)",
-  initials: "Lettres encadrées (vague 3)",
   poster: "Affiche",
   newsprint: "Journal",
   number: "Chiffre géant",
+  acid: "Néon acide",
+  circle: "Cercle tracé",
+  blend: "Fondu",
+  initials: "Lettres encadrées",
   quill: "Plume",
   burst: "Rafale",
   halo: "Halo doux",

@@ -265,7 +265,11 @@
       "spread": "Letras abiertas",
       "poster": "Póster",
       "newsprint": "Periódico",
-      "number": "Número gigante"
+      "number": "Número gigante",
+      "acid": "Neón ácido",
+      "circle": "Círculo a mano",
+      "blend": "Fusión",
+      "initials": "Letras enmarcadas"
     },
     "personalize": "Personalizar el estilo",
     "colorsHelp": "Cambia el color del texto y el de la palabra clave.",

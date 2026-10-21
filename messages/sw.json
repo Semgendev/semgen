@@ -265,7 +265,11 @@
       "spread": "Herufi wazi",
       "poster": "Bango",
       "newsprint": "Gazeti",
-      "number": "Nambari kubwa"
+      "number": "Nambari kubwa",
+      "acid": "Neoni kali",
+      "circle": "Duara ya mkono",
+      "blend": "Mchanganyiko",
+      "initials": "Herufi za fremu"
     },
     "personalize": "Badilisha mtindo",
     "colorsHelp": "Badilisha rangi ya maandishi na ya neno kuu.",
