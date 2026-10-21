@@ -15,9 +15,11 @@ export const MOVE_STEP_PCT = 1;
 const MAX_LINES = 6;
 const MAX_BLOCKS = 3000;
 
-// "block" is the whole caption (all its lines and its key word) moved as one.
+// "block" is the whole caption (all its lines and its key word) moved as one. Once a block is split,
+// "text" (all its lines but the key word) and "emphasis" (the key word) move on their own.
 export const ELEMENT_IDS = [
   "block",
+  "text",
   "emphasis",
   ...Array.from({ length: MAX_LINES }, (_, index) => `line-${index}` as const),
 ] as const;
@@ -34,9 +36,17 @@ export type Move = z.infer<typeof moveSchema>;
 const elementMovesSchema = z.partialRecord(z.enum(ELEMENT_IDS), moveSchema);
 export type ElementMoves = z.infer<typeof elementMovesSchema>;
 
+// the two parts of a split block
+export const PART_IDS = ["text", "emphasis"] as const;
+export type PartId = (typeof PART_IDS)[number];
+
 const blockMovesSchema = z.object({
   // ignores the moves made for every block
   apart: z.boolean().optional(),
+  // the block is shown as two parts (its text, its key word) that move and hide on their own
+  split: z.boolean().optional(),
+  // a part hidden on the video (its words stay in the transcript)
+  hidden: z.object({ text: z.boolean().optional(), emphasis: z.boolean().optional() }).optional(),
   elements: elementMovesSchema.optional(),
 });
 export type BlockMoves = z.infer<typeof blockMovesSchema>;
@@ -133,7 +143,7 @@ function withBlock(
   // full: a new block is not added (the saves of everything else must keep working)
   if (!blocks[key] && Object.keys(blocks).length >= MAX_BLOCKS) return moves;
   const block = change(blocks[key] ?? {});
-  if (block.apart || block.elements) blocks[key] = block;
+  if (block.apart || block.elements || block.split || block.hidden) blocks[key] = block;
   else delete blocks[key];
   const next: StyleMoves = { ...moves, blocks };
   if (Object.keys(blocks).length === 0) delete next.blocks;
@@ -200,6 +210,58 @@ export function setApart(moves: StyleMoves | undefined, key: string, apart: bool
     const next = { ...block };
     if (apart) next.apart = true;
     else delete next.apart;
+    return next;
+  });
+}
+
+export function isSplit(moves: StyleMoves | undefined, key: string): boolean {
+  return Boolean(moves?.blocks?.[key]?.split);
+}
+
+export function hiddenParts(
+  moves: StyleMoves | undefined,
+  key: string,
+): { text: boolean; emphasis: boolean } {
+  const hidden = moves?.blocks?.[key]?.hidden;
+  return { text: Boolean(hidden?.text), emphasis: Boolean(hidden?.emphasis) };
+}
+
+// Splits a block in two parts, or puts it back in one (the moves and the hidden flags of the two
+// parts go; the moves of the whole block stay).
+export function setSplit(moves: StyleMoves | undefined, key: string, split: boolean): StyleMoves {
+  return withBlock(moves ?? {}, key, (block) => {
+    const next = { ...block };
+    if (split) {
+      next.split = true;
+      return next;
+    }
+    delete next.split;
+    delete next.hidden;
+    if (next.elements) {
+      const elements = { ...next.elements };
+      delete elements.text;
+      delete elements.emphasis;
+      if (Object.keys(elements).length > 0) next.elements = elements;
+      else delete next.elements;
+    }
+    return next;
+  });
+}
+
+// Hides (or shows again) one part of a split block on the video.
+export function setHidden(
+  moves: StyleMoves | undefined,
+  key: string,
+  part: PartId,
+  hidden: boolean,
+): StyleMoves {
+  return withBlock(moves ?? {}, key, (block) => {
+    const flags = { ...block.hidden };
+    if (hidden) flags[part] = true;
+    else delete flags[part];
+    const next = { ...block };
+    if (Object.keys(flags).length > 0) next.hidden = flags;
+    else delete next.hidden;
     return next;
   });
 }

@@ -4,6 +4,8 @@ import {
   blockKey,
   captionMovesSchema,
   hasSharedMoves,
+  hiddenParts,
+  isSplit,
   isApart,
   layerIndex,
   lineElements,
@@ -12,6 +14,8 @@ import {
   placementOf,
   resetElement,
   setApart,
+  setHidden,
+  setSplit,
   shiftElement,
   toggleLayer,
   withStyleMoves,
@@ -189,5 +193,48 @@ describe("moving a whole block", () => {
     const moves = shiftElement(undefined, { ...block, everyBlock: true }, 0, 3);
     expect(placementOf(moves, "9000", "block")).toEqual({ x: 0, y: 3, layer: undefined });
     expect(captionMovesSchema.safeParse({ cinema: moves }).success).toBe(true);
+  });
+});
+
+describe("splitting a block in two parts", () => {
+  const block: MoveTarget = { key: "1200", element: "block", everyBlock: false };
+
+  it("splits, hides a part and shows it again", () => {
+    let moves = setSplit(undefined, "1200", true);
+    expect(isSplit(moves, "1200")).toBe(true);
+    expect(isSplit(moves, "9000")).toBe(false);
+    moves = setHidden(moves, "1200", "emphasis", true);
+    expect(hiddenParts(moves, "1200")).toEqual({ text: false, emphasis: true });
+    moves = setHidden(moves, "1200", "emphasis", false);
+    expect(hiddenParts(moves, "1200")).toEqual({ text: false, emphasis: false });
+  });
+
+  it("each part moves on its own", () => {
+    const moves = shiftElement(
+      setSplit(undefined, "1200", true),
+      { key: "1200", element: "text", everyBlock: false },
+      2,
+      5,
+    );
+    expect(placementOf(moves, "1200", "text")).toEqual({ x: 2, y: 5, layer: undefined });
+    expect(placementOf(moves, "1200", "emphasis")).toEqual({ x: 0, y: 0, layer: undefined });
+  });
+
+  it("merging forgets the parts' moves and hidden flags but keeps the block's move", () => {
+    let moves = shiftElement(undefined, block, 4, -6);
+    moves = setSplit(moves, "1200", true);
+    moves = shiftElement(moves, { key: "1200", element: "text", everyBlock: false }, 2, 5);
+    moves = setHidden(moves, "1200", "text", true);
+    const merged = setSplit(moves, "1200", false);
+    expect(isSplit(merged, "1200")).toBe(false);
+    expect(hiddenParts(merged, "1200")).toEqual({ text: false, emphasis: false });
+    expect(placementOf(merged, "1200", "text")).toEqual({ x: 0, y: 0, layer: undefined });
+    expect(placementOf(merged, "1200", "block")).toEqual({ x: 4, y: -6, layer: undefined });
+  });
+
+  it("is stored with the style, and an untouched block leaves no trace", () => {
+    const moves = setHidden(setSplit(undefined, "1200", true), "1200", "text", true);
+    expect(captionMovesSchema.safeParse({ cinema: moves }).success).toBe(true);
+    expect(setSplit(setSplit(undefined, "1200", true), "1200", false).blocks).toBeUndefined();
   });
 });

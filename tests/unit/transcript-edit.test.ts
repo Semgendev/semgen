@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   countMatches,
   deleteRange,
+  deleteWords,
   deleteWord,
   editWord,
   findMatchIndices,
@@ -184,5 +185,18 @@ describe("deleteRange (the cross on a block of the video)", () => {
     };
     expect(deleteRange(one, 0, 0)).toBeNull();
     expect(deleteRange(makeDraft(), 9, 12)).toBeNull();
+  });
+});
+
+describe("deleteWords (one part of a split block)", () => {
+  it("removes only the chosen words, whatever the order given", () => {
+    const next = deleteWords(makeDraft(), [3, 1]);
+    expect(next?.words.map((one) => one.text)).toEqual(["Les", "idées.", "beaucoup"]);
+    expect(next && isValidDraft(next)).toBe(true);
+  });
+
+  it("returns null when there is nothing to remove", () => {
+    expect(deleteWords(makeDraft(), [])).toBeNull();
+    expect(deleteWords(makeDraft(), [42])).toBeNull();
   });
 });

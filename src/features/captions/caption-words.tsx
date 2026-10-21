@@ -12,7 +12,14 @@ import { DEFAULT_PRESET, type PresetId } from "./presets";
 // A request about one caption block, from one side to the other: the transcript line asks the video
 // to select its block ("select"), the video asks the transcript to remove the block's words
 // ("delete"). firstWord = index of the first word of the block in the transcript.
-export type BlockRequest = { id: number; kind: "select" | "delete"; firstWord: number };
+// The video side answers "select", "merge", "show-text" and "show-emphasis"; the transcript side
+// answers "delete", "delete-text" and "delete-emphasis" (it owns the words).
+export type BlockRequestKind =
+  "select" | "delete" | "merge" | "show-text" | "show-emphasis" | "delete-text" | "delete-emphasis";
+export type BlockRequest = { id: number; kind: BlockRequestKind; firstWord: number };
+
+// The split blocks of the chosen style, by the index of their first word, and which part is hidden.
+export type SplitBlocks = Record<number, { text: boolean; emphasis: boolean }>;
 
 type CaptionWordsApi = {
   words: TranscriptWord[];
@@ -27,7 +34,9 @@ type CaptionWordsApi = {
   lostMoves: { presetId: PresetId; count: number };
   setLostMoves: (lost: { presetId: PresetId; count: number }) => void;
   blockRequest: BlockRequest | null;
-  requestBlock: (kind: BlockRequest["kind"], firstWord: number) => void;
+  requestBlock: (kind: BlockRequestKind, firstWord: number) => void;
+  splitBlocks: SplitBlocks;
+  setSplitBlocks: (blocks: SplitBlocks) => void;
 };
 
 const CaptionWordsContext = createContext<CaptionWordsApi | null>(null);
@@ -46,7 +55,8 @@ export function CaptionWordsProvider({
   const [transcriptVisible, setTranscriptVisible] = useState(true);
   const [lostMoves, setLostMoves] = useState({ presetId: initialPresetId, count: 0 });
   const [blockRequest, setBlockRequest] = useState<BlockRequest | null>(null);
-  const requestBlock = useCallback((kind: BlockRequest["kind"], firstWord: number) => {
+  const [splitBlocks, setSplitBlocks] = useState<SplitBlocks>({});
+  const requestBlock = useCallback((kind: BlockRequestKind, firstWord: number) => {
     setBlockRequest((last) => ({ id: (last?.id ?? 0) + 1, kind, firstWord }));
   }, []);
   const value = useMemo(
@@ -61,8 +71,10 @@ export function CaptionWordsProvider({
       setLostMoves,
       blockRequest,
       requestBlock,
+      splitBlocks,
+      setSplitBlocks,
     }),
-    [words, presetId, transcriptVisible, lostMoves, blockRequest, requestBlock],
+    [words, presetId, transcriptVisible, lostMoves, blockRequest, requestBlock, splitBlocks],
   );
   return <CaptionWordsContext.Provider value={value}>{children}</CaptionWordsContext.Provider>;
 }
@@ -95,6 +107,16 @@ export function useBlockRequest(): BlockRequest | null {
 
 export function useRequestBlock(): CaptionWordsApi["requestBlock"] | null {
   return useContext(CaptionWordsContext)?.requestBlock ?? null;
+}
+
+const NO_SPLIT: SplitBlocks = {};
+
+export function useSplitBlocks(): SplitBlocks {
+  return useContext(CaptionWordsContext)?.splitBlocks ?? NO_SPLIT;
+}
+
+export function usePublishSplitBlocks(): ((blocks: SplitBlocks) => void) | null {
+  return useContext(CaptionWordsContext)?.setSplitBlocks ?? null;
 }
 
 const NO_LOST = { presetId: DEFAULT_PRESET, count: 0 };

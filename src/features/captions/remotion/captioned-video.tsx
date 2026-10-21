@@ -5,6 +5,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import {
   AbsoluteFill,
@@ -42,6 +43,8 @@ import {
 import {
   blockKey,
   ELEMENT_IDS,
+  hiddenParts,
+  isSplit,
   layerIndex,
   lineElements,
   placementOf,
@@ -62,9 +65,11 @@ export type CaptionEditor = {
   onPick: (key: string, element: ElementId) => void;
   // a touch on the video away from the framed text: the selection is dropped
   onDeselect: () => void;
-  // the cross on the frame of the selected block
-  onDelete: (key: string) => void;
-  deleteLabel: string;
+  // the cross on a frame: removes the block, or hides one of its two parts once it is split
+  onCross: (key: string, element: ElementId) => void;
+  // the "split" button on the frame of a whole block
+  onSplit: (key: string) => void;
+  labels: { delete: string; split: string; hideText: string; hideKeyWord: string };
   // dx / dy since the start of the drag; done = the finger / mouse was released
   onDrag: (key: string, element: ElementId, dx: number, dy: number, done: boolean) => void;
 };
@@ -87,13 +92,16 @@ function pickable(
   height: number,
   // false while the caption is mounted but not on screen yet: it cannot be touched
   shown = true,
+  // a block selected shuts the other blocks out (they may sit at the same place); the two parts
+  // of a split block do not shut each other out
+  exclusive = true,
 ): CSSProperties {
   if (!editor || !element) return {};
   const selected = editor.selected?.key === key && editor.selected.element === element;
   return {
     // while another text is selected, this one (maybe still hidden, at the same place) cannot catch
     // the touch meant for the selected one
-    pointerEvents: !shown || (editor.selected && !selected) ? "none" : "auto",
+    pointerEvents: !shown || (exclusive && editor.selected && !selected) ? "none" : "auto",
     cursor: selected ? "grab" : "default",
     touchAction: "none",
     outline: selected ? `${Math.max(2, height * 0.003)}px dashed var(--color-brand)` : undefined,
@@ -173,6 +181,9 @@ type WordProps = {
   shift?: string;
   zIndex?: number;
   pick?: { id: string; style: CSSProperties };
+  // the key word of a split block, hidden on the video; and the cross shown on its frame
+  veiled?: boolean;
+  badge?: ReactNode;
 };
 
 export type LinePlace = { before: number; middle: number };
@@ -322,6 +333,8 @@ function Word({
   shift,
   zIndex,
   pick,
+  veiled,
+  badge,
 }: WordProps) {
   const highlight = style.active;
   // Arabic is read from right to left: wipes, typewriter and karaoke fill start on the right
@@ -427,7 +440,7 @@ function Word({
         fontSize: fontPx,
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
-        opacity: motion.opacity * upcoming,
+        opacity: veiled ? 0 : motion.opacity * upcoming,
         transform: `${shift ?? ""} translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
         willChange: "transform, opacity",
         filter: filterFor(look, motion),
@@ -440,6 +453,7 @@ function Word({
         WebkitMaskImage: wipeMask,
       }}
     >
+      {badge}
       {drawMs > 0 && look.box && drawn > 0 ? (
         <DrawnBox box={look.box} drawn={drawn} rtl={rtl} />
       ) : null}
@@ -608,6 +622,87 @@ function fitPage(
   };
 }
 
+// A small round button on the corner of a framed text: the cross, or "split". Placed from the top
+// right corner towards the left (slot 0, 1...). It is never part of the drag.
+function Badge({
+  label,
+  slot,
+  size,
+  glyph,
+  side = false,
+  onActivate,
+}: {
+  label: string;
+  slot: number;
+  size: number;
+  glyph: "cross" | "split";
+  // beside the frame (a part of a split block) instead of on its corner (a whole block)
+  side?: boolean;
+  onActivate: () => void;
+}) {
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      data-caption-badge=""
+      aria-label={label}
+      title={label}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation();
+        onActivate();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        onActivate();
+      }}
+      style={{
+        position: "absolute",
+        top: side ? "50%" : -size * 0.7,
+        marginTop: side ? -size / 2 : undefined,
+        right: side ? -size * 1.5 : -size * 0.7 + slot * size * 1.2,
+        zIndex: 6,
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        pointerEvents: "auto",
+        background: "var(--color-brand)",
+        color: "var(--color-on-brand)",
+      }}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width={size * 0.55}
+        height={size * 0.55}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        {glyph === "cross" ? (
+          <path d="M6 6l12 12M18 6L6 18" />
+        ) : (
+          <>
+            <rect x="3" y="5" width="7" height="14" rx="1.5" />
+            <rect x="14" y="5" width="7" height="14" rx="1.5" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
+
+// a caption can be touched this long after it appears
+const ENTRY_GRACE_MS = 150;
+
 function PageBlock({
   page,
   style,
@@ -636,8 +731,18 @@ function PageBlock({
   const keyWord = placementOf(moves, key, "emphasis");
   // the whole block moved as one
   const blockPlace = placementOf(moves, key, "block");
-  const blockSelected = editor?.selected?.key === key && editor.selected.element === "block";
+  const picked = editor?.selected?.key === key ? editor.selected.element : null;
+  const blockSelected = picked === "block";
   const crossPx = height * 0.045;
+  // a split block shows its text and its key word as two parts that move and hide on their own
+  const canSplit =
+    page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis);
+  const split = canSplit && isSplit(moves, key);
+  const hidden = hiddenParts(moves, key);
+  const textPlace = placementOf(moves, key, "text");
+  // not touchable while it is still entering: it then sits, nearly invisible, over the previous one
+  const live = timeMs >= page.start + ENTRY_GRACE_MS;
+  const firstTextLine = elements.findIndex((one) => one !== "emphasis");
 
   return (
     <div
@@ -654,12 +759,12 @@ function PageBlock({
       }}
     >
       <div
-        data-caption-element={editor ? `${key}|block` : undefined}
+        data-caption-element={editor && !split ? `${key}|block` : undefined}
         // reachable with the keyboard too (Enter selects it)
-        tabIndex={editor ? 0 : undefined}
-        role={editor ? "button" : undefined}
+        tabIndex={editor && !split ? 0 : undefined}
+        role={editor && !split ? "button" : undefined}
         style={{
-          ...pickable(editor, key, "block", height, timeMs >= page.start),
+          ...(split ? {} : pickable(editor, key, "block", height, live)),
           position: "relative",
           width: "max-content",
           maxWidth: "100%",
@@ -671,54 +776,25 @@ function PageBlock({
           textAlign: "center",
         }}
       >
-        {editor && blockSelected ? (
-          <span
-            role="button"
-            tabIndex={0}
-            data-caption-delete=""
-            aria-label={editor.deleteLabel}
-            title={editor.deleteLabel}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => {
-              event.stopPropagation();
-              editor.onDelete(key);
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" && event.key !== " ") return;
-              event.preventDefault();
-              event.stopPropagation();
-              editor.onDelete(key);
-            }}
-            style={{
-              position: "absolute",
-              top: -crossPx * 0.7,
-              right: -crossPx * 0.7,
-              zIndex: 6,
-              width: crossPx,
-              height: crossPx,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              pointerEvents: "auto",
-              background: "var(--color-brand)",
-              color: "var(--color-on-brand)",
-            }}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width={crossPx * 0.55}
-              height={crossPx * 0.55}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={3}
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </span>
+        {editor && blockSelected && !split ? (
+          <>
+            <Badge
+              label={editor.labels.delete}
+              slot={0}
+              size={crossPx}
+              glyph="cross"
+              onActivate={() => editor.onCross(key, "block")}
+            />
+            {canSplit ? (
+              <Badge
+                label={editor.labels.split}
+                slot={1}
+                size={crossPx}
+                glyph="split"
+                onActivate={() => editor.onSplit(key)}
+              />
+            ) : null}
+          </>
         ) : null}
         {lines.map((line, lineIndex) => {
           const lengths = line.map(
@@ -748,13 +824,36 @@ function PageBlock({
             holdsKeyWord && keyWord.layer && !place?.layer
               ? layerIndex(keyWord.layer)
               : layerIndex(place?.layer);
+          // once split: this line belongs to the text, or is the key word's own line
+          const part = element === "emphasis" ? "emphasis" : "text";
+          const partHidden = split && hidden[part];
+          const placed =
+            split && part === "text"
+              ? {
+                  x: (place?.x ?? 0) + textPlace.x,
+                  y: (place?.y ?? 0) + textPlace.y,
+                  layer: place?.layer,
+                }
+              : place;
+          const partBadge =
+            editor &&
+            split &&
+            picked === part &&
+            (part === "emphasis" || lineIndex === firstTextLine);
           return (
             <div
               key={lineIndex}
+              data-caption-element={editor && split ? `${key}|${part}` : undefined}
+              tabIndex={editor && split && !partHidden ? 0 : undefined}
+              role={editor && split && !partHidden ? "button" : undefined}
               style={{
+                ...(editor && split
+                  ? pickable(editor, key, part, height, live && !partHidden, false)
+                  : {}),
+                opacity: partHidden ? 0 : undefined,
                 position: "relative",
                 zIndex: lineLayer,
-                transform: place ? shiftOf(place, width, height) : undefined,
+                transform: placed ? shiftOf(placed, width, height) : undefined,
                 display: "flex",
                 // lines are cut by layoutLines and sized by fitPage: the browser never wraps them
                 flexWrap: "nowrap",
@@ -771,6 +870,16 @@ function PageBlock({
                   : undefined,
               }}
             >
+              {partBadge && editor ? (
+                <Badge
+                  label={part === "text" ? editor.labels.hideText : editor.labels.hideKeyWord}
+                  slot={0}
+                  size={crossPx}
+                  glyph="cross"
+                  side
+                  onActivate={() => editor.onCross(key, part)}
+                />
+              ) : null}
               {line.map((wordIndex, position) => {
                 const word = page.words[wordIndex];
                 if (!word) return null;
@@ -781,6 +890,34 @@ function PageBlock({
                     key={wordIndex}
                     shift={ownKeyWord ? shiftOf(keyWord, width, height) : undefined}
                     zIndex={ownKeyWord ? layerIndex(keyWord.layer) : 1}
+                    veiled={ownKeyWord && split && hidden.emphasis}
+                    pick={
+                      ownKeyWord && editor && split
+                        ? {
+                            id: `${key}|emphasis`,
+                            style: pickable(
+                              editor,
+                              key,
+                              "emphasis",
+                              height,
+                              live && !hidden.emphasis,
+                              false,
+                            ),
+                          }
+                        : undefined
+                    }
+                    badge={
+                      ownKeyWord && editor && split && picked === "emphasis" ? (
+                        <Badge
+                          label={editor.labels.hideKeyWord}
+                          slot={0}
+                          size={crossPx}
+                          glyph="cross"
+                          side
+                          onActivate={() => editor.onCross(key, "emphasis")}
+                        />
+                      ) : undefined
+                    }
                     word={word}
                     look={look}
                     style={style}
@@ -893,8 +1030,7 @@ export function CaptionLayer({
       // while a block is selected: a touch away from it then only drops the selection.
       style={{ pointerEvents: editor.selected ? "auto" : "none" }}
       onPointerDown={(event) => {
-        if (event.target instanceof Element && event.target.closest("[data-caption-delete]"))
-          return;
+        if (event.target instanceof Element && event.target.closest("[data-caption-badge]")) return;
         const target = targetOf(event);
         const picked = elementOf(target);
         if (!target || !picked) {

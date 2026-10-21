@@ -1,12 +1,24 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, RotateCcw, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  EyeOff,
+  Combine,
+  RotateCcw,
+  SquareSplitHorizontal,
+  Trash2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { MOVE_STEP_PCT } from "./moves";
+import { MOVE_STEP_PCT, type PartId } from "./moves";
 
 // Holding an arrow keeps moving the text: a first step at once, then a steady repeat.
 const REPEAT_DELAY_MS = 350;
@@ -175,28 +187,62 @@ function Toggle({
   );
 }
 
+// A button of the window (large enough for a finger).
+function Action({
+  icon: Icon,
+  label,
+  onClick,
+  danger,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "focus-visible:ring-focus border-border flex min-h-11 items-center gap-2 rounded-xl border px-3 text-start text-sm transition-colors outline-none focus-visible:ring-2",
+        danger
+          ? "text-danger hover:border-danger"
+          : "text-text hover:border-brand-border hover:text-brand",
+      )}
+    >
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
+
 // Moving the text picked on the video: arrows (or a drag on the video), and the choice between this
 // block only and every block of the video. A whole block can also be removed from here.
 export function MovePanel({
   text,
-  isKeyWord,
-  isBlock,
+  kind,
+  canSplit,
   canReset,
   everyBlock,
   apart,
   showApart,
   onShift,
   onReset,
+  onSplit,
+  onMerge,
+  onHide,
   onDelete,
+  onPart,
   onEveryBlock,
   onApart,
   onDone,
 }: {
   // the words of the picked text, shown in the title
   text: string;
-  isKeyWord: boolean;
-  // the whole caption block is picked (not one of its parts)
-  isBlock: boolean;
+  // the whole block, or one of the two parts of a split block
+  kind: "block" | PartId;
+  // the block has a text and a key word: it can be split
+  canSplit: boolean;
   canReset: boolean;
   everyBlock: boolean;
   apart: boolean;
@@ -204,7 +250,12 @@ export function MovePanel({
   showApart: boolean;
   onShift: (dx: number, dy: number) => void;
   onReset: () => void;
+  onSplit: () => void;
+  onMerge: () => void;
+  // hide the part on the video (the words stay), or remove its words for good
+  onHide: () => void;
   onDelete: () => void;
+  onPart: (part: PartId) => void;
   onEveryBlock: (everyBlock: boolean) => void;
   onApart: (apart: boolean) => void;
   onDone: () => void;
@@ -265,7 +316,11 @@ export function MovePanel({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 id="move-panel-title" className="text-text text-base font-semibold">
-            {isBlock ? t("titleBlock") : isKeyWord ? t("titleKeyWord") : t("title")}
+            {kind === "block"
+              ? t("titleBlock")
+              : kind === "emphasis"
+                ? t("titleKeyWord")
+                : t("title")}
           </h3>
           <p className="text-text-2 truncate text-sm">« {text} »</p>
         </div>
@@ -280,18 +335,59 @@ export function MovePanel({
         </button>
       </div>
 
+      {kind !== "block" ? (
+        <div role="group" aria-label={t("titleBlock")} className="grid grid-cols-2 gap-2">
+          {(
+            [
+              ["text", t("partText")],
+              ["emphasis", t("partKeyWord")],
+            ] as const
+          ).map(([part, label]) => (
+            <button
+              key={part}
+              type="button"
+              aria-pressed={kind === part}
+              onClick={() => onPart(part)}
+              className={cn(
+                "focus-visible:ring-focus min-h-11 rounded-xl border px-3 text-sm transition-colors outline-none focus-visible:ring-2",
+                kind === part
+                  ? "border-brand bg-brand/10 text-text font-semibold"
+                  : "border-border text-text-2 hover:border-brand-border hover:text-text",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="flex flex-row items-center gap-4 sm:gap-6">
         <DirectionPad onShift={onShift} onReset={onReset} canReset={canReset} />
-        {isBlock ? (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="text-danger border-border hover:border-danger focus-visible:ring-focus flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm transition-colors outline-none focus-visible:ring-2"
-          >
-            <Trash2 className="size-4 shrink-0" aria-hidden="true" />
-            {t("deleteBlock")}
-          </button>
-        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {kind === "block" ? (
+            <>
+              {canSplit ? (
+                <Action icon={SquareSplitHorizontal} label={t("split")} onClick={onSplit} />
+              ) : null}
+              <Action icon={Trash2} label={t("deleteBlock")} onClick={onDelete} danger />
+            </>
+          ) : (
+            <>
+              <Action icon={Combine} label={t("merge")} onClick={onMerge} />
+              <Action
+                icon={EyeOff}
+                label={kind === "text" ? t("hideText") : t("hideKeyWord")}
+                onClick={onHide}
+              />
+              <Action
+                icon={Trash2}
+                label={kind === "text" ? t("deleteText") : t("deleteKeyWord")}
+                onClick={onDelete}
+                danger
+              />
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">

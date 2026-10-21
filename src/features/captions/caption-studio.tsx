@@ -24,6 +24,7 @@ import {
   usePublishCaptionPresetId,
   useBlockRequest,
   usePublishLostMoves,
+  usePublishSplitBlocks,
   useRequestBlock,
   usePublishTranscriptVisible,
 } from "./caption-words";
@@ -32,21 +33,25 @@ import { applyColors, type CaptionColors } from "./colors";
 import { MovePanel } from "./move-panel";
 import {
   blockKey,
+  hiddenParts,
+  isSplit,
   lostBlockKeys,
   hasSharedMoves,
   isApart,
-  lineElements,
   placementOf,
   resetElement,
   setApart,
+  setHidden,
+  setSplit,
   shiftElement,
   withStyleMoves,
   type CaptionMoves,
+  type PartId,
   type ElementId,
   type MoveTarget,
   type StyleMoves,
 } from "./moves";
-import { layoutLines } from "./motion";
+import type { SplitBlocks } from "./caption-words";
 import { paginate } from "./paginate";
 import type { CaptionEditor } from "./remotion/captioned-video";
 import { CAPTION_PRESETS, CARD_LIGHTS, DEFAULT_PRESET, PRESET_IDS, type PresetId } from "./presets";
@@ -282,7 +287,12 @@ export function CaptionStudio({
     setHandledRequest(blockRequest.id);
     if (blockRequest.kind === "select") {
       const page = pages.find((candidate) => candidate.firstWord >= blockRequest.firstWord);
-      if (page) setPicked({ key: blockKey(page), element: "block" });
+      if (page) {
+        const key = blockKey(page);
+        const both =
+          page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis);
+        setPicked({ key, element: both && isSplit(styleMoves, key) ? "text" : "block" });
+      }
     }
   }
 
@@ -292,6 +302,47 @@ export function CaptionStudio({
     if (page) requestBlock?.("delete", page.firstWord);
     setPicked(null);
   }
+  // Splitting a block in two parts (its text, its key word) and putting it back.
+  function splitBlock(key: string) {
+    updateMoves(setSplit(freshMoves(), key, true), 0);
+    setPicked({ key, element: "text" });
+  }
+  function mergeBlock(key: string) {
+    updateMoves(setSplit(freshMoves(), key, false), 0);
+    setPicked(null);
+  }
+  // A part hidden on the video keeps its words; "show" is asked from the transcript list.
+  function hidePart(key: string, part: PartId) {
+    updateMoves(setHidden(freshMoves(), key, part, true), 0);
+    setPicked(null);
+  }
+  function showPart(key: string, part: PartId) {
+    updateMoves(setHidden(freshMoves(), key, part, false), 0);
+  }
+  // Removing the words of a part for good: the transcript does it (one step of its undo history).
+  function deletePart(key: string, part: PartId) {
+    const page = pages.find((candidate) => blockKey(candidate) === key);
+    if (page) requestBlock?.(part === "text" ? "delete-text" : "delete-emphasis", page.firstWord);
+    setPicked(null);
+  }
+
+  // The split blocks, told to the transcript list (it shows "merge" / "show again" icons).
+  const splitInfo = useMemo(() => {
+    const info: SplitBlocks = {};
+    for (const page of pages) {
+      const key = blockKey(page);
+      const both =
+        page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis);
+      if (both && isSplit(styleMoves, key)) info[page.firstWord] = hiddenParts(styleMoves, key);
+    }
+    return info;
+  }, [pages, styleMoves]);
+  const splitKey = JSON.stringify(splitInfo);
+  const publishSplit = usePublishSplitBlocks();
+  useEffect(() => {
+    publishSplit?.(JSON.parse(splitKey) as SplitBlocks);
+  }, [publishSplit, splitKey]);
+
   // Moves left behind by a change of the text: they are kept (undo brings the block, and its move,
   // back) and the transcript tab tells the user in its notice.
   const lostCount = useMemo(() => lostBlockKeys(styleMoves, pages).length, [styleMoves, pages]);
@@ -322,6 +373,10 @@ export function CaptionStudio({
     everyBlock,
     update: updateMoves,
     remove: deleteBlock,
+    split: splitBlock,
+    merge: mergeBlock,
+    hide: hidePart,
+    show: showPart,
   });
   useEffect(() => {
     latestMoves.current = {
@@ -329,9 +384,30 @@ export function CaptionStudio({
       everyBlock,
       update: updateMoves,
       remove: deleteBlock,
+      split: splitBlock,
+      merge: mergeBlock,
+      hide: hidePart,
+      show: showPart,
     };
   });
+
+  // The transcript list asks for a block to be merged back, or a hidden part to be shown again.
+  const handledMoves = useRef(blockRequest?.id ?? 0);
+  useEffect(() => {
+    if (!blockRequest || blockRequest.id === handledMoves.current) return;
+    handledMoves.current = blockRequest.id;
+    const page = pages.find((candidate) => candidate.firstWord >= blockRequest.firstWord);
+    if (!page) return;
+    const key = blockKey(page);
+    const latest = latestMoves.current;
+    if (blockRequest.kind === "merge") latest.merge(key);
+    else if (blockRequest.kind === "show-text") latest.show(key, "text");
+    else if (blockRequest.kind === "show-emphasis") latest.show(key, "emphasis");
+  }, [blockRequest, pages]);
   const deleteLabel = t("move.deleteBlock");
+  const splitLabel = t("move.split");
+  const hideTextLabel = t("move.hideText");
+  const hideKeyWordLabel = t("move.hideKeyWord");
   const editor = useMemo<CaptionEditor>(
     () => ({
       selected: picked,
@@ -343,8 +419,18 @@ export function CaptionStudio({
         dragBase.current = null;
         setPicked(null);
       },
-      onDelete: (key) => latestMoves.current.remove(key),
-      deleteLabel,
+      onCross: (key, element) => {
+        const latest = latestMoves.current;
+        if (element === "text" || element === "emphasis") latest.hide(key, element);
+        else latest.remove(key);
+      },
+      onSplit: (key) => latestMoves.current.split(key),
+      labels: {
+        delete: deleteLabel,
+        split: splitLabel,
+        hideText: hideTextLabel,
+        hideKeyWord: hideKeyWordLabel,
+      },
       onDrag: (key, element, dx, dy, done) => {
         const latest = latestMoves.current;
         if (dragBase.current === null) dragBase.current = latest.fresh();
@@ -358,37 +444,26 @@ export function CaptionStudio({
         if (done) dragBase.current = null;
       },
     }),
-    [picked, deleteLabel],
+    [picked, deleteLabel, splitLabel, hideTextLabel, hideKeyWordLabel],
   );
 
-  // what the picked text says (title of the panel)
+  // what the picked text says (title of the panel), and what can be done with it
   const pickedInfo = useMemo(() => {
     if (!picked) return null;
     const page = pages.find((candidate) => blockKey(candidate) === picked.key);
-    if (!page) return { text: "", isKeyWord: picked.element === "emphasis", isBlock: false };
-    if (picked.element === "block") {
-      return {
-        text: page.words.map((word) => word.text).join(" "),
-        isKeyWord: false,
-        isBlock: true,
-      };
-    }
-    if (picked.element === "emphasis") {
-      return {
-        text: page.words.find((word) => word.emphasis)?.text ?? "",
-        isKeyWord: true,
-        isBlock: false,
-      };
-    }
-    const lines = layoutLines(page.words, current);
-    const elements = lineElements(lines, page.words, current.layout === "stack");
-    const line = lines[elements.indexOf(picked.element)] ?? [];
+    const kind: "block" | PartId =
+      picked.element === "text" || picked.element === "emphasis" ? picked.element : "block";
+    if (!page) return { text: "", kind, canSplit: false };
+    const chosen = page.words.filter((word) =>
+      kind === "block" ? true : kind === "emphasis" ? word.emphasis : !word.emphasis,
+    );
     return {
-      text: line.map((index) => page.words[index]?.text ?? "").join(" "),
-      isKeyWord: false,
-      isBlock: false,
+      text: chosen.map((word) => word.text).join(" "),
+      kind,
+      canSplit:
+        page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis),
     };
-  }, [picked, pages, current]);
+  }, [picked, pages]);
 
   const placement = picked ? placementOf(styleMoves, picked.key, picked.element) : null;
 
@@ -405,8 +480,8 @@ export function CaptionStudio({
     picked && target && pickedInfo && placement ? (
       <MovePanel
         text={pickedInfo.text}
-        isKeyWord={pickedInfo.isKeyWord}
-        isBlock={pickedInfo.isBlock}
+        kind={pickedInfo.kind}
+        canSplit={pickedInfo.canSplit}
         canReset={placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined}
         everyBlock={everyBlock}
         apart={isApart(styleMoves, picked.key)}
@@ -419,7 +494,16 @@ export function CaptionStudio({
           if (target.everyBlock) next = resetElement(next, target);
           updateMoves(next, 0);
         }}
-        onDelete={() => deleteBlock(picked.key)}
+        onSplit={() => splitBlock(picked.key)}
+        onMerge={() => mergeBlock(picked.key)}
+        onHide={() => {
+          if (pickedInfo.kind !== "block") hidePart(picked.key, pickedInfo.kind);
+        }}
+        onDelete={() => {
+          if (pickedInfo.kind === "block") deleteBlock(picked.key);
+          else deletePart(picked.key, pickedInfo.kind);
+        }}
+        onPart={(part) => setPicked({ key: picked.key, element: part })}
         onEveryBlock={setEveryBlock}
         onApart={(apart) => updateMoves(setApart(freshMoves(), picked.key, apart), 0)}
         onDone={() => setPicked(null)}

@@ -6,6 +6,8 @@ import {
   Copy,
   Download,
   Loader2,
+  Combine,
+  Eye,
   Merge,
   Move,
   ReplaceAll,
@@ -44,6 +46,7 @@ import {
   useLostMoves,
   usePublishCaptionWords,
   useRequestBlock,
+  useSplitBlocks,
   useTranscriptVisible,
 } from "../captions/caption-words";
 import { blockShownAtMs, paginate } from "../captions/paginate";
@@ -61,6 +64,7 @@ import {
 import {
   deleteRange,
   deleteWord,
+  deleteWords,
   editWord,
   findMatchIndices,
   replaceAll,
@@ -539,6 +543,13 @@ export function TranscriptView({
   // The cross on the frame of a block, on the video: the words of that block are removed here (one
   // step of the undo history, so it can be taken back).
   const blockRequest = useBlockRequest();
+  const splitBlocks = useSplitBlocks();
+  // merge a split block back, or show one of its hidden parts again: the video side does it
+  const blockAction = useStable(
+    (kind: "merge" | "show-text" | "show-emphasis", firstWord: number) => {
+      requestBlock?.(kind, firstWord);
+    },
+  );
   const handledBlock = useRef(blockRequest?.id ?? 0);
   const removeBlock = useStable((firstWord: number) => {
     const line = lines.find((one) => one.word_start <= firstWord && firstWord <= one.word_end);
@@ -549,11 +560,27 @@ export function TranscriptView({
     setSelected(null);
     setNotice(t("edit.blockDeleted"));
   });
+  // The words of one part of a split block (its text, or its key word) removed for good.
+  const removePart = useStable((firstWord: number, part: "text" | "emphasis") => {
+    const page = pages.find((one) => one.firstWord === firstWord);
+    if (!page) return;
+    const indices = page.words.flatMap((word, position) =>
+      word.emphasis === (part === "emphasis") ? [page.firstWord + position] : [],
+    );
+    const next = deleteWords(history.present, indices);
+    if (!next) return;
+    commit(next);
+    setSelected(null);
+    setNotice(t("edit.wordsDeleted"));
+  });
   useEffect(() => {
     if (!blockRequest || blockRequest.id === handledBlock.current) return;
     handledBlock.current = blockRequest.id;
     if (blockRequest.kind === "delete") removeBlock(blockRequest.firstWord);
-  }, [blockRequest, removeBlock]);
+    else if (blockRequest.kind === "delete-text") removePart(blockRequest.firstWord, "text");
+    else if (blockRequest.kind === "delete-emphasis")
+      removePart(blockRequest.firstWord, "emphasis");
+  }, [blockRequest, removeBlock, removePart]);
   const onCommitWord = useStable(commitWord);
   const onRemoveWord = useStable(removeWord);
   const onSplitAtSelected = useStable(splitAtSelected);
@@ -565,6 +592,10 @@ export function TranscriptView({
     () =>
       lines.map((line, lineIndex) => {
         const lineStart = words[line.word_start]?.start ?? 0;
+        // this line's block, when it is split in two parts on the video
+        const block = pages.find((one) => one.firstWord >= line.word_start);
+        const info = block ? splitBlocks[block.firstWord] : undefined;
+        const split = block && info ? { firstWord: block.firstWord, ...info } : null;
         return (
           <div
             key={line.word_start}
@@ -648,6 +679,47 @@ export function TranscriptView({
                 >
                   <Move aria-hidden="true" />
                 </Button>
+                {split ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="ms-0.5 size-8 align-middle"
+                      title={t("edit.mergeBlock")}
+                      aria-label={t("edit.mergeBlock")}
+                      onClick={() => blockAction("merge", split.firstWord)}
+                    >
+                      <Combine aria-hidden="true" />
+                    </Button>
+                    {split.text ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="ms-0.5 size-8 align-middle"
+                        title={t("edit.showText")}
+                        aria-label={t("edit.showText")}
+                        onClick={() => blockAction("show-text", split.firstWord)}
+                      >
+                        <Eye aria-hidden="true" />
+                      </Button>
+                    ) : null}
+                    {split.emphasis ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="ms-0.5 size-8 align-middle"
+                        title={t("edit.showKeyWord")}
+                        aria-label={t("edit.showKeyWord")}
+                        onClick={() => blockAction("show-emphasis", split.firstWord)}
+                      >
+                        <Eye aria-hidden="true" />
+                      </Button>
+                    ) : null}
+                  </>
+                ) : null}
               </p>
             </div>
           </div>
@@ -667,6 +739,9 @@ export function TranscriptView({
       openWord,
       mergeLine,
       moveBlock,
+      pages,
+      splitBlocks,
+      blockAction,
       onCommitWord,
       onRemoveWord,
       onSplitAtSelected,

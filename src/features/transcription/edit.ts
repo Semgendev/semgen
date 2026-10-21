@@ -112,6 +112,20 @@ export function deleteWord(draft: TranscriptDraft, index: number): TranscriptDra
   return withSegments(words, segments);
 }
 
+// Removes the given words (the text of a block without its key word, or the key word alone). The
+// transcript is never emptied: null when nothing could be removed.
+export function deleteWords(draft: TranscriptDraft, indices: number[]): TranscriptDraft | null {
+  let current = draft;
+  let removed = false;
+  for (const index of [...new Set(indices)].sort((a, b) => b - a)) {
+    const next = deleteWord(current, index);
+    if (!next) continue;
+    current = next;
+    removed = true;
+  }
+  return removed ? current : null;
+}
+
 // Removes the words from `from` to `to` (a whole caption block). The transcript
 // is never emptied (one word stays): null when nothing could be removed.
 export function deleteRange(
