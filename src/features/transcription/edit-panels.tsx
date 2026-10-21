@@ -43,31 +43,42 @@ export function InlineWordEditor({
   }
 
   return (
-    <input
-      value={value}
-      aria-label={t("wordLabel")}
-      maxLength={MAX_WORD_LENGTH * 3}
-      style={{ width: `${Math.max(value.length, 2) + 2}ch` }}
-      autoFocus
-      autoComplete="off"
-      spellCheck
-      onFocus={(event) => event.currentTarget.select()}
-      onChange={(event) => onChange(event.target.value)}
-      // Leaving an emptied field never deletes by accident: only Enter does.
-      onBlur={() => finish(() => (value.trim() ? onCommit() : onCancel()))}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          if (!value.trim()) finish(onDelete);
-          else if (event.shiftKey && canSplit) finish(onSplit);
-          else finish(onCommit);
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-          finish(onCancel);
-        }
-      }}
-      className="border-brand bg-surface text-text focus-visible:ring-ring box-content max-w-full rounded border px-1 py-0 align-baseline outline-none focus-visible:ring-2"
-    />
+    // A hidden copy of the text gives the field exactly the width of the word: no empty space.
+    <span className="inline-grid align-baseline">
+      <span
+        aria-hidden="true"
+        className="invisible col-start-1 row-start-1 ps-0.5 pe-[1.5ch] whitespace-pre"
+      >
+        {value || " "}
+      </span>
+      <input
+        value={value}
+        aria-label={t("wordLabel")}
+        maxLength={MAX_WORD_LENGTH * 3}
+        autoFocus
+        autoComplete="off"
+        spellCheck
+        onFocus={(event) => {
+          const end = event.currentTarget.value.length;
+          event.currentTarget.setSelectionRange(end, end);
+        }}
+        onChange={(event) => onChange(event.target.value)}
+        // Leaving an emptied field never deletes by accident: only Enter does.
+        onBlur={() => finish(() => (value.trim() ? onCommit() : onCancel()))}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            if (!value.trim()) finish(onDelete);
+            else if (event.shiftKey && canSplit) finish(onSplit);
+            else finish(onCommit);
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            finish(onCancel);
+          }
+        }}
+        className="ring-brand bg-surface text-text col-start-1 row-start-1 w-0 min-w-full rounded py-0 ps-0.5 pe-[1.5ch] ring-1 outline-none"
+      />
+    </span>
   );
 }
 

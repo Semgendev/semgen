@@ -43,7 +43,7 @@ import {
 import {
   blockKey,
   ELEMENT_IDS,
-  hiddenParts,
+  isHidden,
   isSplit,
   layerIndex,
   lineElements,
@@ -69,7 +69,7 @@ export type CaptionEditor = {
   onCross: (key: string, element: ElementId) => void;
   // the "split" button on the frame of a whole block
   onSplit: (key: string) => void;
-  labels: { delete: string; split: string; hideText: string; hideKeyWord: string };
+  labels: { delete: string; split: string; deleteText: string; deleteKeyWord: string };
   // dx / dy since the start of the drag; done = the finger / mouse was released
   onDrag: (key: string, element: ElementId, dx: number, dy: number, done: boolean) => void;
 };
@@ -181,8 +181,7 @@ type WordProps = {
   shift?: string;
   zIndex?: number;
   pick?: { id: string; style: CSSProperties };
-  // the key word of a split block, hidden on the video; and the cross shown on its frame
-  veiled?: boolean;
+  // the cross shown on the frame of the key word
   badge?: ReactNode;
 };
 
@@ -333,7 +332,6 @@ function Word({
   shift,
   zIndex,
   pick,
-  veiled,
   badge,
 }: WordProps) {
   const highlight = style.active;
@@ -440,7 +438,7 @@ function Word({
         fontSize: fontPx,
         letterSpacing: `${look.letterSpacingEm}em`,
         lineHeight: 1.08,
-        opacity: veiled ? 0 : motion.opacity * upcoming,
+        opacity: motion.opacity * upcoming,
         transform: `${shift ?? ""} translate3d(0, ${motion.translateYEm}em, 0) scale(${scale})`,
         willChange: "transform, opacity",
         filter: filterFor(look, motion),
@@ -738,10 +736,11 @@ function PageBlock({
   const canSplit =
     page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis);
   const split = canSplit && isSplit(moves, key);
-  const hidden = hiddenParts(moves, key);
+  // hidden on the video (the eye of the transcript list): the whole block, its frame and all
+  const blockHidden = isHidden(moves, key);
   const textPlace = placementOf(moves, key, "text");
   // not touchable while it is still entering: it then sits, nearly invisible, over the previous one
-  const live = timeMs >= page.start + ENTRY_GRACE_MS;
+  const live = timeMs >= page.start + ENTRY_GRACE_MS && !blockHidden;
   const firstTextLine = elements.findIndex((one) => one !== "emphasis");
 
   return (
@@ -766,6 +765,7 @@ function PageBlock({
         style={{
           ...(split ? {} : pickable(editor, key, "block", height, live)),
           position: "relative",
+          opacity: blockHidden ? 0 : undefined,
           width: "max-content",
           maxWidth: "100%",
           transform: shiftOf(blockPlace, width, height),
@@ -826,7 +826,6 @@ function PageBlock({
               : layerIndex(place?.layer);
           // once split: this line belongs to the text, or is the key word's own line
           const part = element === "emphasis" ? "emphasis" : "text";
-          const partHidden = split && hidden[part];
           const placed =
             split && part === "text"
               ? {
@@ -844,13 +843,10 @@ function PageBlock({
             <div
               key={lineIndex}
               data-caption-element={editor && split ? `${key}|${part}` : undefined}
-              tabIndex={editor && split && !partHidden ? 0 : undefined}
-              role={editor && split && !partHidden ? "button" : undefined}
+              tabIndex={editor && split && !blockHidden ? 0 : undefined}
+              role={editor && split && !blockHidden ? "button" : undefined}
               style={{
-                ...(editor && split
-                  ? pickable(editor, key, part, height, live && !partHidden, false)
-                  : {}),
-                opacity: partHidden ? 0 : undefined,
+                ...(editor && split ? pickable(editor, key, part, height, live, false) : {}),
                 position: "relative",
                 zIndex: lineLayer,
                 transform: placed ? shiftOf(placed, width, height) : undefined,
@@ -872,7 +868,7 @@ function PageBlock({
             >
               {partBadge && editor ? (
                 <Badge
-                  label={part === "text" ? editor.labels.hideText : editor.labels.hideKeyWord}
+                  label={part === "text" ? editor.labels.deleteText : editor.labels.deleteKeyWord}
                   slot={0}
                   size={crossPx}
                   glyph="cross"
@@ -890,26 +886,18 @@ function PageBlock({
                     key={wordIndex}
                     shift={ownKeyWord ? shiftOf(keyWord, width, height) : undefined}
                     zIndex={ownKeyWord ? layerIndex(keyWord.layer) : 1}
-                    veiled={ownKeyWord && split && hidden.emphasis}
                     pick={
                       ownKeyWord && editor && split
                         ? {
                             id: `${key}|emphasis`,
-                            style: pickable(
-                              editor,
-                              key,
-                              "emphasis",
-                              height,
-                              live && !hidden.emphasis,
-                              false,
-                            ),
+                            style: pickable(editor, key, "emphasis", height, live, false),
                           }
                         : undefined
                     }
                     badge={
                       ownKeyWord && editor && split && picked === "emphasis" ? (
                         <Badge
-                          label={editor.labels.hideKeyWord}
+                          label={editor.labels.deleteKeyWord}
                           slot={0}
                           size={crossPx}
                           glyph="cross"

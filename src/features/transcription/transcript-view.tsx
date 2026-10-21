@@ -8,6 +8,7 @@ import {
   Loader2,
   Combine,
   Eye,
+  EyeOff,
   Merge,
   Move,
   ReplaceAll,
@@ -44,6 +45,9 @@ import {
   useBlockRequest,
   useCaptionPresetId,
   useLostMoves,
+  useMovesBridge,
+  useMovesSave,
+  usePickedBlock,
   usePublishCaptionWords,
   useRequestBlock,
   useSplitBlocks,
@@ -88,6 +92,8 @@ const MAX_UNDO_STEPS = 100;
 const AUTOSAVE_DELAY_MS = 1000;
 // how long a short notice stays next to the save status
 const NOTICE_MS = 4000;
+// a change that undo / redo can take back: a correction of the text, or a move on the video
+type Step = "words" | "moves";
 // an icon of the tools frame (a larger target on a phone)
 const TOOL_BUTTON = "size-11 rounded-lg hover:bg-surface sm:size-9";
 // the small frame around one tool (or one pair of tools)
@@ -232,6 +238,15 @@ export function TranscriptView({
     segments: transcript.segments,
   });
   const [history, setHistory] = useState<History>({ past: [], present: saved, future: [] });
+  // The order of the changes (corrections of the text, moves of the texts on the video): undo and
+  // redo take them back one by one, the last one first, whichever side made it.
+  const [steps, setSteps] = useState<{ undo: Step[]; redo: Step[] }>({ undo: [], redo: [] });
+  const movesBridge = useMovesBridge();
+  const movesSave = useMovesSave();
+  useEffect(() => {
+    movesBridge.onChange(() => setSteps((now) => ({ undo: [...now.undo, "moves"], redo: [] })));
+    return () => movesBridge.onChange(null);
+  }, [movesBridge]);
   const container = useRef<HTMLDivElement>(null);
 
   const { words } = history.present;
@@ -254,7 +269,10 @@ export function TranscriptView({
   const dirty = history.present !== saved;
   // Hidden behind the styles tab: nothing follows the video, so the lines are not drawn again.
   const visible = useTranscriptVisible();
-  const activeWord = visible ? findActiveWordIndex(words, timeMs) : -1;
+  // The blue word follows the video only while it plays (never while a word is open, nor after a
+  // click on the timeline: the seek can land on the word before).
+  const activeWord =
+    visible && selected === null && isPlaying() ? findActiveWordIndex(words, timeMs) : -1;
   const activeLine = activeWord >= 0 ? findSegmentIndex(lines, activeWord) : -1;
   const doubtCount = useMemo(() => words.filter(isLowConfidence).length, [words]);
   const matchIndices = useMemo(() => findMatchIndices(words, find, false), [words, find]);
@@ -279,11 +297,12 @@ export function TranscriptView({
       present: next,
       future: [],
     }));
+    setSteps((now) => ({ undo: [...now.undo, "words"], redo: [] }));
     setSaveState("idle");
     setNotice(null);
   }, []);
 
-  const undo = useCallback(() => {
+  const undoWords = useCallback(() => {
     setHistory((current) => {
       const previous = current.past[current.past.length - 1];
       if (!previous) return current;
@@ -298,7 +317,7 @@ export function TranscriptView({
     setSaveState("idle");
   }, []);
 
-  const redo = useCallback(() => {
+  const redoWords = useCallback(() => {
     setHistory((current) => {
       const [next, ...rest] = current.future;
       if (!next) return current;
@@ -309,10 +328,29 @@ export function TranscriptView({
     setSaveState("idle");
   }, []);
 
+  const undo = useCallback(() => {
+    const last = steps.undo[steps.undo.length - 1];
+    if (!last) return;
+    setSteps({ undo: steps.undo.slice(0, -1), redo: [last, ...steps.redo] });
+    if (last === "moves") movesBridge.undo();
+    else undoWords();
+  }, [steps, movesBridge, undoWords]);
+
+  const redo = useCallback(() => {
+    const [next, ...rest] = steps.redo;
+    if (!next) return;
+    setSteps({ undo: [...steps.undo, next], redo: rest });
+    if (next === "moves") movesBridge.redo();
+    else redoWords();
+  }, [steps, movesBridge, redoWords]);
+
   // Tapping a word moves the video there, pauses it, and opens the word for correction.
+  const requestBlock = useRequestBlock();
   const openWord = useCallback(
     (index: number, startMs: number, text: string) => {
       seek(startMs, false);
+      // working on a word lets go of the block being moved on the video
+      requestBlock?.("clear", 0);
       setEditText(text);
       setSelected(index);
       // the search is done: it folds and the next time it opens it is empty
@@ -320,7 +358,7 @@ export function TranscriptView({
       setFind("");
       setCurrentMatch(null);
     },
-    [seek],
+    [seek, requestBlock],
   );
 
   // Ctrl/Cmd+Z and Ctrl/Cmd+Y (inside a text field the browser keeps its own undo).
@@ -490,9 +528,15 @@ export function TranscriptView({
         const restored: TranscriptDraft = { words: result.words, segments: result.segments };
         setSaved(restored);
         setHistory({ past: [], present: restored, future: [] });
+        setSteps((now) => ({
+          undo: now.undo.filter((one) => one === "moves"),
+          redo: now.redo.filter((one) => one === "moves"),
+        }));
         setIsEdited(false);
         setSaveState("idle");
         setSelected(null);
+        // the moves, splits and hidden parts of the captions go back to the start too
+        requestBlock?.("reset-moves", 0);
         setNotice(t("edit.revertDone"));
         setRevertOpen(false);
       } else {
@@ -532,7 +576,6 @@ export function TranscriptView({
     setSelected(null);
   });
   // The icon of a line: its block is selected on the video (which goes to it) to be moved there.
-  const requestBlock = useRequestBlock();
   const moveBlock = useStable((firstWord: number, startMs: number) => {
     // the video goes to a moment where the whole block is on screen
     const page = pages.find((one) => one.firstWord >= firstWord);
@@ -544,12 +587,11 @@ export function TranscriptView({
   // step of the undo history, so it can be taken back).
   const blockRequest = useBlockRequest();
   const splitBlocks = useSplitBlocks();
+  const pickedBlock = usePickedBlock();
   // merge a split block back, or show one of its hidden parts again: the video side does it
-  const blockAction = useStable(
-    (kind: "merge" | "show-text" | "show-emphasis", firstWord: number) => {
-      requestBlock?.(kind, firstWord);
-    },
-  );
+  const blockAction = useStable((kind: "merge" | "toggle-hidden", firstWord: number) => {
+    requestBlock?.(kind, firstWord);
+  });
   const handledBlock = useRef(blockRequest?.id ?? 0);
   const removeBlock = useStable((firstWord: number) => {
     const line = lines.find((one) => one.word_start <= firstWord && firstWord <= one.word_end);
@@ -595,13 +637,30 @@ export function TranscriptView({
         // this line's block, when it is split in two parts on the video
         const block = pages.find((one) => one.firstWord >= line.word_start);
         const info = block ? splitBlocks[block.firstWord] : undefined;
-        const split = block && info ? { firstWord: block.firstWord, ...info } : null;
+        const split = block && info?.split ? { firstWord: block.firstWord } : null;
+        const hiddenBlock = Boolean(info?.hidden);
+        const beingMoved = block !== undefined && block.firstWord === pickedBlock;
         return (
           <div
             key={line.word_start}
             data-line-index={lineIndex}
-            className="group flex gap-3 leading-8"
+            data-moving={beingMoved ? "true" : undefined}
+            className="group data-[moving=true]:bg-brand/15 flex gap-3 leading-8"
           >
+            {/* the eye: the whole block is hidden on the video (its words stay), or shown again */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              aria-pressed={hiddenBlock}
+              disabled={!block}
+              title={hiddenBlock ? t("edit.showBlock") : t("edit.hideBlock")}
+              aria-label={hiddenBlock ? t("edit.showBlock") : t("edit.hideBlock")}
+              onClick={() => block && blockAction("toggle-hidden", block.firstWord)}
+            >
+              {hiddenBlock ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </Button>
             <button
               type="button"
               onClick={() => seek(lineStart)}
@@ -692,32 +751,6 @@ export function TranscriptView({
                     >
                       <Combine aria-hidden="true" />
                     </Button>
-                    {split.text ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="ms-0.5 size-8 align-middle"
-                        title={t("edit.showText")}
-                        aria-label={t("edit.showText")}
-                        onClick={() => blockAction("show-text", split.firstWord)}
-                      >
-                        <Eye aria-hidden="true" />
-                      </Button>
-                    ) : null}
-                    {split.emphasis ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="ms-0.5 size-8 align-middle"
-                        title={t("edit.showKeyWord")}
-                        aria-label={t("edit.showKeyWord")}
-                        onClick={() => blockAction("show-emphasis", split.firstWord)}
-                      >
-                        <Eye aria-hidden="true" />
-                      </Button>
-                    ) : null}
                   </>
                 ) : null}
               </p>
@@ -741,6 +774,7 @@ export function TranscriptView({
       moveBlock,
       pages,
       splitBlocks,
+      pickedBlock,
       blockAction,
       onCommitWord,
       onRemoveWord,
@@ -808,20 +842,28 @@ export function TranscriptView({
           className="flex min-w-0 flex-1 items-center gap-x-4 overflow-hidden whitespace-nowrap"
           aria-live="polite"
         >
-          {saveState === "error" ? (
+          {saveState === "error" || movesSave === "error" ? (
             <p className="text-danger flex items-center gap-2 text-sm">
               <CircleAlert className="size-4" aria-hidden="true" />
               {t("edit.saveFailed")}
-              <Button type="button" variant="outline" size="sm" onClick={save}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (saveState === "error") save();
+                  if (movesSave === "error") movesBridge.retry();
+                }}
+              >
                 {t("edit.retry")}
               </Button>
             </p>
-          ) : dirty || saving ? (
+          ) : dirty || saving || movesSave === "saving" ? (
             <p className="text-text-2 flex items-center gap-2 text-sm">
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               {t("edit.saving")}
             </p>
-          ) : saveState === "saved" ? (
+          ) : saveState === "saved" || movesSave === "saved" ? (
             <p className="text-text-2 flex items-center gap-2 text-sm">
               <Check className="text-success size-4" aria-hidden="true" />
               {t("edit.saved")}
@@ -870,7 +912,7 @@ export function TranscriptView({
               className={TOOL_BUTTON}
               aria-label={t("edit.undo")}
               title={t("edit.undo")}
-              disabled={history.past.length === 0}
+              disabled={steps.undo.length === 0}
               onClick={undo}
             >
               <Undo2 aria-hidden="true" />
@@ -883,7 +925,7 @@ export function TranscriptView({
               className={TOOL_BUTTON}
               aria-label={t("edit.redo")}
               title={t("edit.redo")}
-              disabled={history.future.length === 0}
+              disabled={steps.redo.length === 0}
               onClick={redo}
             >
               <Redo2 aria-hidden="true" />
@@ -936,7 +978,10 @@ export function TranscriptView({
         >
           {lineList}
         </div>
-        <div data-move-slot className="absolute end-5 top-3 z-20" />
+        <div
+          data-move-slot
+          className="pointer-events-none absolute inset-y-3 end-5 z-20 flex min-h-0 flex-col items-end overflow-y-auto overscroll-contain"
+        />
       </div>
 
       <Dialog

@@ -5,21 +5,63 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import type { TranscriptWord } from "../transcription/types";
 import { DEFAULT_PRESET, type PresetId } from "./presets";
 
-// The words shown as captions. The transcript editor publishes every correction here, so the
+// What the video side (the caption studio) and the transcript tab share.
+//
+// The words shown as captions: the transcript editor publishes every correction here, so the
 // captions on the video change at once, before the automatic save even happens.
 // The chosen style travels the other way: the transcript tab cuts the text like the video does.
 // (Only the style decides the cuts: colours, fonts and other adjustments never change them.)
-// A request about one caption block, from one side to the other: the transcript line asks the video
-// to select its block ("select"), the video asks the transcript to remove the block's words
-// ("delete"). firstWord = index of the first word of the block in the transcript.
-// The video side answers "select", "merge", "show-text" and "show-emphasis"; the transcript side
-// answers "delete", "delete-text" and "delete-emphasis" (it owns the words).
+
+// A request about one caption block, from one side to the other. firstWord = index of the first word
+// of the block in the transcript. The video side answers "select" (the icon of a line), "merge" and
+// "toggle-hidden" (the eye of a line); the transcript side answers "delete", "delete-text" and
+// "delete-emphasis" (it owns the words).
 export type BlockRequestKind =
-  "select" | "delete" | "merge" | "show-text" | "show-emphasis" | "delete-text" | "delete-emphasis";
+  | "select"
+  | "clear"
+  | "reset-moves"
+  | "delete"
+  | "merge"
+  | "toggle-hidden"
+  | "delete-text"
+  | "delete-emphasis";
 export type BlockRequest = { id: number; kind: BlockRequestKind; firstWord: number };
 
-// The split blocks of the chosen style, by the index of their first word, and which part is hidden.
-export type SplitBlocks = Record<number, { text: boolean; emphasis: boolean }>;
+// The blocks of the chosen style that are split in two parts or hidden on the video, by the index of
+// their first word (the transcript list shows the eye and the "merge" icon from it).
+export type SplitBlocks = Record<number, { split: boolean; hidden: boolean }>;
+
+export type SaveState = "idle" | "saving" | "saved" | "error";
+
+// Undo / redo and saving of the moves belong to the video side, while the buttons are on the
+// transcript side: one object that both sides plug into.
+export type MovesBridge = {
+  // the video side plugs its handlers in; the transcript side calls undo / redo / retry
+  setHandlers: (handlers: { undo: () => void; redo: () => void; retry: () => void }) => void;
+  undo: () => void;
+  redo: () => void;
+  retry: () => void;
+  // told by the video side at every undoable change of the moves; the transcript side listens
+  changed: () => void;
+  onChange: (listener: (() => void) | null) => void;
+};
+
+function createMovesBridge(): MovesBridge {
+  let handlers: { undo: () => void; redo: () => void; retry: () => void } | null = null;
+  let listener: (() => void) | null = null;
+  return {
+    setHandlers: (next) => {
+      handlers = next;
+    },
+    undo: () => handlers?.undo(),
+    redo: () => handlers?.redo(),
+    retry: () => handlers?.retry(),
+    changed: () => listener?.(),
+    onChange: (next) => {
+      listener = next;
+    },
+  };
+}
 
 type CaptionWordsApi = {
   words: TranscriptWord[];
@@ -37,6 +79,12 @@ type CaptionWordsApi = {
   requestBlock: (kind: BlockRequestKind, firstWord: number) => void;
   splitBlocks: SplitBlocks;
   setSplitBlocks: (blocks: SplitBlocks) => void;
+  movesBridge: MovesBridge;
+  movesSave: SaveState;
+  setMovesSave: (state: SaveState) => void;
+  // first word of the block being moved on the video (its line is tinted in the transcript list)
+  pickedBlock: number | null;
+  setPickedBlock: (firstWord: number | null) => void;
 };
 
 const CaptionWordsContext = createContext<CaptionWordsApi | null>(null);
@@ -56,6 +104,9 @@ export function CaptionWordsProvider({
   const [lostMoves, setLostMoves] = useState({ presetId: initialPresetId, count: 0 });
   const [blockRequest, setBlockRequest] = useState<BlockRequest | null>(null);
   const [splitBlocks, setSplitBlocks] = useState<SplitBlocks>({});
+  const [movesBridge] = useState<MovesBridge>(createMovesBridge);
+  const [movesSave, setMovesSave] = useState<SaveState>("idle");
+  const [pickedBlock, setPickedBlock] = useState<number | null>(null);
   const requestBlock = useCallback((kind: BlockRequestKind, firstWord: number) => {
     setBlockRequest((last) => ({ id: (last?.id ?? 0) + 1, kind, firstWord }));
   }, []);
@@ -73,8 +124,24 @@ export function CaptionWordsProvider({
       requestBlock,
       splitBlocks,
       setSplitBlocks,
+      movesBridge,
+      movesSave,
+      setMovesSave,
+      pickedBlock,
+      setPickedBlock,
     }),
-    [words, presetId, transcriptVisible, lostMoves, blockRequest, requestBlock, splitBlocks],
+    [
+      pickedBlock,
+      words,
+      presetId,
+      transcriptVisible,
+      lostMoves,
+      blockRequest,
+      requestBlock,
+      splitBlocks,
+      movesBridge,
+      movesSave,
+    ],
   );
   return <CaptionWordsContext.Provider value={value}>{children}</CaptionWordsContext.Provider>;
 }
@@ -117,6 +184,28 @@ export function useSplitBlocks(): SplitBlocks {
 
 export function usePublishSplitBlocks(): ((blocks: SplitBlocks) => void) | null {
   return useContext(CaptionWordsContext)?.setSplitBlocks ?? null;
+}
+
+export function usePickedBlock(): number | null {
+  return useContext(CaptionWordsContext)?.pickedBlock ?? null;
+}
+
+export function usePublishPickedBlock(): ((firstWord: number | null) => void) | null {
+  return useContext(CaptionWordsContext)?.setPickedBlock ?? null;
+}
+
+const NO_BRIDGE = createMovesBridge();
+
+export function useMovesBridge(): MovesBridge {
+  return useContext(CaptionWordsContext)?.movesBridge ?? NO_BRIDGE;
+}
+
+export function useMovesSave(): SaveState {
+  return useContext(CaptionWordsContext)?.movesSave ?? "idle";
+}
+
+export function usePublishMovesSave(): ((state: SaveState) => void) | null {
+  return useContext(CaptionWordsContext)?.setMovesSave ?? null;
 }
 
 const NO_LOST = { presetId: DEFAULT_PRESET, count: 0 };

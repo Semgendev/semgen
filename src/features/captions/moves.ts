@@ -45,8 +45,15 @@ const blockMovesSchema = z.object({
   apart: z.boolean().optional(),
   // the block is shown as two parts (its text, its key word) that move and hide on their own
   split: z.boolean().optional(),
-  // a part hidden on the video (its words stay in the transcript)
-  hidden: z.object({ text: z.boolean().optional(), emphasis: z.boolean().optional() }).optional(),
+  // hidden on the video (the eye of the transcript list): the words stay in the transcript. text /
+  // emphasis are old flags, no longer set, kept so that saved styles still open.
+  hidden: z
+    .object({
+      block: z.boolean().optional(),
+      text: z.boolean().optional(),
+      emphasis: z.boolean().optional(),
+    })
+    .optional(),
   elements: elementMovesSchema.optional(),
 });
 export type BlockMoves = z.infer<typeof blockMovesSchema>;
@@ -205,6 +212,29 @@ export function resetElement(moves: StyleMoves | undefined, target: MoveTarget):
   return changeElement(moves, target, () => undefined);
 }
 
+// A whole block back to the place it had when the captions were made: every element of the block
+// (lines, key word, parts) loses its move. With "everyBlock", the moves shared by every block go too.
+export function resetBlock(
+  moves: StyleMoves | undefined,
+  key: string,
+  everyBlock: boolean,
+): StyleMoves {
+  const base: StyleMoves = { ...moves };
+  if (everyBlock) delete base.all;
+  return withBlock(base, key, (block) => {
+    const next = { ...block };
+    delete next.elements;
+    return next;
+  });
+}
+
+// True when something of this block was moved (by itself, or through the moves for every block).
+export function isBlockMoved(moves: StyleMoves | undefined, key: string): boolean {
+  const block = moves?.blocks?.[key];
+  if (block?.elements && Object.keys(block.elements).length > 0) return true;
+  return !block?.apart && hasSharedMoves(moves);
+}
+
 export function setApart(moves: StyleMoves | undefined, key: string, apart: boolean): StyleMoves {
   return withBlock(moves ?? {}, key, (block) => {
     const next = { ...block };
@@ -218,16 +248,12 @@ export function isSplit(moves: StyleMoves | undefined, key: string): boolean {
   return Boolean(moves?.blocks?.[key]?.split);
 }
 
-export function hiddenParts(
-  moves: StyleMoves | undefined,
-  key: string,
-): { text: boolean; emphasis: boolean } {
-  const hidden = moves?.blocks?.[key]?.hidden;
-  return { text: Boolean(hidden?.text), emphasis: Boolean(hidden?.emphasis) };
+export function isHidden(moves: StyleMoves | undefined, key: string): boolean {
+  return Boolean(moves?.blocks?.[key]?.hidden?.block);
 }
 
-// Splits a block in two parts, or puts it back in one (the moves and the hidden flags of the two
-// parts go; the moves of the whole block stay).
+// Splits a block in two parts, or puts it back in one (the moves of the two parts go; the moves of
+// the whole block, and whether it is hidden, stay).
 export function setSplit(moves: StyleMoves | undefined, key: string, split: boolean): StyleMoves {
   return withBlock(moves ?? {}, key, (block) => {
     const next = { ...block };
@@ -236,7 +262,6 @@ export function setSplit(moves: StyleMoves | undefined, key: string, split: bool
       return next;
     }
     delete next.split;
-    delete next.hidden;
     if (next.elements) {
       const elements = { ...next.elements };
       delete elements.text;
@@ -248,17 +273,12 @@ export function setSplit(moves: StyleMoves | undefined, key: string, split: bool
   });
 }
 
-// Hides (or shows again) one part of a split block on the video.
-export function setHidden(
-  moves: StyleMoves | undefined,
-  key: string,
-  part: PartId,
-  hidden: boolean,
-): StyleMoves {
+// Hides (or shows again) a whole block on the video.
+export function setHidden(moves: StyleMoves | undefined, key: string, hidden: boolean): StyleMoves {
   return withBlock(moves ?? {}, key, (block) => {
     const flags = { ...block.hidden };
-    if (hidden) flags[part] = true;
-    else delete flags[part];
+    if (hidden) flags.block = true;
+    else delete flags.block;
     const next = { ...block };
     if (Object.keys(flags).length > 0) next.hidden = flags;
     else delete next.hidden;

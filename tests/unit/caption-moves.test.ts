@@ -4,7 +4,7 @@ import {
   blockKey,
   captionMovesSchema,
   hasSharedMoves,
-  hiddenParts,
+  isHidden,
   isSplit,
   isApart,
   layerIndex,
@@ -13,6 +13,8 @@ import {
   MOVE_LIMIT_PCT,
   placementOf,
   resetElement,
+  resetBlock,
+  isBlockMoved,
   setApart,
   setHidden,
   setSplit,
@@ -199,14 +201,15 @@ describe("moving a whole block", () => {
 describe("splitting a block in two parts", () => {
   const block: MoveTarget = { key: "1200", element: "block", everyBlock: false };
 
-  it("splits, hides a part and shows it again", () => {
+  it("splits, hides the whole block (the eye) and shows it again", () => {
     let moves = setSplit(undefined, "1200", true);
     expect(isSplit(moves, "1200")).toBe(true);
     expect(isSplit(moves, "9000")).toBe(false);
-    moves = setHidden(moves, "1200", "emphasis", true);
-    expect(hiddenParts(moves, "1200")).toEqual({ text: false, emphasis: true });
-    moves = setHidden(moves, "1200", "emphasis", false);
-    expect(hiddenParts(moves, "1200")).toEqual({ text: false, emphasis: false });
+    moves = setHidden(moves, "1200", true);
+    expect(isHidden(moves, "1200")).toBe(true);
+    expect(isHidden(moves, "9000")).toBe(false);
+    moves = setHidden(moves, "1200", false);
+    expect(isHidden(moves, "1200")).toBe(false);
   });
 
   it("each part moves on its own", () => {
@@ -220,21 +223,47 @@ describe("splitting a block in two parts", () => {
     expect(placementOf(moves, "1200", "emphasis")).toEqual({ x: 0, y: 0, layer: undefined });
   });
 
-  it("merging forgets the parts' moves and hidden flags but keeps the block's move", () => {
+  it("merging forgets the parts' moves but keeps the block's move and whether it is hidden", () => {
     let moves = shiftElement(undefined, block, 4, -6);
     moves = setSplit(moves, "1200", true);
     moves = shiftElement(moves, { key: "1200", element: "text", everyBlock: false }, 2, 5);
-    moves = setHidden(moves, "1200", "text", true);
+    moves = setHidden(moves, "1200", true);
     const merged = setSplit(moves, "1200", false);
     expect(isSplit(merged, "1200")).toBe(false);
-    expect(hiddenParts(merged, "1200")).toEqual({ text: false, emphasis: false });
+    expect(isHidden(merged, "1200")).toBe(true);
     expect(placementOf(merged, "1200", "text")).toEqual({ x: 0, y: 0, layer: undefined });
     expect(placementOf(merged, "1200", "block")).toEqual({ x: 4, y: -6, layer: undefined });
   });
 
   it("is stored with the style, and an untouched block leaves no trace", () => {
-    const moves = setHidden(setSplit(undefined, "1200", true), "1200", "text", true);
+    const moves = setHidden(setSplit(undefined, "1200", true), "1200", true);
     expect(captionMovesSchema.safeParse({ cinema: moves }).success).toBe(true);
     expect(setSplit(setSplit(undefined, "1200", true), "1200", false).blocks).toBeUndefined();
+  });
+});
+
+describe("putting a whole block back", () => {
+  const line = { key: "1000", element: "line-0" as const, everyBlock: false };
+  const word = { key: "1000", element: "emphasis" as const, everyBlock: false };
+
+  it("is lit only when something of the block was moved", () => {
+    expect(isBlockMoved(undefined, "1000")).toBe(false);
+    const moved = shiftElement(undefined, word, 3, 0);
+    expect(isBlockMoved(moved, "1000")).toBe(true);
+    expect(isBlockMoved(moved, "2000")).toBe(false);
+  });
+
+  it("puts every element of the block back, and leaves the other blocks alone", () => {
+    let moves = shiftElement(undefined, line, 2, 2);
+    moves = shiftElement(moves, word, 5, 5);
+    moves = shiftElement(moves, { ...line, key: "2000" }, 1, 1);
+    const back = resetBlock(moves, "1000", false);
+    expect(isBlockMoved(back, "1000")).toBe(false);
+    expect(isBlockMoved(back, "2000")).toBe(true);
+  });
+
+  it("keeps the split of the block", () => {
+    const split = shiftElement(setSplit(undefined, "1000", true), word, 2, 2);
+    expect(isSplit(resetBlock(split, "1000", false), "1000")).toBe(true);
   });
 });

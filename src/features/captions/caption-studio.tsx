@@ -24,7 +24,10 @@ import {
   usePublishCaptionPresetId,
   useBlockRequest,
   usePublishLostMoves,
+  useMovesBridge,
+  usePublishMovesSave,
   usePublishSplitBlocks,
+  usePublishPickedBlock,
   useRequestBlock,
   usePublishTranscriptVisible,
 } from "./caption-words";
@@ -33,13 +36,15 @@ import { applyColors, type CaptionColors } from "./colors";
 import { MovePanel } from "./move-panel";
 import {
   blockKey,
-  hiddenParts,
+  isHidden,
   isSplit,
   lostBlockKeys,
   hasSharedMoves,
   isApart,
   placementOf,
   resetElement,
+  resetBlock,
+  isBlockMoved,
   setApart,
   setHidden,
   setSplit,
@@ -67,6 +72,10 @@ const SAVE_DELAY_MS = 500;
 // The video with its captions, the gallery of styles (each one animated in a loop) and the settings
 // (colours, font, animation, position, outline). Every choice applies at once and is saved in the
 // background.
+// arrow presses closer than this are one step of the undo history
+const MOVES_BURST_MS = 900;
+const MAX_MOVES_STEPS = 100;
+
 export function CaptionStudio({
   projectId,
   src,
@@ -100,7 +109,11 @@ export function CaptionStudio({
   const movesRef = useRef(moves);
   // the text touched on the video, and whether its moves go to every block
   const [picked, setPicked] = useState<{ key: string; element: ElementId } | null>(null);
-  const [everyBlock, setEveryBlock] = useState(false);
+  // "this block only" is chosen by default, each time another text is picked
+  const [scope, setScope] = useState<{ id: string; all: boolean }>({ id: "", all: false });
+  const pickedId = picked ? `${picked.key}|${picked.element}` : "";
+  const everyBlock = scope.id === pickedId && scope.all;
+  const setEveryBlock = (all: boolean) => setScope({ id: pickedId, all });
   // the moves as they were when the drag started (the drag gives a distance from there)
   const dragBase = useRef<StyleMoves | undefined | null>(null);
   const videoCard = useRef<HTMLDivElement>(null);
@@ -130,6 +143,7 @@ export function CaptionStudio({
     publishTranscriptVisible?.(tab === "transcription");
   }, [publishTranscriptVisible, tab]);
   const [, startSaving] = useTransition();
+  const publishSave = usePublishMovesSave();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // the change waiting for its save (they are grouped a moment after the last one)
@@ -177,6 +191,7 @@ export function CaptionStudio({
     delayMs: number,
   ) {
     setFailed(false);
+    publishSave?.("saving");
     if (timer.current) clearTimeout(timer.current);
     const nextMoves = movesRef.current;
     pending.current = {
@@ -197,6 +212,7 @@ export function CaptionStudio({
           nextMoves,
         );
         if (!result.ok) setFailed(true);
+        publishSave?.(result.ok ? "saved" : "error");
       });
     }, delayMs);
   }
@@ -285,6 +301,8 @@ export function CaptionStudio({
   const [handledRequest, setHandledRequest] = useState(blockRequest?.id ?? 0);
   if (blockRequest && blockRequest.id !== handledRequest) {
     setHandledRequest(blockRequest.id);
+    // a word opened on the transcript, or the text put back to the original: the block is let go
+    if (blockRequest.kind === "clear" || blockRequest.kind === "reset-moves") setPicked(null);
     if (blockRequest.kind === "select") {
       const page = pages.find((candidate) => candidate.firstWord >= blockRequest.firstWord);
       if (page) {
@@ -311,13 +329,11 @@ export function CaptionStudio({
     updateMoves(setSplit(freshMoves(), key, false), 0);
     setPicked(null);
   }
-  // A part hidden on the video keeps its words; "show" is asked from the transcript list.
-  function hidePart(key: string, part: PartId) {
-    updateMoves(setHidden(freshMoves(), key, part, true), 0);
+  // The eye of a line of the transcript list: the block is hidden on the video (its words stay),
+  // or shown again.
+  function toggleHidden(key: string) {
+    updateMoves(setHidden(freshMoves(), key, !isHidden(freshMoves(), key)), 0);
     setPicked(null);
-  }
-  function showPart(key: string, part: PartId) {
-    updateMoves(setHidden(freshMoves(), key, part, false), 0);
   }
   // Removing the words of a part for good: the transcript does it (one step of its undo history).
   function deletePart(key: string, part: PartId) {
@@ -326,14 +342,16 @@ export function CaptionStudio({
     setPicked(null);
   }
 
-  // The split blocks, told to the transcript list (it shows "merge" / "show again" icons).
+  // The split and the hidden blocks, told to the transcript list (its "merge" icons and its eyes).
   const splitInfo = useMemo(() => {
     const info: SplitBlocks = {};
     for (const page of pages) {
       const key = blockKey(page);
       const both =
         page.words.some((word) => word.emphasis) && page.words.some((word) => !word.emphasis);
-      if (both && isSplit(styleMoves, key)) info[page.firstWord] = hiddenParts(styleMoves, key);
+      const split = both && isSplit(styleMoves, key);
+      const hidden = isHidden(styleMoves, key);
+      if (split || hidden) info[page.firstWord] = { split, hidden };
     }
     return info;
   }, [pages, styleMoves]);
@@ -342,6 +360,15 @@ export function CaptionStudio({
   useEffect(() => {
     publishSplit?.(JSON.parse(splitKey) as SplitBlocks);
   }, [publishSplit, splitKey]);
+
+  // The block being moved, told to the transcript list (its line is tinted).
+  const publishPicked = usePublishPickedBlock();
+  const pickedFirstWord = picked
+    ? (pages.find((page) => blockKey(page) === picked.key)?.firstWord ?? null)
+    : null;
+  useEffect(() => {
+    publishPicked?.(pickedFirstWord);
+  }, [publishPicked, pickedFirstWord]);
 
   // Moves left behind by a change of the text: they are kept (undo brings the block, and its move,
   // back) and the transcript tab tells the user in its notice.
@@ -356,11 +383,67 @@ export function CaptionStudio({
     return movesRef.current[preset];
   }
 
-  function updateMoves(next: StyleMoves, delayMs: number) {
+  // Every change of the moves can be undone (the undo / redo buttons of the transcript tab take
+  // them in the order they were made, with the corrections of the text). A burst of arrow presses
+  // or one drag is one step.
+  const movesPast = useRef<CaptionMoves[]>([]);
+  const movesFuture = useRef<CaptionMoves[]>([]);
+  const lastRecord = useRef(0);
+  const bridge = useMovesBridge();
+  function recordMoves(grouped: boolean) {
+    const now = Date.now();
+    const sameBurst = grouped && now - lastRecord.current < MOVES_BURST_MS;
+    lastRecord.current = now;
+    if (sameBurst) return;
+    movesPast.current = [...movesPast.current.slice(-(MAX_MOVES_STEPS - 1)), movesRef.current];
+    movesFuture.current = [];
+    bridge.changed();
+  }
+  function restoreMoves(all: CaptionMoves) {
+    movesRef.current = all;
+    setMoves(all);
+    save(preset, colors, tweaks, 0);
+  }
+  function undoMoves() {
+    const previous = movesPast.current[movesPast.current.length - 1];
+    if (!previous) return;
+    movesPast.current = movesPast.current.slice(0, -1);
+    movesFuture.current = [movesRef.current, ...movesFuture.current];
+    restoreMoves(previous);
+  }
+  function redoMoves() {
+    const [next, ...rest] = movesFuture.current;
+    if (!next) return;
+    movesFuture.current = rest;
+    movesPast.current = [...movesPast.current, movesRef.current];
+    restoreMoves(next);
+  }
+  useEffect(() => {
+    bridge.setHandlers({
+      undo: undoMoves,
+      redo: redoMoves,
+      retry: () => save(preset, colors, tweaks, 0),
+    });
+  });
+
+  // record: true = a step of the history; "burst" = joins the previous step when it follows closely;
+  // false = no step (the rest of a drag)
+  function updateMoves(next: StyleMoves, delayMs: number, record: boolean | "burst" = true) {
+    if (record) recordMoves(record === "burst");
     const all = withStyleMoves(movesRef.current, preset, next);
     movesRef.current = all;
     setMoves(all);
     save(preset, colors, tweaks, delayMs);
+  }
+
+  // The text went back to the original: every move, split and hidden part of every style goes too
+  // (one step of the history, so it can be taken back).
+  function clearAllMoves() {
+    if (Object.keys(movesRef.current).length === 0) return;
+    recordMoves(false);
+    movesRef.current = {};
+    setMoves({});
+    save(preset, colors, tweaks, 0);
   }
 
   const target: MoveTarget | null = picked
@@ -375,8 +458,9 @@ export function CaptionStudio({
     remove: deleteBlock,
     split: splitBlock,
     merge: mergeBlock,
-    hide: hidePart,
-    show: showPart,
+    toggle: toggleHidden,
+    removePart: deletePart,
+    clearAll: clearAllMoves,
   });
   useEffect(() => {
     latestMoves.current = {
@@ -386,8 +470,9 @@ export function CaptionStudio({
       remove: deleteBlock,
       split: splitBlock,
       merge: mergeBlock,
-      hide: hidePart,
-      show: showPart,
+      toggle: toggleHidden,
+      removePart: deletePart,
+      clearAll: clearAllMoves,
     };
   });
 
@@ -396,18 +481,21 @@ export function CaptionStudio({
   useEffect(() => {
     if (!blockRequest || blockRequest.id === handledMoves.current) return;
     handledMoves.current = blockRequest.id;
+    if (blockRequest.kind === "reset-moves") {
+      latestMoves.current.clearAll();
+      return;
+    }
     const page = pages.find((candidate) => candidate.firstWord >= blockRequest.firstWord);
     if (!page) return;
     const key = blockKey(page);
     const latest = latestMoves.current;
     if (blockRequest.kind === "merge") latest.merge(key);
-    else if (blockRequest.kind === "show-text") latest.show(key, "text");
-    else if (blockRequest.kind === "show-emphasis") latest.show(key, "emphasis");
+    else if (blockRequest.kind === "toggle-hidden") latest.toggle(key);
   }, [blockRequest, pages]);
   const deleteLabel = t("move.deleteBlock");
   const splitLabel = t("move.split");
-  const hideTextLabel = t("move.hideText");
-  const hideKeyWordLabel = t("move.hideKeyWord");
+  const deleteTextLabel = t("move.deleteText");
+  const deleteKeyWordLabel = t("move.deleteKeyWord");
   const editor = useMemo<CaptionEditor>(
     () => ({
       selected: picked,
@@ -421,18 +509,19 @@ export function CaptionStudio({
       },
       onCross: (key, element) => {
         const latest = latestMoves.current;
-        if (element === "text" || element === "emphasis") latest.hide(key, element);
+        if (element === "text" || element === "emphasis") latest.removePart(key, element);
         else latest.remove(key);
       },
       onSplit: (key) => latestMoves.current.split(key),
       labels: {
         delete: deleteLabel,
         split: splitLabel,
-        hideText: hideTextLabel,
-        hideKeyWord: hideKeyWordLabel,
+        deleteText: deleteTextLabel,
+        deleteKeyWord: deleteKeyWordLabel,
       },
       onDrag: (key, element, dx, dy, done) => {
         const latest = latestMoves.current;
+        const first = dragBase.current === null;
         if (dragBase.current === null) dragBase.current = latest.fresh();
         const base = dragBase.current;
         const dragged = {
@@ -440,11 +529,12 @@ export function CaptionStudio({
           element,
           everyBlock: latest.everyBlock && !isApart(base, key),
         };
-        latest.update(shiftElement(base, dragged, dx, dy), done ? 0 : 400);
+        // one drag = one step of the history, taken at its first move
+        latest.update(shiftElement(base, dragged, dx, dy), done ? 0 : 400, first);
         if (done) dragBase.current = null;
       },
     }),
-    [picked, deleteLabel, splitLabel, hideTextLabel, hideKeyWordLabel],
+    [picked, deleteLabel, splitLabel, deleteTextLabel, deleteKeyWordLabel],
   );
 
   // what the picked text says (title of the panel), and what can be done with it
@@ -482,23 +572,30 @@ export function CaptionStudio({
         text={pickedInfo.text}
         kind={pickedInfo.kind}
         canSplit={pickedInfo.canSplit}
-        canReset={placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined}
+        // a whole block: lit when anything of it was moved; a part (text / key word): that part only
+        canReset={
+          pickedInfo.kind === "block"
+            ? isBlockMoved(styleMoves, picked.key)
+            : placement.x !== 0 || placement.y !== 0 || placement.layer !== undefined
+        }
         everyBlock={everyBlock}
         apart={isApart(styleMoves, picked.key)}
         // shown while the block is apart, even once nothing is moved for every block any more
         showApart={hasSharedMoves(styleMoves) || isApart(styleMoves, picked.key)}
-        onShift={(dx, dy) => updateMoves(shiftElement(freshMoves(), target, dx, dy), 400)}
+        onShift={(dx, dy) => updateMoves(shiftElement(freshMoves(), target, dx, dy), 400, "burst")}
         onReset={() => {
-          // back to the base place: this block's own move, and the shared one if it is on
+          if (pickedInfo.kind === "block") {
+            // the whole block goes back to where the captions were made
+            updateMoves(resetBlock(freshMoves(), picked.key, target.everyBlock), 0);
+            return;
+          }
+          // a part goes back to the base place: its own move, and the shared one if it is on
           let next = resetElement(freshMoves(), { ...target, everyBlock: false });
           if (target.everyBlock) next = resetElement(next, target);
           updateMoves(next, 0);
         }}
         onSplit={() => splitBlock(picked.key)}
         onMerge={() => mergeBlock(picked.key)}
-        onHide={() => {
-          if (pickedInfo.kind !== "block") hidePart(picked.key, pickedInfo.kind);
-        }}
         onDelete={() => {
           if (pickedInfo.kind === "block") deleteBlock(picked.key);
           else deletePart(picked.key, pickedInfo.kind);
@@ -553,7 +650,10 @@ export function CaptionStudio({
           {moveContent && moveSlot
             ? createPortal(
                 <div
-                  className={cn(MOVE_SHEET, "lg:w-80 lg:rounded-xl lg:border lg:p-3 lg:shadow-lg")}
+                  className={cn(
+                    MOVE_SHEET,
+                    "pointer-events-auto lg:max-h-none lg:w-80 lg:shrink-0 lg:rounded-xl lg:border lg:p-3 lg:shadow-lg",
+                  )}
                 >
                   {moveContent}
                 </div>,

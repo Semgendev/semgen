@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
-  EyeOff,
   Combine,
   RotateCcw,
   SquareSplitHorizontal,
@@ -161,7 +160,7 @@ function Toggle({
   disabled?: boolean;
   onChange: (checked: boolean) => void;
   label: string;
-  hint: string;
+  hint?: string;
 }) {
   return (
     <label
@@ -181,9 +180,57 @@ function Toggle({
       />
       <span className="flex flex-col">
         <span className="text-text text-sm font-medium">{label}</span>
-        <span className="text-text-3 text-xs">{hint}</span>
+        {hint ? <span className="text-text-3 text-xs">{hint}</span> : null}
       </span>
     </label>
+  );
+}
+
+// "Apply to this block only" / "Apply to every block": one is always chosen (the first, by default).
+function Scope({
+  all,
+  disabled,
+  onChange,
+  labels,
+}: {
+  all: boolean;
+  disabled: boolean;
+  onChange: (all: boolean) => void;
+  labels: [string, string];
+}) {
+  return (
+    <div role="radiogroup" className="flex flex-col gap-2">
+      {([false, true] as const).map((value, index) => {
+        const checked = (disabled ? false : all) === value;
+        return (
+          <button
+            key={String(value)}
+            type="button"
+            role="radio"
+            aria-checked={checked}
+            disabled={disabled && value}
+            onClick={() => onChange(value)}
+            className={cn(
+              "focus-visible:ring-focus flex min-h-11 items-center gap-3 rounded-xl border px-3 text-start text-sm transition-colors outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50",
+              checked
+                ? "border-brand bg-brand/10 text-text font-semibold"
+                : "border-border text-text-2 hover:border-brand-border hover:text-text",
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center rounded-full border",
+                checked ? "border-brand" : "border-border",
+              )}
+            >
+              {checked ? <span className="bg-brand size-2 rounded-full" /> : null}
+            </span>
+            {labels[index]}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -230,7 +277,6 @@ export function MovePanel({
   onReset,
   onSplit,
   onMerge,
-  onHide,
   onDelete,
   onPart,
   onEveryBlock,
@@ -252,8 +298,7 @@ export function MovePanel({
   onReset: () => void;
   onSplit: () => void;
   onMerge: () => void;
-  // hide the part on the video (the words stay), or remove its words for good
-  onHide: () => void;
+  // remove the words of the block, or of the picked part, for good
   onDelete: () => void;
   onPart: (part: PartId) => void;
   onEveryBlock: (everyBlock: boolean) => void;
@@ -375,11 +420,6 @@ export function MovePanel({
             <>
               <Action icon={Combine} label={t("merge")} onClick={onMerge} />
               <Action
-                icon={EyeOff}
-                label={kind === "text" ? t("hideText") : t("hideKeyWord")}
-                onClick={onHide}
-              />
-              <Action
                 icon={Trash2}
                 label={kind === "text" ? t("deleteText") : t("deleteKeyWord")}
                 onClick={onDelete}
@@ -391,16 +431,19 @@ export function MovePanel({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Toggle
-          checked={everyBlock && !apart}
+        <Scope
+          all={everyBlock}
           disabled={apart}
           onChange={onEveryBlock}
-          label={t("everyBlock")}
-          hint={apart ? t("everyBlockApart") : t("everyBlockHint")}
+          labels={
+            kind === "block"
+              ? [t("scopeOneBlock"), t("scopeAllBlocks")]
+              : kind === "text"
+                ? [t("scopeOneText"), t("scopeAllTexts")]
+                : [t("scopeOneKeyWord"), t("scopeAllKeyWords")]
+          }
         />
-        {showApart ? (
-          <Toggle checked={apart} onChange={onApart} label={t("apart")} hint={t("apartHint")} />
-        ) : null}
+        {showApart ? <Toggle checked={apart} onChange={onApart} label={t("apart")} /> : null}
       </div>
     </section>
   );

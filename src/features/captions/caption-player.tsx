@@ -1,6 +1,7 @@
 "use client";
 
 import { Player, type PlayerRef } from "@remotion/player";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -118,10 +119,64 @@ export function CaptionPlayer({
     [src, pages, style, moves, pausingEditor],
   );
 
+  // The player draws its own buttons with English labels: they are written again in the language of
+  // the page (now, and each time the player changes one, e.g. "Play" becoming "Pause").
+  const t = useTranslations("captions.player");
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = box.current;
+    if (!root || !meta) return;
+    const labels: Record<string, string> = {
+      "Play video": t("play"),
+      "Pause video": t("pause"),
+      "Mute sound": t("mute"),
+      "Unmute sound": t("unmute"),
+      "Enter Fullscreen": t("enterFullscreen"),
+      "Exit fullscreen": t("exitFullscreen"),
+      "Change playback rate": t("rate"),
+      "Change volume": t("volume"),
+    };
+    let working = false;
+    const translate = () => {
+      if (working) return;
+      working = true;
+      for (const element of root.querySelectorAll<HTMLElement>("[aria-label], [title]")) {
+        for (const attribute of ["aria-label", "title"]) {
+          const text = labels[element.getAttribute(attribute) ?? ""];
+          // only when it differs: writing the same text again would wake the observer forever (English)
+          if (text && text !== element.getAttribute(attribute)) element.setAttribute(attribute, text);
+        }
+      }
+      working = false;
+    };
+    translate();
+    const observer = new MutationObserver(translate);
+    observer.observe(root, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-label", "title"],
+    });
+    // After the full screen button, the keyboard stays on that button: Space would press it again and
+    // leave the full screen. The focus is let go right after the click (the browser's full screen
+    // event is not reliable for this), so that Space plays / pauses the video.
+    const fullscreenLabels = [t("enterFullscreen"), t("exitFullscreen")];
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest("button");
+      if (button && fullscreenLabels.includes(button.getAttribute("aria-label") ?? "")) button.blur();
+    };
+    root.addEventListener("click", onClick);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("click", onClick);
+    };
+  }, [meta, t]);
+
   if (!meta) return <Skeleton className="mx-auto aspect-[9/16] max-h-[75vh] w-full max-w-sm" />;
 
   return (
-    <div className="flex w-full justify-center">
+    <div ref={box} className="flex w-full justify-center">
       <Player
         ref={player}
         component={CaptionedVideo}
