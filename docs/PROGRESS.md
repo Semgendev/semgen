@@ -27,6 +27,8 @@
 
 - **3 bugs corrigés (2026-10-21, Opus)** : (1) « Maximum update depth exceeded » : Remotion envoie `frameupdate` depuis un effet, notre `setTimeMs` y faisait un setState à chaque image → publié à l’image d’écran suivante (`caption-player.tsx`) ; reproduit (8 à 11 erreurs sur 15 styles joués 6 s) puis 0 sur les 25 styles ; (2) mobile : après le choix d’un style la page remonte sur la vidéo (vérifié 390 et 360) ; (3) zones tactiles 44 px sur mobile (en-tête, onglets, Copier / SRT / TXT / Revenir, champ Rechercher pleine largeur). Reste : boutons internes du lecteur Remotion (16–25 px) et icônes des lignes de transcription (32 px).
 
+- **T4.4 export — AWS prêt (2026-10-22)** : compte AWS Free plan (100 $ de crédits, 183 j), région **Stockholm eu-north-1** imposée par le Free plan (décision d'Ashanti), budget d'alerte 5 $/mois. IAM : `remotion-lambda-policy`, `remotion-lambda-role`, utilisateur `remotion-user` + `remotion-user-policy`, clés dans `.env.local`. `@remotion/lambda` + `@remotion/cli` 4.0.536 installés (dev). Limite AWS : 400 exécutions simultanées. **Fonction déployée** : `remotion-render-4-0-536-mem2048mb-disk2048mb-120sec`. CLI : `node --env-file=.env.local node_modules/@remotion/cli/remotion-cli.js lambda … --region eu-north-1`. **Étape A faite** : point d'entrée `src/remotion/index.ts` + `root.tsx` (composition `captioned-video`, 30 i/s, taille et durée de la vraie vidéo), props = données brutes du projet (`export-props.ts` : la page de style, les coupes et les déplacements sont recalculés par le même code que l'aperçu), toutes les polices attendues pendant un rendu. Site déployé : `https://remotionlambda-eunorth1-kcccer5x3i.s3.eu-north-1.amazonaws.com/sites/semgen-captions/index.html` (**à redéployer après chaque changement du moteur de sous-titres**). 1er rendu réussi (projet dev « QA move test », 12 s, 0,005 $, 22 s ; vidéo dans `capture/export-test-1.mp4`). 311 tests verts. **Étape B (Opus)** : action serveur Exporter (crédits, table `exports` = migration, suivi, remboursement, lien signé, filigrane) ; largeur/hauteur de la vidéo pas en base (à mesurer). Questions à Ashanti : prix de l'export (compris dans 1 crédit/min ?) et format (ratio réel d'abord ?). Avertissement : zod 4.6.7 installé, Remotion attend 4.5.4 (rendu OK malgré tout).
+
 ## Pour reprendre (ordre)
 0. Lot B commité (`c6db7f9`) + avertissement « déplacement perdu » commité ; pas encore poussé sur GitHub (accord d’Ashanti).
 1. Lancer `npm run dev` (terminal 1) et `npx trigger.dev@latest dev` (terminal 2).
@@ -48,7 +50,8 @@
 
 ## Comptes (état)
 - [x] GitHub (Semgendev/semgen) · Netlify (semgen.netlify.app) · Supabase (dev + prod) · Cloudflare (Turnstile) · Trigger.dev (Free) · AssemblyAI ($50 offerts) · Sentry · PostHog (EU)
-- [ ] ElevenLabs · Anthropic API · AWS (Remotion Lambda) · FedaPay · pawaPay · Resend · Upstash
+- [x] AWS (Remotion Lambda, Stockholm, Free plan)
+- [ ] ElevenLabs · Anthropic API · FedaPay · pawaPay · Resend · Upstash
 
 ## Journal
 | Date | Tâche | Résultat |

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { continueRender, delayRender, staticFile } from "remotion";
+import { continueRender, delayRender, getRemotionEnvironment, staticFile } from "remotion";
 
 import { FONT_FACES, type FontFaceData } from "./fonts-data";
 import type { FontId } from "./style";
@@ -57,7 +57,9 @@ function requestFaces(matches: (face: FontFaceData) => boolean, awaitAll = false
     const key = `${face.id}|${face.style}|${face.weight}|${face.unicodeRange}`;
     if (requestedFaces.has(key)) continue;
     requestedFaces.add(key);
-    const awaitIt = awaitAll || face.unicodeRange.startsWith("U+0000");
+    // the export waits for every face: a letter drawn with a fallback font would be in the file for good
+    const awaitIt =
+      awaitAll || getRemotionEnvironment().isRendering || face.unicodeRange.startsWith("U+0000");
     void loadFace(face, awaitIt, delayRender(`Loading caption font ${face.id} ${face.weight}`));
   }
 }

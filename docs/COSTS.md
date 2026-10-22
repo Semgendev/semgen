@@ -11,7 +11,7 @@
 | AssemblyAI | 50 $ de crédits offerts (~185 h de transcription) | 0 € au début |
 | Claude API (Haiku) | Paiement à l'usage, très faible pour la traduction | ~5 € |
 | ElevenLabs | Abonnement d'entrée pour tester le doublage | ~5–22 $ |
-| AWS (Remotion Lambda) | Paiement à l'usage, quelques centimes par rendu | ~5 € |
+| AWS (Remotion Lambda) | Paiement à l'usage. Mesuré le 2026-10-22 (Stockholm, 30 i/s) : vidéo de 12 s en 540×960 = **0,005 $**, 22 s, 19 fonctions. À re-mesurer sur 1 min en 1080×1920. Free plan : 100 $ de crédits AWS | ~5 € |
 | Resend, Upstash, Sentry, PostHog | Gratuits | 0 € |
 | Domaine | ~10–15 €/an | ~1 €/mois |
 

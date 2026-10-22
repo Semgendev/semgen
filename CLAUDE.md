@@ -21,6 +21,7 @@
 5. Lancer `npm run lint && npm run typecheck && npm run test` — tout doit être vert.
 6. Mettre à jour `docs/PROGRESS.md` (tâche cochée, date, prochaine étape, problèmes ouverts).
 7. Finir par un résumé : ✅ fait / 🔜 prochaine étape / ⚠️ ce qu'Ashanti doit faire (compte à créer, clé à fournir…).
+8. **Enregistrer aussitôt** : dès qu'une information, un conseil ou une décision importante est donnée à Ashanti, l'écrire en mémoire (et dans `docs/PROGRESS.md` si c'est de l'avancement) **tout de suite**, pas à la fin. Un chat peut être supprimé à tout moment. Au début d'une session, si le contexte manque, lire la mémoire **et** les dernières captures de `capture/` avant de répondre.
 
 ## 3. Toujours demander confirmation AVANT de
 
