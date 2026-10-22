@@ -176,6 +176,10 @@ export async function startTranscription(
 
   try {
     await tasks.trigger("transcribe-project", { jobId: job });
+    // The 1080p working copy the export will read; best effort, the export works without it.
+    await tasks
+      .trigger("create-working-copy", { projectId: parsed.data.projectId })
+      .catch(() => undefined);
     return { ok: true, jobId: job };
   } catch {
     // The worker never started: release the job so the user can try again (no credits were taken).

@@ -9,7 +9,9 @@ import {
   exportOptionsSchema,
   exportSize,
 } from "@/features/export/options";
+import { chooseRenderSource } from "@/features/export/render-source";
 import { transcriptWordSchema } from "@/features/transcription/types";
+import { signWorkingCopyUrl } from "@/lib/aws/working-copy-storage";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const payloadSchema = z.object({ jobId: z.uuid() });
@@ -25,6 +27,7 @@ const jobSchema = z.object({
 const projectSchema = z.object({
   title: z.string(),
   source_video_key: z.string().nullable(),
+  working_video_key: z.string().nullable(),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
   duration_s: z.coerce.number().positive().nullable(),
@@ -62,7 +65,10 @@ function lambdaConfig() {
 // File name offered when the video is downloaded: the project title, without characters that
 // browsers or file systems refuse.
 function fileName(title: string): string {
-  const clean = title.replace(/[^\p{L}\p{N} _-]+/gu, "").trim().slice(0, 80);
+  const clean = title
+    .replace(/[^\p{L}\p{N} _-]+/gu, "")
+    .trim()
+    .slice(0, 80);
   return `${clean || "video"}.mp4`;
 }
 
@@ -106,7 +112,9 @@ export const renderVideo = task({
 
       const { data: rawProject, error: projectError } = await supabase
         .from("projects")
-        .select("title, source_video_key, width, height, duration_s, caption_style")
+        .select(
+          "title, source_video_key, working_video_key, width, height, duration_s, caption_style",
+        )
         .eq("id", job.project_id)
         .single();
       if (projectError) throw projectError;
@@ -145,10 +153,24 @@ export const renderVideo = task({
         creditsReserved = cost;
       }
 
-      const { data: signed, error: signError } = await supabase.storage
-        .from("videos")
-        .createSignedUrl(project.source_video_key, SIGNED_URL_SECONDS);
-      if (signError || !signed) throw new JobError("video_unavailable");
+      // The 1080p working copy renders cheaper with the same picture; the original is read when
+      // there is no copy or when it would show less detail (4K, tight crop).
+      let videoSrc: string | null = null;
+      if (
+        project.working_video_key &&
+        chooseRenderSource(job.options, source, true) === "working"
+      ) {
+        videoSrc = await signWorkingCopyUrl(project.working_video_key, SIGNED_URL_SECONDS).catch(
+          () => null,
+        );
+      }
+      if (!videoSrc) {
+        const { data: signed, error: signError } = await supabase.storage
+          .from("videos")
+          .createSignedUrl(project.source_video_key, SIGNED_URL_SECONDS);
+        if (signError || !signed) throw new JobError("video_unavailable");
+        videoSrc = signed.signedUrl;
+      }
 
       const size = exportSize(job.options, source);
       const { renderId, bucketName } = await renderMediaOnLambda({
@@ -157,7 +179,7 @@ export const renderVideo = task({
         serveUrl: config.serveUrl,
         composition: EXPORT_COMPOSITION_ID,
         inputProps: {
-          videoSrc: signed.signedUrl,
+          videoSrc,
           words,
           captionStyle: project.caption_style,
           width: size.width,
@@ -222,7 +244,7 @@ export const renderVideo = task({
         finished_at: new Date().toISOString(),
       });
 
-      return { failed: true, code };
+      return { failed: true, code, detail: String(error).slice(0, 300) };
     }
   },
 });

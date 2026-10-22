@@ -21,7 +21,7 @@ export function isHdr(info: MediaInfo): boolean {
 }
 
 // iPhone videos are often HDR (HLG): without tone mapping their colours look washed out in SDR.
-const HDR_TO_SDR =
+export const HDR_TO_SDR =
   "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0," +
   "zscale=t=bt709:m=bt709:r=tv,format=yuv420p";
 

@@ -16,6 +16,7 @@
 | Noto Sans Arabic (interface en arabe, lettres arabes seulement) | fichier variable v33 hébergé chez nous (`src/app/fonts/noto-sans-arabic.woff2`, 166 Ko, chargé seulement quand une page affiche de l'arabe) | SIL OFL 1.1 (The Noto Project Authors) | https://github.com/notofonts/arabic | 2026-10-19 | `src/app/[locale]/layout.tsx` |
 | Cairo (lettres arabes de tous les styles de sous-titres) | fichier variable v31 hébergé chez nous (`public/fonts/captions/`, 31 Ko, chargé seulement si le texte est en arabe) | SIL OFL 1.1 (The Cairo Project Authors) | https://github.com/Gue3bara/Cairo | 2026-10-19 | `src/features/captions/fonts.ts` |
 | Noto Sans Devanagari (interface en hindi + lettres devanagari des sous-titres) | fichiers variables v30 hébergés chez nous (`src/app/fonts/noto-sans-devanagari.woff2` 121 Ko et `public/fonts/captions/`, chargés seulement sur les pages / textes en hindi) | SIL OFL 1.1 (The Noto Project Authors) | https://github.com/notofonts/devanagari | 2026-10-19 | `src/app/[locale]/layout.tsx`, `src/features/captions/fonts.ts` |
+| AWS SDK (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, copies de travail T4.4) | 3.986.0 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3 | 2026-10-22 | `src/lib/aws/working-copy-storage.ts` |
 
 ## Rappels
 - MIT / ISC : conserver la mention de copyright et le texte de la licence dans le code copié.

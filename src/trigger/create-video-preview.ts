@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,6 +5,7 @@ import { join } from "node:path";
 import { logger, task } from "@trigger.dev/sdk";
 import { z } from "zod";
 
+import { runFfmpeg } from "@/features/media/ffmpeg";
 import { buildPreviewArgs, isBrowserSafe } from "@/features/media/preview";
 import { probeMedia } from "@/features/media/probe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -18,18 +18,6 @@ const projectSchema = z.object({
 });
 
 const SIGNED_URL_SECONDS = 60 * 60;
-
-function runFfmpeg(args: string[], ffmpegPath = process.env.FFMPEG_PATH ?? "ffmpeg") {
-  return new Promise<void>((resolve, reject) => {
-    const child = spawn(ffmpegPath, ["-hide_banner", "-loglevel", "error", ...args]);
-    let stderr = "";
-    child.stderr.on("data", (chunk: Buffer) => (stderr = (stderr + chunk.toString()).slice(-2000)));
-    child.on("error", reject);
-    child.on("close", (code) =>
-      code === 0 ? resolve() : reject(new Error(`ffmpeg_failed: ${stderr}`)),
-    );
-  });
-}
 
 // Makes sure every video can be played in any browser: keeps the source when it is already
 // browser-safe, otherwise converts it to H.264/AAC (HDR tone-mapped). The original is never touched.

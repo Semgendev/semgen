@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { deleteWorkingCopy } from "@/lib/aws/working-copy-storage";
+
 import { projectIdSchema, projectTitleSchema } from "./schemas";
 
 export const projectStatusSchema = z.enum([
@@ -120,6 +122,20 @@ export async function deleteProjectWithFiles(
 ): Promise<MutationResult> {
   const id = projectIdSchema.safeParse(projectId);
   if (!id.success) return { ok: false, code: "invalid" };
+
+  // The working copy lives on S3: removed first, like the Storage files.
+  const { data: owned } = await supabase
+    .from("projects")
+    .select("working_video_key")
+    .eq("id", id.data)
+    .maybeSingle();
+  if (owned?.working_video_key) {
+    try {
+      await deleteWorkingCopy(String(owned.working_video_key));
+    } catch {
+      return { ok: false, code: "unknown" };
+    }
+  }
 
   const folder = `${userId}/${id.data}`;
   const { data: files, error: listError } = await supabase.storage.from("videos").list(folder);
