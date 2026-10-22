@@ -11,7 +11,7 @@
 | AssemblyAI | 50 $ de crédits offerts (~185 h de transcription) | 0 € au début |
 | Claude API (Haiku) | Paiement à l'usage, très faible pour la traduction | ~5 € |
 | ElevenLabs | Abonnement d'entrée pour tester le doublage | ~5–22 $ |
-| AWS (Remotion Lambda) | Paiement à l'usage. Mesuré le 2026-10-22 (Stockholm, 30 i/s) : vidéo de 12 s en 540×960 = **0,005 $**, 22 s, 19 fonctions. À re-mesurer sur 1 min en 1080×1920. Free plan : 100 $ de crédits AWS | ~5 € |
+| AWS (Remotion Lambda) | Paiement à l'usage. Mesuré le 2026-10-22 (Stockholm, 30 i/s) : vidéo de 12 s en 540×960 = **0,005 $**, 22 s, 19 fonctions ; **1 min en 1080×1920 (vidéo iPhone HEVC) = 0,104 $**, 95 s, 84 fonctions, fichier 41 Mo. Free plan : 100 $ de crédits AWS | ~5 € |
 | Resend, Upstash, Sentry, PostHog | Gratuits | 0 € |
 | Domaine | ~10–15 €/an | ~1 €/mois |
 
@@ -22,6 +22,8 @@
 - Transcription AssemblyAI : ~0,37 $/heure → ~0,006 $/minute.
 - Doublage ElevenLabs Dubbing v2 : à partir de ~2,20 $/minute de source → **c'est le poste le plus cher**.
 - Traduction Claude Haiku : quelques centimes pour une vidéo entière.
+
+**Coût réel d'1 crédit (1 min sous-titrée + exportée en 1080p)** : ≈ 0,006 $ (transcription) + 0,104 $ (export) ≈ **0,11 $** (~65 FCFA). 10 crédits offerts ≈ 1,10 $ par compte qui les utilise tous.
 
 ## 3. Barème de crédits proposé (marge ≥ 50 % sur chaque fonction)
 
