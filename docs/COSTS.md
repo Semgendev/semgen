@@ -23,6 +23,8 @@
 - Doublage ElevenLabs Dubbing v2 : à partir de ~2,20 $/minute de source → **c'est le poste le plus cher**.
 - Traduction Claude Haiku : quelques centimes pour une vidéo entière.
 
+**Optimisations testées (2026-10-22, rendu identique)** : copie de travail H.264 1080p = 0,079 $/min ; + 2 onglets et 60 images par machine = **0,070 $/min** (plancher AWS). Serveurs de rendu à prix fixe ≈ 0,01–0,03 $/min au-delà de ~1 000 min/mois (à chiffrer). Concurrent Caption Studio : 0,12–0,17 $/min vendu.
+
 **Coût réel d'1 crédit (1 min sous-titrée + exportée en 1080p)** : ≈ 0,006 $ (transcription) + 0,104 $ (export) ≈ **0,11 $** (~65 FCFA). 10 crédits offerts ≈ 1,10 $ par compte qui les utilise tous.
 
 ## 3. Barème de crédits proposé (marge ≥ 50 % sur chaque fonction)

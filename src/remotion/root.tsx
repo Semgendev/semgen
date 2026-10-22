@@ -21,23 +21,28 @@ function ExportVideo(props: ExportProps) {
   const blur = !fills && props.fit === "blur";
   return (
     <AbsoluteFill>
+      {/* each video in its own full-frame layer: stacked on top of each other, not one below the other */}
       {blur ? (
+        <AbsoluteFill>
+          <OffthreadVideo
+            src={props.videoSrc}
+            muted
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(40px) brightness(0.7)",
+              transform: "scale(1.15)",
+            }}
+          />
+        </AbsoluteFill>
+      ) : null}
+      <AbsoluteFill>
         <OffthreadVideo
           src={props.videoSrc}
-          muted
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "blur(40px) brightness(0.7)",
-            transform: "scale(1.15)",
-          }}
+          style={{ width: "100%", height: "100%", objectFit: blur ? "contain" : "cover" }}
         />
-      ) : null}
-      <OffthreadVideo
-        src={props.videoSrc}
-        style={{ width: "100%", height: "100%", objectFit: blur ? "contain" : "cover" }}
-      />
+      </AbsoluteFill>
       <CaptionLayer pages={pages} style={style} moves={moves} />
     </AbsoluteFill>
   );
