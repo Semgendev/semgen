@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { EXPORT_FITS } from "../../export/options";
 import { transcriptWordSchema } from "../../transcription/types";
 import { paginate, type CaptionPage } from "../paginate";
 import { resolveCaptionStyle } from "../project-style";
@@ -15,16 +16,22 @@ export const EXPORT_COMPOSITION_ID = "captioned-video";
 // which halves the render time (and its cost) with no visible loss.
 export const EXPORT_FPS = 30;
 
+const size = z.number().int().min(16).max(4096);
+
 export const exportPropsSchema = z.object({
   videoSrc: z.url(),
   words: z.array(transcriptWordSchema).max(50_000),
   // projects.caption_style as stored (checked by resolveCaptionStyle, which falls back on the default)
   captionStyle: z.unknown(),
-  width: z.number().int().min(16).max(4096),
-  height: z.number().int().min(16).max(4096),
+  // size of the exported video
+  width: size,
+  height: size,
+  // size of the source video, when its shape differs from the exported one (another format)
+  source: z.object({ width: size, height: size }).optional(),
+  fit: z.enum(EXPORT_FITS).default("crop"),
   durationS: z.number().positive().max(3 * 60 * 60),
 });
-export type ExportProps = z.infer<typeof exportPropsSchema>;
+export type ExportProps = z.input<typeof exportPropsSchema>;
 
 export function exportCaptions(props: Pick<ExportProps, "words" | "captionStyle">): {
   style: CaptionStyle;
@@ -33,4 +40,13 @@ export function exportCaptions(props: Pick<ExportProps, "words" | "captionStyle"
 } {
   const { presetId, style, moves } = resolveCaptionStyle(props.captionStyle);
   return { style, pages: paginate(props.words, style, presetId), moves: moves[presetId] };
+}
+
+// Does the source fill the exported frame as is (same shape, give or take a pixel of rounding)?
+export function sameShape(
+  frame: { width: number; height: number },
+  source: { width: number; height: number } | undefined,
+): boolean {
+  if (!source) return true;
+  return Math.abs(frame.width / frame.height - source.width / source.height) < 0.01;
 }

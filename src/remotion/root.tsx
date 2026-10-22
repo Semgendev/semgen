@@ -1,19 +1,46 @@
 import { useMemo } from "react";
-import { Composition, type CalculateMetadataFunction } from "remotion";
+import { AbsoluteFill, Composition, OffthreadVideo, type CalculateMetadataFunction } from "remotion";
 
-import { CaptionedVideo } from "../features/captions/remotion/captioned-video";
+import { CaptionLayer } from "../features/captions/remotion/captioned-video";
 import {
   EXPORT_COMPOSITION_ID,
   EXPORT_FPS,
   exportCaptions,
   exportPropsSchema,
+  sameShape,
   type ExportProps,
 } from "../features/captions/remotion/export-props";
 
-// The video rendered by the export: the project video with its captions, at its own size and length.
+// The video rendered by the export: the project video with its captions, in the chosen format. When
+// the format differs from the video's own shape, the video is either cut to fill the frame ("crop")
+// or shown whole on a blurred, enlarged copy of itself ("blur"). The captions are laid out on the
+// exported frame, like in the preview.
 function ExportVideo(props: ExportProps) {
   const { style, pages, moves } = useMemo(() => exportCaptions(props), [props]);
-  return <CaptionedVideo videoSrc={props.videoSrc} pages={pages} style={style} moves={moves} />;
+  const fills = sameShape(props, props.source);
+  const blur = !fills && props.fit === "blur";
+  return (
+    <AbsoluteFill>
+      {blur ? (
+        <OffthreadVideo
+          src={props.videoSrc}
+          muted
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(40px) brightness(0.7)",
+            transform: "scale(1.15)",
+          }}
+        />
+      ) : null}
+      <OffthreadVideo
+        src={props.videoSrc}
+        style={{ width: "100%", height: "100%", objectFit: blur ? "contain" : "cover" }}
+      />
+      <CaptionLayer pages={pages} style={style} moves={moves} />
+    </AbsoluteFill>
+  );
 }
 
 const calculateMetadata: CalculateMetadataFunction<ExportProps> = ({ props }) => {
