@@ -6,6 +6,8 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCreditBalance } from "@/features/credits/queries";
+import { ExportSection } from "@/features/export/export-section";
+import { getLatestRenderJob } from "@/features/export/queries";
 import { CaptionFontPreload } from "@/features/captions/font-preload";
 import { CaptionStudio } from "@/features/captions/caption-studio";
 import { CaptionWordsProvider } from "@/features/captions/caption-words";
@@ -31,12 +33,13 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
   if (!data?.claims) redirect(`/${locale}/login?next=/${locale}/projects`);
 
   // everything is asked at once: row-level security hides what is not the user's own
-  const [project, transcript, job, balance, customColors] = await Promise.all([
+  const [project, transcript, job, balance, customColors, renderJob] = await Promise.all([
     getProject(supabase, id),
     getTranscript(supabase, id),
     getLatestTranscriptionJob(supabase, id),
     getCreditBalance(supabase),
     getCustomColors(supabase),
+    getLatestRenderJob(supabase, id),
   ]);
   if (!project) notFound();
   const urls = await getVideoUrls(supabase, [project]);
@@ -82,6 +85,20 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
             initialCustomColors={customColors}
             titleSlot={title}
             transcriptionSlot={transcription}
+            exportSlot={
+              <ExportSection
+                projectId={project.id}
+                source={
+                  project.width && project.height
+                    ? { width: project.width, height: project.height }
+                    : null
+                }
+                durationSeconds={project.duration_s}
+                balance={balance}
+                hasText={(transcript?.words.length ?? 0) > 0}
+                initialJob={renderJob}
+              />
+            }
           />
         ) : (
           <div className="flex flex-col gap-6">

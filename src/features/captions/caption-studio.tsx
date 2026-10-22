@@ -88,6 +88,7 @@ export function CaptionStudio({
   initialCustomColors,
   titleSlot,
   transcriptionSlot,
+  exportSlot,
 }: {
   projectId: string;
   src: string;
@@ -99,6 +100,8 @@ export function CaptionStudio({
   titleSlot: ReactNode;
   // null when the project has no video to transcribe: the tab is not shown
   transcriptionSlot: ReactNode | null;
+  // the "Export" button, shown under the video
+  exportSlot: ReactNode;
 }) {
   const t = useTranslations("captions");
   const words = useCaptionWords();
@@ -745,6 +748,7 @@ export function CaptionStudio({
             {t("move.hint")}
           </p>
         ) : null}
+        <div className="shrink-0">{exportSlot}</div>
         {needsText ? (
           <div className="text-text-2 flex shrink-0 flex-col items-center gap-2 text-center text-sm">
             <p>{t("noWords")}</p>

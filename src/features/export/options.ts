@@ -58,3 +58,25 @@ export function canExport4k(source: { width: number; height: number }): boolean 
 export function exportCost(quality: ExportQuality, durationSeconds: number): number {
   return quality === "4k" ? Math.max(1, Math.ceil(durationSeconds / 60)) : 0;
 }
+
+// Same shape as the source (within a hair): nothing to crop or blur.
+export function fitMatters(
+  format: ExportFormat,
+  source: { width: number; height: number },
+): boolean {
+  if (format === "original") return false;
+  const [ratioW, ratioH] = RATIOS[format];
+  return Math.abs(source.width / source.height - ratioW / ratioH) > 0.02;
+}
+
+// What the dialog offers for a given source and credit balance.
+export function qualityState(
+  quality: ExportQuality,
+  source: { width: number; height: number },
+  durationSeconds: number,
+  balance: number,
+): "ok" | "no_4k_source" | "not_enough_credits" {
+  if (quality !== "4k") return "ok";
+  if (!canExport4k(source)) return "no_4k_source";
+  return balance < exportCost("4k", durationSeconds) ? "not_enough_credits" : "ok";
+}

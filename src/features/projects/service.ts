@@ -28,6 +28,8 @@ export const projectSummarySchema = z.object({
   preview_video_key: z.string().nullable(),
   source_size_bytes: z.number().nullable(),
   duration_s: z.number().nullable(),
+  width: z.number().int().nullable().optional(),
+  height: z.number().int().nullable().optional(),
   detected_language: z.string().nullable(),
   created_at: z.string(),
   // validated by features/captions/project-style.ts when used
@@ -37,7 +39,7 @@ export const projectSummarySchema = z.object({
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 
 const COLUMNS =
-  "id, title, status, source_video_key, preview_status, preview_video_key, source_size_bytes, duration_s, detected_language, created_at, caption_style";
+  "id, title, status, source_video_key, preview_status, preview_video_key, source_size_bytes, duration_s, width, height, detected_language, created_at, caption_style";
 
 const SIGNED_URL_SECONDS = 60 * 60;
 
