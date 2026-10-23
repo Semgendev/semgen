@@ -21,12 +21,12 @@ function nativeName(locale: string): string | undefined {
   }
 }
 
-export function LanguageSwitcher() {
+// The current language, every language in its own name (Español, Deutsch…) and a way to switch.
+// Shared by the language button (visitors) and the profile menu (signed-in users).
+export function useLanguages() {
   const locale = useLocale();
-  const t = useTranslations("language");
   const router = useRouter();
 
-  // every language in its own name (Español, Deutsch…), whatever the current one
   const languages = locales.map((value) => ({
     value,
     label: nativeName(value) ?? value.toUpperCase(),
@@ -34,11 +34,18 @@ export function LanguageSwitcher() {
 
   // The page address is read when a language is chosen, not while rendering: reading it while
   // rendering (usePathname) would stop Next.js from preparing the page in advance.
-  const handleChangeLanguage = (newLocale: Locale) => {
+  const changeLanguage = (newLocale: Locale) => {
     const pathname =
       window.location.pathname.replace(new RegExp(`^/(${LOCALE_PATTERN})(?=/|$)`), "") || "/";
     router.replace(pathname, { locale: newLocale });
   };
+
+  return { locale, languages, changeLanguage };
+}
+
+export function LanguageSwitcher() {
+  const t = useTranslations("language");
+  const { locale, languages, changeLanguage: handleChangeLanguage } = useLanguages();
 
   return (
     <DropdownMenu>

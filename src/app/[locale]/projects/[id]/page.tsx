@@ -1,4 +1,3 @@
-import { ArrowLeft } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -12,14 +11,15 @@ import { CaptionFontPreload } from "@/features/captions/font-preload";
 import { CaptionStudio } from "@/features/captions/caption-studio";
 import { CaptionWordsProvider } from "@/features/captions/caption-words";
 import { resolveCaptionStyle } from "@/features/captions/project-style";
+import { ToolbarPortal } from "@/features/projects/editor-toolbar";
 import { PlayerProvider } from "@/features/projects/player";
 import { PreviewStatusPanel } from "@/features/projects/preview-status";
 import { ProjectTitle } from "@/features/projects/project-title";
+import { ShareButton } from "@/features/projects/share-button";
 import { getProject, getVideoUrls } from "@/features/projects/service";
 import { getCustomColors } from "@/features/preferences/queries";
 import { getLatestTranscriptionJob, getTranscript } from "@/features/transcription/queries";
 import { TranscriptionSection } from "@/features/transcription/transcription-section";
-import { Link } from "@/i18n/routing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function ProjectContent({ params }: { params: Promise<{ locale: string; id: string }> }) {
@@ -66,13 +66,27 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
         initialWords={transcript?.words ?? []}
         initialPresetId={resolveCaptionStyle(project.caption_style).presetId}
       >
-        <Link
-          href="/projects"
-          className="text-text-2 hover:text-text inline-flex min-h-11 w-fit items-center gap-1 text-sm transition-colors lg:-my-1 lg:min-h-8"
-        >
-          <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden />
-          {t("backToList")}
-        </Link>
+        {/* Share and export are drawn in the header, on the first line of the page. */}
+        <ToolbarPortal slot="share">
+          <ShareButton />
+        </ToolbarPortal>
+        {videoUrl ? (
+          <ToolbarPortal slot="export">
+            <ExportSection
+              projectId={project.id}
+              source={
+                project.width && project.height
+                  ? { width: project.width, height: project.height }
+                  : null
+              }
+              durationSeconds={project.duration_s}
+              // no subscription is sold yet (docs/DECISIONS.md D21)
+              plan="free"
+              hasText={(transcript?.words.length ?? 0) > 0}
+              initialJob={renderJob}
+            />
+          </ToolbarPortal>
+        ) : null}
 
         {videoUrl ? (
           <CaptionStudio
@@ -85,20 +99,6 @@ async function ProjectContent({ params }: { params: Promise<{ locale: string; id
             initialCustomColors={customColors}
             titleSlot={title}
             transcriptionSlot={transcription}
-            exportSlot={
-              <ExportSection
-                projectId={project.id}
-                source={
-                  project.width && project.height
-                    ? { width: project.width, height: project.height }
-                    : null
-                }
-                durationSeconds={project.duration_s}
-                balance={balance}
-                hasText={(transcript?.words.length ?? 0) > 0}
-                initialJob={renderJob}
-              />
-            }
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -123,7 +123,7 @@ export default function ProjectPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:px-6 sm:pt-3 sm:pb-4 lg:gap-3">
+    <main className="mx-auto flex w-full max-w-[70rem] flex-1 flex-col gap-6 p-4 sm:px-6 sm:pt-3 sm:pb-4 lg:gap-3">
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <ProjectContent params={params} />
       </Suspense>

@@ -7,22 +7,24 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { PlanId } from "@/features/billing/plans";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 import { RENDER_JOB_COLUMNS, renderJobSchema, type RenderJob } from "./queries";
 
-// The dialog is only fetched when it is opened: the project page stays light.
-const ExportDialog = dynamic(() => import("./export-dialog").then((m) => m.ExportDialog), {
-  ssr: false,
-});
+// The panel is only fetched when needed (fetched early on hover): the project page stays light.
+const loadPanel = () => import("./export-panel").then((m) => m.ExportPanel);
+const ExportPanel = dynamic(loadPanel, { ssr: false });
 
 const POLL_MS = 1500;
 
+// The "Export" button, top right of the project page, and its settings panel anchored under it.
 export function ExportSection({
   projectId,
   source,
   durationSeconds,
-  balance,
+  plan,
   hasText,
   initialJob,
 }: {
@@ -30,7 +32,7 @@ export function ExportSection({
   // null when the video was never measured (the preview/transcription measures it)
   source: { width: number; height: number } | null;
   durationSeconds: number | null;
-  balance: number;
+  plan: PlanId;
   hasText: boolean;
   initialJob: RenderJob | null;
 }) {
@@ -38,8 +40,6 @@ export function ExportSection({
   const router = useRouter();
   const [job, setJob] = useState<RenderJob | null>(initialJob);
   const [open, setOpen] = useState(false);
-  // once opened, the dialog stays mounted so its close animation and choices survive
-  const [mounted, setMounted] = useState(false);
 
   const active = job?.status === "queued" || job?.status === "running";
   const jobId = job?.id;
@@ -69,40 +69,34 @@ export function ExportSection({
 
   if (!source || !durationSeconds) return null;
 
-  const done = job?.status === "succeeded";
   const percent = Math.min(100, Math.max(0, job?.progress ?? 0));
 
   return (
-    <>
-      <Button
-        size="sm"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
         disabled={!hasText}
         title={hasText ? undefined : t("needsText")}
-        onClick={() => {
-          setMounted(true);
-          setOpen(true);
-        }}
-        className="max-lg:min-h-11"
+        onPointerEnter={() => void loadPanel()}
+        onFocus={() => void loadPanel()}
+        render={<Button size="sm" className="max-lg:min-h-11" />}
       >
         {active ? (
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
         ) : (
           <Download className="size-4" aria-hidden="true" />
         )}
-        {active ? t("buttonBusy", { percent }) : done ? t("buttonDone") : t("button")}
-      </Button>
-      {mounted ? (
-        <ExportDialog
-          open={open}
-          onOpenChange={setOpen}
+        {active ? `${percent}%` : t("button")}
+      </PopoverTrigger>
+      <PopoverContent className="w-[min(16.25rem,calc(100vw-2rem))]">
+        <ExportPanel
           projectId={projectId}
           source={source}
           durationSeconds={durationSeconds}
-          balance={balance}
+          plan={plan}
           job={job}
           onJob={setJob}
         />
-      ) : null}
-    </>
+      </PopoverContent>
+    </Popover>
   );
 }

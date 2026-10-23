@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-// What the user picks when exporting. Every format and quality is open to every plan for now
-// (decision of 2026-10-22); 4K is only offered when the source video really is 4K.
+import { planAllows, type PlanId } from "@/features/billing/plans";
+
+// What the user picks when exporting. 4K (and 60 images per second) belong to the Business plan
+// (docs/DECISIONS.md D21), and 4K is only offered when the source video really is 4K.
 
 export const EXPORT_FORMATS = ["original", "9:16", "1:1", "16:9"] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
@@ -69,14 +71,31 @@ export function fitMatters(
   return Math.abs(source.width / source.height - ratioW / ratioH) > 0.02;
 }
 
-// What the dialog offers for a given source and credit balance.
+// What the panel offers for a given source and plan. A source too small for 4K comes first: a
+// subscription would not change it, so it is never sold as an upgrade.
 export function qualityState(
   quality: ExportQuality,
   source: { width: number; height: number },
-  durationSeconds: number,
-  balance: number,
-): "ok" | "no_4k_source" | "not_enough_credits" {
+  plan: PlanId,
+): "ok" | "no_4k_source" | "locked" {
   if (quality !== "4k") return "ok";
   if (!canExport4k(source)) return "no_4k_source";
-  return balance < exportCost("4k", durationSeconds) ? "not_enough_credits" : "ok";
+  return planAllows(plan, "4k") ? "ok" : "locked";
+}
+
+// Images per second of the exported video. 60 is a Business option, not wired to the render yet.
+export const EXPORT_FPS_CHOICES = [30, 60] as const;
+export type ExportFps = (typeof EXPORT_FPS_CHOICES)[number];
+
+// Measured on 2026-10-22: 1 minute in 1080×1920 at 30 images per second ≈ 41 MB (docs/COSTS.md).
+const MB_PER_PIXEL_MINUTE = 41 / (1080 * 1920);
+
+// Rough size of the exported file, in megabytes, to tell the user before the export.
+export function estimateSizeMb(
+  size: { width: number; height: number },
+  durationSeconds: number,
+  fps: ExportFps,
+): number {
+  const mb = MB_PER_PIXEL_MINUTE * size.width * size.height * (durationSeconds / 60) * (fps / 30);
+  return mb < 10 ? Math.max(0.1, Math.round(mb * 10) / 10) : Math.round(mb);
 }

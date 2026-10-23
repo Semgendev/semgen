@@ -144,6 +144,8 @@ type SearchToolProps = {
   onNext: () => void;
   // the classes of the icon, shared with the other tools of the row
   buttonClassName: string;
+  // the width of the field once open (a class): it grows out of the icon towards the start
+  fieldWidthClass: string;
   // the field is open or folded: the parent also folds it when a word is touched
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -160,6 +162,7 @@ export function SearchTool({
   matchCount,
   onNext,
   buttonClassName,
+  fieldWidthClass,
   open,
   onOpenChange,
 }: SearchToolProps) {
@@ -168,39 +171,6 @@ export function SearchTool({
   const button = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
-
-  // Open, the field starts where the line of buttons above starts (the first of them) and ends at
-  // the icon. The width is set on the element itself (no render), and follows the row.
-  useEffect(() => {
-    const element = box.current;
-    const row = element?.closest<HTMLElement>("[data-tools-row]");
-    if (!element || !row) return;
-    function fit() {
-      if (!element || !row) return;
-      if (!open) {
-        element.style.width = "0px";
-        return;
-      }
-      const anchor = row.parentElement?.querySelector<HTMLElement>("[data-tools-anchor]");
-      const edge = element.getBoundingClientRect();
-      const bounds = row.getBoundingClientRect();
-      const start = anchor?.getBoundingClientRect();
-      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-      const rtl = getComputedStyle(row).direction === "rtl";
-      // never past the start of the row (the status keeps at least the gap)
-      const room = rtl
-        ? Math.min(start?.right ?? bounds.right, bounds.right - gap)
-        : Math.max(start?.left ?? bounds.left, bounds.left + gap);
-      const width = rtl ? room - edge.left : edge.right - room;
-      // minus 3px: the border and padding of the frame around the icon
-      element.style.width = `${Math.max(0, Math.round(width) - 3)}px`;
-    }
-    fit();
-    if (!open || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(fit);
-    observer.observe(row);
-    return () => observer.disconnect();
-  }, [open]);
 
   // Touching anything else (the lines, the video, its bar, another tool) folds the field. The
   // words typed stay: the results stay marked while the video plays.
@@ -223,7 +193,7 @@ export function SearchTool({
   return (
     <div
       ref={wrap}
-      className="flex min-w-0 items-center"
+      className={cn("flex min-w-0 items-center", open && "flex-1")}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           onOpenChange(false);
@@ -238,7 +208,7 @@ export function SearchTool({
         inert={!open}
         className={cn(
           "relative w-0 min-w-0 overflow-hidden transition-[width,opacity] duration-300 ease-out motion-reduce:transition-none",
-          open ? "opacity-100" : "opacity-0",
+          open ? cn("opacity-100", fieldWidthClass) : "opacity-0",
         )}
       >
         <div

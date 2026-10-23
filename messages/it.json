@@ -4,7 +4,8 @@
     "switchToLight": "Passa alla modalità chiara"
   },
   "language": {
-    "label": "Cambia lingua"
+    "label": "Cambia lingua",
+    "menu": "Lingua"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Accesso effettuato come",
     "signOut": "Esci",
     "signIn": "Accedi",
-    "myAccount": "Il mio account",
-    "appearance": "Aspetto"
+    "appearance": "Aspetto",
+    "profileMenu": "Menu del profilo",
+    "menuAccount": "Il mio account"
   },
   "credits": {
     "balance": "{count, plural, one {# credito} other {# crediti}}",
@@ -97,7 +99,6 @@
       "saved": "Salvato",
       "unsaved": "Modifiche non salvate",
       "saveFailed": "Salvataggio non riuscito. Riprova.",
-      "hint": "Tocca una parola per correggerla. Invio: conferma la modifica. Spazio: riproduci o metti in pausa il video.",
       "wordLabel": "Parola da correggere",
       "newLine": "Nuova riga qui",
       "merge": "Unisci alla riga sopra",
@@ -185,7 +186,6 @@
     "deleteTitle": "Eliminare questo progetto?",
     "deleteBody": "«{title}» e il suo video verranno eliminati definitivamente. Non è possibile annullare.",
     "deleteConfirm": "Elimina definitivamente",
-    "backToList": "Torna ai miei progetti",
     "menu": "Opzioni del progetto",
     "myProjects": "I miei progetti",
     "noVideo": "Per ora non c'è nessun video disponibile per questo progetto.",
@@ -199,7 +199,9 @@
       "processing": "In elaborazione",
       "ready": "Pronto",
       "failed": "Non riuscito"
-    }
+    },
+    "share": "Condividi",
+    "shareSoon": "Presto: invia il link del tuo progetto a qualcuno."
   },
   "appearance": {
     "breadcrumb": "Impostazioni",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Schermo intero",
       "exitFullscreen": "Esci dallo schermo intero",
       "rate": "Cambia la velocità",
-      "volume": "Cambia il volume"
+      "volume": "Cambia il volume",
+      "seek": "Posizione nel video"
     }
   },
   "export": {
     "button": "Esporta",
-    "buttonBusy": "Esportazione… {percent}%",
-    "buttonDone": "Video esportato",
     "needsText": "Scrivi prima il testo del video",
     "title": "Esporta il video",
-    "intro": "Il video esce con i sottotitoli animati, esattamente come nell’anteprima.",
     "format": "Formato",
     "formatOriginal": "Originale",
     "format916": "Verticale 9:16",
     "format11": "Quadrato 1:1",
     "format169": "Orizzontale 16:9",
-    "fit": "Se il formato è diverso dal tuo video",
+    "fit": "Inquadratura",
     "fitCrop": "Ritaglia",
     "fitCropHint": "I bordi vengono tagliati.",
     "fitBlur": "Sfondo sfocato",
     "fitBlurHint": "Il video resta intero.",
     "quality": "Qualità",
+    "fps": "Fotogrammi al secondo",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Consigliato",
-    "fourKExtra": "{count, plural, one {+# credito} other {+# crediti}} al minuto",
+    "spec": "{width}×{height} · {fps} fps",
+    "fileInfo": "MP4 · circa {size, number} MB",
+    "planBusiness": "Business",
+    "lockedTitle": "Incluso nel piano Business",
+    "lockedText": "L’esportazione in 4K e a 60 fps è inclusa in Business. Gli abbonamenti aprono molto presto.",
     "fourKUnavailable": "Il tuo video non è in 4K: ingrandire l’immagine non servirebbe a nulla.",
-    "fourKNotEnough": "Ti servono {cost} crediti per il 4K e ne hai {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "incluso nella trascrizione",
-    "costPaid": "costo: {count, plural, one {# credito} other {# crediti}}",
     "start": "Avvia l’esportazione",
     "retry": "Riprova",
     "queued": "In coda…",
@@ -411,6 +412,7 @@
     "downloadHint": "Il file viene conservato 7 giorni.",
     "another": "Fai un’altra esportazione",
     "failed": "L’esportazione non è riuscita. I tuoi crediti sono stati rimborsati.",
+    "failedFree": "L’esportazione non è riuscita. Nessun credito è stato addebitato, puoi riprovare.",
     "expired": "Questo file ha più di 7 giorni ed è stato eliminato. Esporta di nuovo.",
     "errors": {
       "invalid": "Scelta di esportazione non valida.",
@@ -421,7 +423,6 @@
       "unknown": "Qualcosa è andato storto. Riprova.",
       "download": "Impossibile preparare il download. Riprova.",
       "insufficient": "Crediti insufficienti per questa esportazione."
-    },
-    "close": "Chiudi"
+    }
   }
 }

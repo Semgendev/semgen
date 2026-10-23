@@ -4,7 +4,8 @@
     "switchToLight": "Badilisha kwenda hali ya mwanga"
   },
   "language": {
-    "label": "Badilisha lugha"
+    "label": "Badilisha lugha",
+    "menu": "Lugha"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Umeingia kama",
     "signOut": "Toka",
     "signIn": "Ingia",
-    "myAccount": "Akaunti yangu",
-    "appearance": "Mwonekano"
+    "appearance": "Mwonekano",
+    "profileMenu": "Menyu ya wasifu",
+    "menuAccount": "Akaunti yangu"
   },
   "credits": {
     "balance": "{count, plural, one {mkopo #} other {mikopo #}}",
@@ -97,7 +99,6 @@
       "saved": "Imehifadhiwa",
       "unsaved": "Mabadiliko ambayo hayajahifadhiwa",
       "saveFailed": "Kuhifadhi kumeshindwa. Tafadhali jaribu tena.",
-      "hint": "Gusa neno ili kulisahihisha. Enter: thibitisha mabadiliko. Nafasi: cheza au simamisha video.",
       "wordLabel": "Neno la kusahihisha",
       "newLine": "Mstari mpya hapa",
       "merge": "Unganisha na mstari wa juu",
@@ -185,7 +186,6 @@
     "deleteTitle": "Kufuta mradi huu?",
     "deleteBody": "“{title}” na video yake vitafutwa kabisa. Hili haliwezi kutenduliwa.",
     "deleteConfirm": "Futa kabisa",
-    "backToList": "Rudi kwenye miradi yangu",
     "menu": "Chaguo za mradi",
     "myProjects": "Miradi yangu",
     "noVideo": "Bado hakuna video inayopatikana kwa mradi huu.",
@@ -199,7 +199,9 @@
       "processing": "Inashughulikiwa",
       "ready": "Tayari",
       "failed": "Imeshindwa"
-    }
+    },
+    "share": "Shiriki",
+    "shareSoon": "Hivi karibuni: tuma kiungo cha mradi wako kwa mtu."
   },
   "appearance": {
     "breadcrumb": "Mipangilio",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Skrini nzima",
       "exitFullscreen": "Toka kwenye skrini nzima",
       "rate": "Badilisha kasi",
-      "volume": "Badilisha sauti"
+      "volume": "Badilisha sauti",
+      "seek": "Mahali kwenye video"
     }
   },
   "export": {
     "button": "Hamisha",
-    "buttonBusy": "Inahamisha… {percent}%",
-    "buttonDone": "Video imehamishwa",
     "needsText": "Andika kwanza maandishi ya video",
     "title": "Hamisha video",
-    "intro": "Video inatoka na manukuu yenye uhuishaji, kama kwenye onyesho la awali.",
     "format": "Muundo",
     "formatOriginal": "Asili",
     "format916": "Wima 9:16",
     "format11": "Mraba 1:1",
     "format169": "Mlalo 16:9",
-    "fit": "Muundo ukitofautiana na video yako",
+    "fit": "Fremu",
     "fitCrop": "Kata",
     "fitCropHint": "Kingo zinakatwa.",
     "fitBlur": "Mandharinyuma hafifu",
     "fitBlurHint": "Video inabaki nzima.",
     "quality": "Ubora",
+    "fps": "Picha kwa sekunde",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Inapendekezwa",
-    "fourKExtra": "{count, plural, one {+# kredit} other {+# kredit}} kwa dakika",
+    "spec": "{width}×{height} · {fps} fps",
+    "fileInfo": "MP4 · takriban MB {size, number}",
+    "planBusiness": "Business",
+    "lockedTitle": "Imejumuishwa kwenye mpango wa Business",
+    "lockedText": "Uhamishaji wa 4K na fps 60 unakuja na Business. Usajili utafunguliwa hivi karibuni.",
     "fourKUnavailable": "Video yako si ya 4K: kupanua picha hakusaidii.",
-    "fourKNotEnough": "Unahitaji kredit {cost} kwa 4K na una {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "imejumuishwa kwenye unukuzi",
-    "costPaid": "gharama: {count, plural, one {kredit #} other {kredit #}}",
     "start": "Anza kuhamisha",
     "retry": "Jaribu tena",
     "queued": "Inasubiri kwenye foleni…",
@@ -411,6 +412,7 @@
     "downloadHint": "Faili huhifadhiwa kwa siku 7.",
     "another": "Fanya uhamishaji mwingine",
     "failed": "Uhamishaji umeshindwa. Kredit zako zimerudishwa.",
+    "failedFree": "Uhamishaji umeshindwa. Hakuna kredit iliyotumika, unaweza kujaribu tena.",
     "expired": "Faili hii ina zaidi ya siku 7 na imefutwa. Hamisha tena.",
     "errors": {
       "invalid": "Chaguo la uhamishaji si sahihi.",
@@ -421,7 +423,6 @@
       "unknown": "Kuna tatizo lililotokea. Jaribu tena.",
       "download": "Imeshindwa kuandaa upakuaji. Jaribu tena.",
       "insufficient": "Kredit hazitoshi kwa uhamishaji huu."
-    },
-    "close": "Funga"
+    }
   }
 }

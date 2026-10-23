@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import en from "../../messages/en.json";
+import { EditorToolbarSlot } from "@/features/projects/editor-toolbar";
 import { PlayerProvider, VideoPlayer } from "@/features/projects/player";
 import type { Transcript } from "@/features/transcription/queries";
 import { revertTranscript, saveTranscript } from "@/features/transcription/actions";
@@ -37,12 +38,16 @@ function renderView(override: Partial<Transcript> = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
       <PlayerProvider>
-        <VideoPlayer src="https://example.com/video.mp4" fallback="no video" />
-        <TranscriptView
-          transcript={{ ...transcript, ...override }}
-          title="My video"
-          projectId="3f1c2a9e-5b7d-4e21-8a43-9c0d6b1e7f52"
-        />
+        {/* the header slot, where undo / redo and the save status are drawn */}
+        <>
+          <EditorToolbarSlot name="history" />
+          <VideoPlayer src="https://example.com/video.mp4" fallback="no video" />
+          <TranscriptView
+            transcript={{ ...transcript, ...override }}
+            title="My video"
+            projectId="3f1c2a9e-5b7d-4e21-8a43-9c0d6b1e7f52"
+          />
+        </>
       </PlayerProvider>
     </NextIntlClientProvider>,
   );

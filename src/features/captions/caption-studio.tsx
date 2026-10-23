@@ -88,7 +88,6 @@ export function CaptionStudio({
   initialCustomColors,
   titleSlot,
   transcriptionSlot,
-  exportSlot,
 }: {
   projectId: string;
   src: string;
@@ -100,8 +99,6 @@ export function CaptionStudio({
   titleSlot: ReactNode;
   // null when the project has no video to transcribe: the tab is not shown
   transcriptionSlot: ReactNode | null;
-  // the "Export" button, shown under the video
-  exportSlot: ReactNode;
 }) {
   const t = useTranslations("captions");
   const words = useCaptionWords();
@@ -632,7 +629,7 @@ export function CaptionStudio({
   return (
     <div
       data-moving={picked ? "true" : undefined}
-      className="grid gap-5 [--studio-offset:8.25rem] max-lg:data-[moving=true]:pb-[20rem] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start"
+      className="grid gap-5 [--studio-offset:5.6rem] max-lg:data-[moving=true]:pb-[20rem] lg:grid-cols-[minmax(0,7fr)_minmax(0,6fr)] lg:items-start"
     >
       <div className="order-2 lg:sticky lg:top-[4.75rem] lg:order-1 lg:h-[calc(100dvh-var(--studio-offset))]">
         <div className={PANEL_CARD}>
@@ -735,7 +732,7 @@ export function CaptionStudio({
       <div
         ref={videoCard}
         data-moving={picked ? "true" : undefined}
-        className="bg-surface border-border order-1 flex scroll-mt-28 flex-col items-center justify-center gap-2 rounded-2xl border p-3 [--player-room:15rem] max-lg:data-[moving=true]:[--player-room:28rem] lg:sticky lg:top-[4.75rem] lg:order-2 lg:h-[calc(100dvh-var(--studio-offset))]"
+        className="bg-surface border-border order-1 flex scroll-mt-28 flex-col items-center justify-center gap-2 rounded-2xl border p-3 [--player-room:14.82rem] max-lg:data-[moving=true]:[--player-room:30.5rem] lg:sticky lg:top-[4.75rem] lg:order-2 lg:h-[calc(100dvh-var(--studio-offset))]"
       >
         <div className="w-full shrink-0">{titleSlot}</div>
         <CaptionPlayer src={src} style={current} pages={pages} moves={styleMoves} editor={editor} />
@@ -748,7 +745,6 @@ export function CaptionStudio({
             {t("move.hint")}
           </p>
         ) : null}
-        <div className="shrink-0">{exportSlot}</div>
         {needsText ? (
           <div className="text-text-2 flex shrink-0 flex-col items-center gap-2 text-center text-sm">
             <p>{t("noWords")}</p>

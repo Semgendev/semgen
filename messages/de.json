@@ -4,7 +4,8 @@
     "switchToLight": "Zum hellen Modus wechseln"
   },
   "language": {
-    "label": "Sprache ändern"
+    "label": "Sprache ändern",
+    "menu": "Sprache"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Angemeldet als",
     "signOut": "Abmelden",
     "signIn": "Anmelden",
-    "myAccount": "Mein Konto",
-    "appearance": "Darstellung"
+    "appearance": "Darstellung",
+    "profileMenu": "Profilmenü",
+    "menuAccount": "Mein Konto"
   },
   "credits": {
     "balance": "{count, plural, one {# Credit} other {# Credits}}",
@@ -97,7 +99,6 @@
       "saved": "Gespeichert",
       "unsaved": "Ungespeicherte Änderungen",
       "saveFailed": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
-      "hint": "Tippe auf ein Wort, um es zu korrigieren. Enter: Änderung bestätigen. Leertaste: Video abspielen oder pausieren.",
       "wordLabel": "Zu korrigierendes Wort",
       "newLine": "Hier neue Zeile",
       "merge": "Mit der Zeile darüber verbinden",
@@ -185,7 +186,6 @@
     "deleteTitle": "Dieses Projekt löschen?",
     "deleteBody": "„{title}“ und das zugehörige Video werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.",
     "deleteConfirm": "Endgültig löschen",
-    "backToList": "Zurück zu meinen Projekten",
     "menu": "Projektoptionen",
     "myProjects": "Meine Projekte",
     "noVideo": "Für dieses Projekt ist noch kein Video verfügbar.",
@@ -199,7 +199,9 @@
       "processing": "Wird verarbeitet",
       "ready": "Bereit",
       "failed": "Fehlgeschlagen"
-    }
+    },
+    "share": "Teilen",
+    "shareSoon": "Bald verfügbar: Schicke den Link deines Projekts an jemanden."
   },
   "appearance": {
     "breadcrumb": "Einstellungen",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Vollbild",
       "exitFullscreen": "Vollbild beenden",
       "rate": "Geschwindigkeit ändern",
-      "volume": "Lautstärke ändern"
+      "volume": "Lautstärke ändern",
+      "seek": "Position im Video"
     }
   },
   "export": {
     "button": "Exportieren",
-    "buttonBusy": "Export läuft… {percent} %",
-    "buttonDone": "Video exportiert",
     "needsText": "Erstelle zuerst den Text des Videos",
     "title": "Video exportieren",
-    "intro": "Das Video wird mit den animierten Untertiteln exportiert, genau wie in der Vorschau.",
     "format": "Format",
     "formatOriginal": "Original",
     "format916": "Hochformat 9:16",
     "format11": "Quadrat 1:1",
     "format169": "Querformat 16:9",
-    "fit": "Wenn das Format von deinem Video abweicht",
+    "fit": "Bildausschnitt",
     "fitCrop": "Zuschneiden",
     "fitCropHint": "Die Ränder werden abgeschnitten.",
     "fitBlur": "Unscharfer Hintergrund",
     "fitBlurHint": "Das Video bleibt vollständig.",
     "quality": "Qualität",
+    "fps": "Bilder pro Sekunde",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Empfohlen",
-    "fourKExtra": "{count, plural, one {+# Credit} other {+# Credits}} pro Minute",
+    "spec": "{width}×{height} · {fps} fps",
+    "fileInfo": "MP4 · etwa {size, number} MB",
+    "planBusiness": "Business",
+    "lockedTitle": "Im Business-Tarif enthalten",
+    "lockedText": "Export in 4K und mit 60 fps gibt es mit Business. Abos starten sehr bald.",
     "fourKUnavailable": "Dein Video ist nicht in 4K: Hochskalieren würde nichts bringen.",
-    "fourKNotEnough": "Du brauchst {cost} Credits für 4K und hast {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "in der Transkription enthalten",
-    "costPaid": "Kosten: {count, plural, one {# Credit} other {# Credits}}",
     "start": "Export starten",
     "retry": "Erneut versuchen",
     "queued": "In der Warteschlange…",
@@ -411,6 +412,7 @@
     "downloadHint": "Die Datei wird 7 Tage aufbewahrt.",
     "another": "Weiteren Export erstellen",
     "failed": "Der Export ist fehlgeschlagen. Deine Credits wurden zurückerstattet.",
+    "failedFree": "Der Export ist fehlgeschlagen. Es wurden keine Credits abgebucht, du kannst es erneut versuchen.",
     "expired": "Diese Datei ist älter als 7 Tage und wurde gelöscht. Exportiere erneut.",
     "errors": {
       "invalid": "Ungültige Exportauswahl.",
@@ -421,7 +423,6 @@
       "unknown": "Etwas ist schiefgelaufen. Versuche es erneut.",
       "download": "Der Download konnte nicht vorbereitet werden. Versuche es erneut.",
       "insufficient": "Nicht genug Credits für diesen Export."
-    },
-    "close": "Schließen"
+    }
   }
 }

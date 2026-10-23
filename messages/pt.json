@@ -4,7 +4,8 @@
     "switchToLight": "Mudar para o modo claro"
   },
   "language": {
-    "label": "Mudar de idioma"
+    "label": "Mudar de idioma",
+    "menu": "Idioma"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Conectado como",
     "signOut": "Sair",
     "signIn": "Entrar",
-    "myAccount": "Minha conta",
-    "appearance": "Aparência"
+    "appearance": "Aparência",
+    "profileMenu": "Menu do perfil",
+    "menuAccount": "Minha conta"
   },
   "credits": {
     "balance": "{count, plural, one {# crédito} other {# créditos}}",
@@ -97,7 +99,6 @@
       "saved": "Salvo",
       "unsaved": "Alterações não salvas",
       "saveFailed": "Não foi possível salvar. Tente novamente.",
-      "hint": "Toque numa palavra para corrigi-la. Enter: confirmar a alteração. Espaço: reproduzir ou pausar o vídeo.",
       "wordLabel": "Palavra a corrigir",
       "newLine": "Nova linha aqui",
       "merge": "Juntar com a linha de cima",
@@ -185,7 +186,6 @@
     "deleteTitle": "Excluir este projeto?",
     "deleteBody": "“{title}” e o vídeo dele serão excluídos permanentemente. Isso não pode ser desfeito.",
     "deleteConfirm": "Excluir permanentemente",
-    "backToList": "Voltar para meus projetos",
     "menu": "Opções do projeto",
     "myProjects": "Meus projetos",
     "noVideo": "Ainda não há nenhum vídeo disponível para este projeto.",
@@ -199,7 +199,9 @@
       "processing": "Processando",
       "ready": "Pronto",
       "failed": "Falhou"
-    }
+    },
+    "share": "Compartilhar",
+    "shareSoon": "Em breve: envie o link do seu projeto para alguém."
   },
   "appearance": {
     "breadcrumb": "Configurações",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Ecrã inteiro",
       "exitFullscreen": "Sair do ecrã inteiro",
       "rate": "Alterar a velocidade",
-      "volume": "Alterar o volume"
+      "volume": "Alterar o volume",
+      "seek": "Posição no vídeo"
     }
   },
   "export": {
     "button": "Exportar",
-    "buttonBusy": "Exportando… {percent}%",
-    "buttonDone": "Vídeo exportado",
     "needsText": "Primeiro escreva o texto do vídeo",
     "title": "Exportar o vídeo",
-    "intro": "O vídeo sai com as legendas animadas, exatamente como na prévia.",
     "format": "Formato",
     "formatOriginal": "Original",
     "format916": "Vertical 9:16",
     "format11": "Quadrado 1:1",
     "format169": "Horizontal 16:9",
-    "fit": "Se o formato for diferente do seu vídeo",
+    "fit": "Enquadramento",
     "fitCrop": "Cortar",
     "fitCropHint": "As bordas são cortadas.",
     "fitBlur": "Fundo desfocado",
     "fitBlurHint": "O vídeo fica inteiro.",
     "quality": "Qualidade",
+    "fps": "Quadros por segundo",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Recomendado",
-    "fourKExtra": "{count, plural, one {+# crédito} other {+# créditos}} por minuto",
+    "spec": "{width}×{height} · {fps} fps",
+    "fileInfo": "MP4 · cerca de {size, number} MB",
+    "planBusiness": "Business",
+    "lockedTitle": "Incluído no plano Business",
+    "lockedText": "A exportação em 4K e a 60 fps vem com o Business. As assinaturas abrem muito em breve.",
     "fourKUnavailable": "Seu vídeo não está em 4K: ampliar a imagem não adiantaria nada.",
-    "fourKNotEnough": "Você precisa de {cost} créditos para 4K e tem {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "incluído na transcrição",
-    "costPaid": "custo: {count, plural, one {# crédito} other {# créditos}}",
     "start": "Iniciar a exportação",
     "retry": "Tentar novamente",
     "queued": "Na fila…",
@@ -411,6 +412,7 @@
     "downloadHint": "O arquivo fica guardado por 7 dias.",
     "another": "Fazer outra exportação",
     "failed": "A exportação falhou. Seus créditos foram devolvidos.",
+    "failedFree": "A exportação falhou. Nenhum crédito foi cobrado, você pode tentar de novo.",
     "expired": "Este arquivo tem mais de 7 dias e foi apagado. Exporte de novo.",
     "errors": {
       "invalid": "Opção de exportação inválida.",
@@ -421,7 +423,6 @@
       "unknown": "Algo deu errado. Tente novamente.",
       "download": "Não foi possível preparar o download. Tente novamente.",
       "insufficient": "Créditos insuficientes para esta exportação."
-    },
-    "close": "Fechar"
+    }
   }
 }

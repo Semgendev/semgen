@@ -4,7 +4,8 @@
     "switchToLight": "Passer en mode clair"
   },
   "language": {
-    "label": "Changer la langue"
+    "label": "Changer la langue",
+    "menu": "Langue"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Connecté en tant que",
     "signOut": "Se déconnecter",
     "signIn": "Se connecter",
-    "myAccount": "Mon espace",
-    "appearance": "Apparence"
+    "appearance": "Apparence",
+    "profileMenu": "Menu du profil",
+    "menuAccount": "Mon compte"
   },
   "credits": {
     "balance": "{count, plural, one {# crédit} other {# crédits}}",
@@ -97,7 +99,6 @@
       "saved": "Enregistré",
       "unsaved": "Modifications non enregistrées",
       "saveFailed": "L’enregistrement a échoué. Réessaie.",
-      "hint": "Touche un mot pour le corriger. Entrée : valider la modification. Espace : lire ou mettre la vidéo en pause.",
       "wordLabel": "Mot à corriger",
       "newLine": "Nouvelle ligne ici",
       "merge": "Fusionner avec la ligne du dessus",
@@ -185,7 +186,6 @@
     "deleteTitle": "Supprimer ce projet ?",
     "deleteBody": "« {title} » et sa vidéo seront supprimés définitivement. Cette action est irréversible.",
     "deleteConfirm": "Supprimer définitivement",
-    "backToList": "Retour à mes projets",
     "menu": "Options du projet",
     "myProjects": "Mes projets",
     "noVideo": "Aucune vidéo n’est disponible pour ce projet pour le moment.",
@@ -199,7 +199,9 @@
       "processing": "Traitement",
       "ready": "Prête",
       "failed": "Échec"
-    }
+    },
+    "share": "Partager",
+    "shareSoon": "Bientôt : envoie le lien de ton projet à quelqu’un."
   },
   "appearance": {
     "breadcrumb": "Paramètres",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Passer en plein écran",
       "exitFullscreen": "Quitter le plein écran",
       "rate": "Changer la vitesse",
-      "volume": "Changer le volume"
+      "volume": "Changer le volume",
+      "seek": "Position dans la vidéo"
     }
   },
   "export": {
     "button": "Exporter",
-    "buttonBusy": "Export en cours… {percent} %",
-    "buttonDone": "Vidéo exportée",
     "needsText": "Écris d’abord le texte de la vidéo",
     "title": "Exporter la vidéo",
-    "intro": "La vidéo sort avec les sous-titres animés, exactement comme dans l’aperçu.",
     "format": "Format",
     "formatOriginal": "D’origine",
     "format916": "Vertical 9:16",
     "format11": "Carré 1:1",
     "format169": "Horizontal 16:9",
-    "fit": "Si le format est différent de ta vidéo",
+    "fit": "Cadrage",
     "fitCrop": "Recadrer",
     "fitCropHint": "Les bords sont coupés.",
     "fitBlur": "Fond flouté",
     "fitBlurHint": "La vidéo reste entière.",
     "quality": "Qualité",
+    "fps": "Images par seconde",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Recommandé",
-    "fourKExtra": "{count, plural, one {+# crédit} other {+# crédits}} par minute",
+    "spec": "{width}×{height} · {fps} i/s",
+    "fileInfo": "MP4 · environ {size, number} Mo",
+    "planBusiness": "Business",
+    "lockedTitle": "Inclus dans l’offre Business",
+    "lockedText": "L’export en 4K et en 60 i/s fait partie de l’offre Business. Les abonnements ouvrent très bientôt.",
     "fourKUnavailable": "Ta vidéo n’est pas en 4K : agrandir l’image ne servirait à rien.",
-    "fourKNotEnough": "Il te faut {cost} crédits pour la 4K et tu en as {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "compris dans la transcription",
-    "costPaid": "coût : {count, plural, one {# crédit} other {# crédits}}",
     "start": "Lancer l’export",
     "retry": "Réessayer",
     "queued": "En file d’attente…",
@@ -411,6 +412,7 @@
     "downloadHint": "Le fichier est gardé 7 jours.",
     "another": "Faire un autre export",
     "failed": "L’export a échoué. Tes crédits sont remboursés.",
+    "failedFree": "L’export a échoué. Aucun crédit n’a été pris, tu peux réessayer.",
     "expired": "Ce fichier a plus de 7 jours et a été effacé. Refais un export.",
     "errors": {
       "invalid": "Choix d’export invalide.",
@@ -421,7 +423,6 @@
       "unknown": "Quelque chose s’est mal passé. Réessaie.",
       "download": "Impossible de préparer le téléchargement. Réessaie.",
       "insufficient": "Pas assez de crédits pour cet export."
-    },
-    "close": "Fermer"
+    }
   }
 }

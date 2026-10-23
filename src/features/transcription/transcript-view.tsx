@@ -39,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ToolbarPortal } from "@/features/projects/editor-toolbar";
 import { cn } from "@/lib/utils";
 
 import {
@@ -790,14 +791,17 @@ export function TranscriptView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="text-muted-foreground text-sm">
           {t("detectedLanguage", { language: languageName ?? transcript.language })}
           {transcript.language_confidence !== null
             ? ` · ${Math.round(transcript.language_confidence * 100)} %`
             : ""}
         </p>
-        <div data-tools-anchor className="flex flex-wrap gap-2">
+        <div
+          data-tools-anchor
+          className={cn("flex flex-wrap gap-2", searchOpen && "w-full flex-nowrap")}
+        >
           {/* Kept (invisible) when there is nothing to revert: the buttons stay where they are, and
               the search field always starts at the same place. */}
           <Button
@@ -827,7 +831,7 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
-            className={TOUCH_BUTTON}
+            className={cn(TOUCH_BUTTON, searchOpen && "hidden")}
             onClick={() => download(`${baseName}.srt`, toSrt(exported), "application/x-subrip")}
           >
             <Download aria-hidden="true" />
@@ -837,30 +841,94 @@ export function TranscriptView({
             type="button"
             variant="outline"
             size="sm"
-            className={TOUCH_BUTTON}
+            className={cn(TOUCH_BUTTON, searchOpen && "hidden")}
             onClick={() => download(`${baseName}.txt`, toPlainText(exported), "text/plain")}
           >
             <Download aria-hidden="true" />
             TXT
           </Button>
+          {/* Search and replace: the search field grows to the left over SRT and TXT, which fold away. */}
+          <div className={cn("flex min-w-0 items-center gap-2", searchOpen && "flex-1")}>
+            <div className={cn(TOOL_FRAME, searchOpen && "min-w-0 flex-1")}>
+              <SearchTool
+                find={find}
+                onFind={changeFind}
+                matchCount={matchIndices.length}
+                onNext={nextMatch}
+                buttonClassName={TOOL_BUTTON}
+                fieldWidthClass="flex-1"
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+              />
+            </div>
+            {/* On a phone the open search field takes the room of the other tools (else ~4 letters fit) */}
+            <div className={cn(TOOL_FRAME, searchOpen && "max-sm:hidden")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(TOOL_BUTTON, replaceOpen && "bg-surface text-brand")}
+                aria-haspopup="dialog"
+                aria-expanded={replaceOpen}
+                aria-label={t("edit.replaceToggleHint")}
+                title={t("edit.replaceToggleHint")}
+                onClick={toggleReplace}
+              >
+                <ReplaceAll aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* The tools row: the save status at the start, the tools at the end (they never move). */}
-      <div data-tools-row className="flex min-h-11 items-center justify-between gap-2">
-        <div
-          className="flex min-w-0 flex-1 items-center gap-x-4 overflow-hidden whitespace-nowrap"
-          aria-live="polite"
-        >
+      {/* A short confirmation (e.g. "3 replacements"), only while there is one. */}
+      <div aria-live="polite">
+        {notice ? (
+          <p className="text-text-2 flex items-center gap-2 text-sm">
+            <Check className="text-success size-4" aria-hidden="true" />
+            {notice}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Undo / redo and the save status are drawn in the header, on the first line of the page. */}
+      <ToolbarPortal slot="history">
+        <div className="flex items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-text hover:bg-surface-2 disabled:text-text-3 size-11 disabled:opacity-100 lg:size-8"
+            aria-label={t("edit.undo")}
+            title={t("edit.undo")}
+            disabled={steps.undo.length === 0}
+            onClick={undo}
+          >
+            <Undo2 aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-text hover:bg-surface-2 disabled:text-text-3 size-11 disabled:opacity-100 lg:size-8"
+            aria-label={t("edit.redo")}
+            title={t("edit.redo")}
+            disabled={steps.redo.length === 0}
+            onClick={redo}
+          >
+            <Redo2 aria-hidden="true" />
+          </Button>
+        </div>
+        <div className="flex items-center" aria-live="polite">
           {saveState === "error" || movesSave === "error" ? (
-            <p className="text-danger flex items-center gap-2 text-sm">
+            <p className="text-danger flex items-center gap-1.5 text-xs whitespace-nowrap">
               <CircleAlert className="size-4" aria-hidden="true" />
-              {t("edit.saveFailed")}
+              <span className="max-md:sr-only">{t("edit.saveFailed")}</span>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className={TOUCH_BUTTON}
+                className="max-lg:min-h-11"
                 onClick={() => {
                   if (saveState === "error") save();
                   if (movesSave === "error") movesBridge.retry();
@@ -870,81 +938,18 @@ export function TranscriptView({
               </Button>
             </p>
           ) : dirty || saving || movesSave === "saving" ? (
-            <p className="text-text-2 flex items-center gap-2 text-sm">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              {t("edit.saving")}
+            <p className="text-text-3 flex items-center gap-1.5 text-xs whitespace-nowrap">
+              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              <span className="max-md:sr-only">{t("edit.saving")}</span>
             </p>
           ) : saveState === "saved" || movesSave === "saved" ? (
-            <p className="text-text-2 flex items-center gap-2 text-sm">
-              <Check className="text-success size-4" aria-hidden="true" />
-              {t("edit.saved")}
-            </p>
-          ) : null}
-          {notice ? (
-            <p className="text-text-2 flex items-center gap-2 text-sm">
-              <Check className="text-success size-4" aria-hidden="true" />
-              {notice}
+            <p className="text-text-3 flex items-center gap-1.5 text-xs whitespace-nowrap">
+              <Check className="text-success size-3.5" aria-hidden="true" />
+              <span className="max-md:sr-only">{t("edit.saved")}</span>
             </p>
           ) : null}
         </div>
-        {/* The tools, apart from each other: search, replace, then undo / redo together. */}
-        <div className="flex min-w-0 shrink-0 items-center gap-2">
-          <div className={TOOL_FRAME}>
-            <SearchTool
-              find={find}
-              onFind={changeFind}
-              matchCount={matchIndices.length}
-              onNext={nextMatch}
-              buttonClassName={TOOL_BUTTON}
-              open={searchOpen}
-              onOpenChange={setSearchOpen}
-            />
-          </div>
-          {/* On a phone the open search field takes the room of the other tools (else ~4 letters fit) */}
-          <div className={cn(TOOL_FRAME, searchOpen && "max-sm:hidden")}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(TOOL_BUTTON, replaceOpen && "bg-surface text-brand")}
-              aria-haspopup="dialog"
-              aria-expanded={replaceOpen}
-              aria-label={t("edit.replaceToggleHint")}
-              title={t("edit.replaceToggleHint")}
-              onClick={toggleReplace}
-            >
-              <ReplaceAll aria-hidden="true" />
-            </Button>
-          </div>
-          <div className={cn(TOOL_FRAME, searchOpen && "max-sm:hidden")}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={TOOL_BUTTON}
-              aria-label={t("edit.undo")}
-              title={t("edit.undo")}
-              disabled={steps.undo.length === 0}
-              onClick={undo}
-            >
-              <Undo2 aria-hidden="true" />
-            </Button>
-            <span className="bg-border mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={TOOL_BUTTON}
-              aria-label={t("edit.redo")}
-              title={t("edit.redo")}
-              disabled={steps.redo.length === 0}
-              onClick={redo}
-            >
-              <Redo2 aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      </ToolbarPortal>
 
       {replaceOpen ? (
         <ReplacePanel
@@ -959,33 +964,34 @@ export function TranscriptView({
         />
       ) : null}
 
-      {/* The quick help (always there) and, at the end, the cuts and doubts tools. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="text-text-3 min-w-0 flex-1 basis-64 text-sm leading-5">{t("edit.hint")}</p>
-        {hiddenCuts > 0 ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={TOUCH_BUTTON}
-            onClick={bringBackCuts}
-          >
-            <Scissors aria-hidden="true" />
-            {t("edit.restoreCuts")}
-          </Button>
-        ) : null}
-        {doubtCount > 0 ? (
-          <label className="text-muted-foreground flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={showDoubts}
-              onChange={(event) => setShowDoubts(event.target.checked)}
-              className="accent-primary size-4"
-            />
-            {t("showDoubts", { count: doubtCount })}
-          </label>
-        ) : null}
-      </div>
+      {/* The cuts and doubts tools: the row only exists when one of them has something to say. */}
+      {hiddenCuts > 0 || doubtCount > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          {hiddenCuts > 0 ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={TOUCH_BUTTON}
+              onClick={bringBackCuts}
+            >
+              <Scissors aria-hidden="true" />
+              {t("edit.restoreCuts")}
+            </Button>
+          ) : null}
+          {doubtCount > 0 ? (
+            <label className="text-muted-foreground flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={showDoubts}
+                onChange={(event) => setShowDoubts(event.target.checked)}
+                className="accent-primary size-4"
+              />
+              {t("showDoubts", { count: doubtCount })}
+            </label>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* the list, and in its top right corner the place of the "move a block" window */}
       <div className="relative flex min-h-0 flex-1 flex-col">

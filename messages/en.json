@@ -4,7 +4,8 @@
     "switchToLight": "Switch to light mode"
   },
   "language": {
-    "label": "Change language"
+    "label": "Change language",
+    "menu": "Language"
   },
   "hero": {
     "title": "SemGen Studio",
@@ -39,8 +40,9 @@
     "signedInAs": "Signed in as",
     "signOut": "Sign out",
     "signIn": "Sign in",
-    "myAccount": "My account",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "profileMenu": "Profile menu",
+    "menuAccount": "My account"
   },
   "credits": {
     "balance": "{count, plural, one {# credit} other {# credits}}",
@@ -97,7 +99,6 @@
       "saved": "Saved",
       "unsaved": "Unsaved changes",
       "saveFailed": "Saving failed. Please try again.",
-      "hint": "Tap a word to fix it. Enter: confirm your change. Space: play or pause the video.",
       "wordLabel": "Word to fix",
       "newLine": "New line here",
       "merge": "Merge with the line above",
@@ -185,7 +186,6 @@
     "deleteTitle": "Delete this project?",
     "deleteBody": "“{title}” and its video will be permanently deleted. This cannot be undone.",
     "deleteConfirm": "Delete permanently",
-    "backToList": "Back to my projects",
     "menu": "Project options",
     "myProjects": "My projects",
     "noVideo": "No video is available for this project yet.",
@@ -199,7 +199,9 @@
       "processing": "Processing",
       "ready": "Ready",
       "failed": "Failed"
-    }
+    },
+    "share": "Share",
+    "shareSoon": "Coming soon: send your project’s link to someone."
   },
   "appearance": {
     "breadcrumb": "Settings",
@@ -370,37 +372,36 @@
       "enterFullscreen": "Enter full screen",
       "exitFullscreen": "Exit full screen",
       "rate": "Change playback speed",
-      "volume": "Change volume"
+      "volume": "Change volume",
+      "seek": "Position in the video"
     }
   },
   "export": {
     "button": "Export",
-    "buttonBusy": "Exporting… {percent}%",
-    "buttonDone": "Video exported",
     "needsText": "Write the video’s text first",
     "title": "Export the video",
-    "intro": "The video comes out with the animated captions, exactly as in the preview.",
     "format": "Format",
     "formatOriginal": "Original",
     "format916": "Vertical 9:16",
     "format11": "Square 1:1",
     "format169": "Horizontal 16:9",
-    "fit": "If the format differs from your video",
+    "fit": "Framing",
     "fitCrop": "Crop",
     "fitCropHint": "The edges are cut.",
     "fitBlur": "Blurred background",
     "fitBlurHint": "The video stays whole.",
     "quality": "Quality",
+    "fps": "Frame rate",
     "q720": "720p",
     "q1080": "1080p",
     "q4k": "4K",
-    "recommended": "Recommended",
-    "fourKExtra": "{count, plural, one {+# credit} other {+# credits}} per minute",
+    "spec": "{width}×{height} · {fps} fps",
+    "fileInfo": "MP4 · about {size, number} MB",
+    "planBusiness": "Business",
+    "lockedTitle": "Included in the Business plan",
+    "lockedText": "4K and 60 fps exports come with Business. Subscriptions open very soon.",
     "fourKUnavailable": "Your video is not 4K: enlarging the picture would bring nothing.",
-    "fourKNotEnough": "You need {cost} credits for 4K and you have {balance}.",
-    "summary": "{width}×{height} px",
     "costFree": "included with the transcription",
-    "costPaid": "cost: {count, plural, one {# credit} other {# credits}}",
     "start": "Start the export",
     "retry": "Try again",
     "queued": "Waiting in line…",
@@ -411,6 +412,7 @@
     "downloadHint": "The file is kept for 7 days.",
     "another": "Make another export",
     "failed": "The export failed. Your credits are refunded.",
+    "failedFree": "The export failed. No credits were taken, you can try again.",
     "expired": "This file is more than 7 days old and was deleted. Export again.",
     "errors": {
       "invalid": "Invalid export choice.",
@@ -421,7 +423,6 @@
       "unknown": "Something went wrong. Try again.",
       "download": "Could not prepare the download. Try again.",
       "insufficient": "Not enough credits for this export."
-    },
-    "close": "Close"
+    }
   }
 }

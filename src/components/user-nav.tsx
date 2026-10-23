@@ -1,7 +1,8 @@
-import { Coins } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { ProfileMenu } from "@/components/profile-menu";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCreditBalance } from "@/features/credits/queries";
@@ -16,33 +17,27 @@ async function UserNavContent() {
   const t = await getTranslations();
 
   if (!data?.claims) {
+    // visitors have no profile menu: the language button stays in sight
     return (
-      <Link href="/account" className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}>
-        {t("account.signIn")}
-      </Link>
+      <>
+        <Link
+          href="/account"
+          className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}
+        >
+          {t("account.signIn")}
+        </Link>
+        <LanguageSwitcher />
+      </>
     );
   }
 
   const balance = await getCreditBalance(supabase);
 
   return (
-    <>
-      <Link
-        href="/account/credits"
-        aria-label={t("credits.balanceLabel", { count: balance })}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          // The "spark" accent is reserved for credits and AI actions (D15).
-          "border-spark/40 text-spark-text hover:bg-spark/10 max-lg:min-h-11",
-        )}
-      >
-        <Coins className="size-4" aria-hidden="true" />
-        {t("credits.balance", { count: balance })}
-      </Link>
-      <Link href="/account" className={cn(buttonVariants({ variant: "ghost" }), "max-lg:min-h-11")}>
-        {t("account.myAccount")}
-      </Link>
-    </>
+    <ProfileMenu
+      email={typeof data.claims.email === "string" ? data.claims.email : ""}
+      balance={balance}
+    />
   );
 }
 
